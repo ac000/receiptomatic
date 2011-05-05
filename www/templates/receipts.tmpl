@@ -1,0 +1,117 @@
+<html>
+<body>
+<head>
+	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
+</head>
+<body>
+	| <a href = "http://ri.opentechlabs.net/logout/">logout</a> | receipts | <a href = "http://ri.opentechlabs.net/tagged_receipts/">tagged receipts</a> | <a href = "http://ri.opentechlabs.net/prefs/fmap/">field mapping</a> |
+	<p />
+	<big><big> <tmpl_var name = "name" /> | Un-tagged Receipts</big></big>
+	<hr />
+
+<tmpl_if name = "receipts" value = "no">
+</body>
+</html>
+<tmpl_else>
+	<table>
+	<tbody>
+
+<tmpl_loop name = "table">
+	<tr>
+		<td rowspan = "17">
+		<form action = "http://ri.opentechlabs.net/receipts/" method = "POST">
+		<img src = 'http://ri.opentechlabs.net/get_image/<tmpl_var name = "image_path" />/medium/<tmpl_var name = "image_name" />' width = "300" height = "300" />
+		<br />
+		Uploaded at: <tmpl_var name = "timestamp" />
+		<a href = 'http://ri.opentechlabs.net/full_image/<tmpl_var name = "image_path" />/<tmpl_var name = "image_name" />'>[ Full Size ]</a>
+		</td>
+
+		<td><big><tmpl_var name = "fields.department" /> </big></td>
+		<td> : <input type = "text" name = "department" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.employee_number" /> </big></td>
+		<td> : <input type = "text" name = "employee_number" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.cost_codes" /> </big></td>
+		<td> : <input type = "text" name = "cost_codes" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.account_codes" /> </big></td>
+		<td> : <input type = "text" name = "account_codes" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.po_num" /> </big></td>
+		<td> : <input type = "text" name = "po_num" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.supplier_name" /> </big></td>
+		<td> : <input type = "text" name = "supplier_name" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.supplier_town" /> </big></td>
+		<td> : <input type = "text" name = "supplier_town" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.currency" /> </big></td>
+		<td> : <select name = "currency">
+			<option value = "GBP">GBP</option>
+			<option value = "USD">USD</option>
+			<option value = "EUR">EUR</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.gross_amount" /> </big></td>
+		<td> : <input type = "text" name = "gross_amount" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.vat_amount" /> </big></td>
+		<td> : <input type = "text" name = "vat_amount" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.net_amount" /> </big></td>
+		<td> : <input type = "text" name = "net_amount" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.vat_rate" /> </big></td>
+		<td> : <input type = "text" name = "vat_rate" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.vat_number" /> </big></td>
+		<td> : <input type = "text" name = "vat_number" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.reason" /> </big></td>
+		<td> : <input type = "text" name = "reason" /></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.receipt_date" /> </big></td>
+		<td> : <input type = "text" name = "receipt_date" /><small>(YYYY-MM-DD)</small></td>
+	</tr>
+	<tr>
+		<td><big><tmpl_var name = "fields.payment_method" /> </big></td>
+		<td> : <select name = "payment_method">
+			<option value = "card">Card</option>
+			<option value = "cash">Cash</option>
+			<option value = "cheque">Cheque</option>
+			</select>
+		</td>
+	</tr>
+	<tr>
+		<td></td>
+		<td align = "right">
+		<input type = "hidden" name = "image_id" value = '<tmpl_var name = "id" />' />
+		<input type = "submit" value = "Tag It" />
+		</form>
+		</td>
+	</tr>
+</tmpl_loop>
+
+	</tbody>
+	</table>
+</tmpl_if>
+
+</body>
+</html>

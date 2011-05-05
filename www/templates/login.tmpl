@@ -1,0 +1,26 @@
+<html>
+<head>
+	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
+</head>
+<body>
+<tmpl_if name = "logged_in" value = "no">
+	<big>Login Failure. Please try again</big><p />
+</tmpl_if>
+	<form action = "http://ri.opentechlabs.net/login/" method = "POST">
+	<table>
+	<tbody>
+	<tr>
+		<td><big>Username: </big></td>
+		<td><input type = "text" name = "username"></td>
+	</tr>
+	<tr>
+		<td><big>Password: </big></td>
+		<td><input type = "password" name = "password"></td>
+	</tr>
+	</table>
+	</tbodY>
+	<p />
+	<input type = "submit" value = "Open Sesame" />
+	</form>
+</body>
+</html>

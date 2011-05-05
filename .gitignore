@@ -1,0 +1,5 @@
+.*
+*~
+db/db_config.h
+receiver/receiptomatic
+www/receiptomatic-www

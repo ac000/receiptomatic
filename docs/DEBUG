@@ -1,0 +1,5 @@
+When using valgrind to check code that uses glib memory allocations, run it
+with like:
+
+	$ G_SLICE=always-malloc G_DEBUG=gc-friendly valgrind ./prog
+

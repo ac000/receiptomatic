@@ -1,0 +1,44 @@
+Wrong request_id cookie being sent for /get_image/
+
+* Send request cookie and receipts html
+  4861  write(4, "\1\6\0\1\20\31\7\0
+	Set-Cookie: request_id=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/; httponly\r\n
+	Set-Cookie: request_id=498dfb9b6a2c72bf729818437fb6c1935547b6ae2c98a8f7d69b1dfbc82bd0cb; path=/; 
+	httponly\r\nContent-Type: text/html\r\n\r\n<html>\n<body>\n| <a href ="..., 4160) = 4160
+
+* Read request for first image
+  4861  read(4, "\1\1\0\1\0\10\0\0\0\1\0\0\0\0\0\0\1\4\0\1\4\201\7\0\f\0
+	QUERY_STRING\16\3REQUEST_METHODGET\f\0CONTENT_TYPE\16\0CONTENT_LENGTH\vE
+	SCRIPT_NAME/get_image/ac-ri@ri.opentechlabs.net/2011/04/25/001-receipt_image.jpg\vE
+	REQUEST_URI/get_image/ac-ri@ri.opentechlabs.net/2011/04/25/001-receipt_image.jpg
+	\fEDOC"..., 8192) = 1200
+
+* Send request cookie and first image
+  4861  write(4, "\1\6\0\1\37\370\0\0
+	Set-Cookie: request_id=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; path=/; httponly\r\n
+	Set-Cookie: request_id=6e9a63ba105804c6400fc5dd428121124355bd7585682120ffd1147339bcfd54; path=/; 
+	httponly\r\nContent-Type: image/jpeg;\r\n\r\n
+	\377\330\377\341y\337Exif\0\0MM\0*\0\0\0\10\0\10\1"..., 8192) = 8192
+
+* Read request for the second image
+  4861  read(4, "\1\1\0\1\0\10\0\0\0\1\0\0\0\0\0\0\1\4\0\1\4\201\7\0\f\0
+	QUERY_STRING\16\3REQUEST_METHODGET\f\0CONTENT_TYPE\16\0CONTENT_LENGTH\vE
+	SCRIPT_NAME/get_image/ac-ri@ri.opentechlabs.net/2011/04/25/002-receipt_image.jpg\vE
+	REQUEST_URI/get_image/ac-ri@ri.opentechlabs.net/2011/04/25/002-receipt_image.jpg
+	\fEDOC"..., 8192) = 1200
+
+=== Problem ===
+
+Here, the browser is sending back the first cookie (498dfb9b6...).
+
+
+OK. What I think is happening is this:
+
+	1) After login, the browser is sent session_id and request_id cookies.
+	2) Broweser is redirected to /receipts/ and send cookies
+	3) Broweser is given a new request_is cookie
+	3) Browser is given a bunch of html to render and hist the first image
+	4) Browser sends cookie and gets the image.
+	5) Before it's had a chance to save this cookie, it's going after the
+	   second image, where it sends the previous cookie again.
+

@@ -1,0 +1,46 @@
+<html>
+<head>
+	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
+</head>
+<body>
+	| <a href = "http://ri.opentechlabs.net/logout/">logout</a> | <a href = "http://ri.opentechlabs.net/receipts/">receipts</a> | tagged receipts | <a href = "http://ri.opentechlabs.net/prefs/fmap/">field mapping</a> |
+	<p />
+
+	<big><big><tmpl_var name = "name" /> | Previously Tagged Receipts</big></big>
+	<hr />
+
+<tmpl_if name = "receipts" value = "no">
+</body>
+</html>
+<tmpl_else>
+	<center>
+	<table cellpadding = "4">
+	<tbody>
+	<tr>
+
+<tmpl_loop name = "table">
+		<td>
+		<a href = 'http://ri.opentechlabs.net/receipt_info/?image_id=<tmpl_var name = "id" />'>
+		<img src = 'http://ri.opentechlabs.net/get_image/<tmpl_var name = "image_path" />/small/<tmpl_var name = "image_name" />' width = "180" height = "180" /></a>
+		<br />
+		<tmpl_var name = "fields.receipt_date" />: <br /><tmpl_var name = "receipt_date" />
+		</td>
+		<tmpl_if name = "close_row" value = "yes">
+		</tr>
+		</tmpl_if>
+		<tmpl_if name = "new_row" value = "yes">
+		<tr>
+		</tmpl_if>
+</tmpl_loop>
+	</tr>
+	</tbody>
+	</table>
+	</center>
+
+	<a href = 'http://ri.opentechlabs.net/tagged_receipts/?page_no=<tmpl_var name = "prev_page" />'> Prev Page </a>
+	&nbsp;::&nbsp;
+	<a href = 'http://ri.opentechlabs.net/tagged_receipts/?page_no=<tmpl_var name = "next_page" />'> Next Page </a>
+
+</body>
+</html>
+</tmpl_if>
