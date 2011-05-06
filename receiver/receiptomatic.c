@@ -238,7 +238,7 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	/* In the database we only store the path relative from BASE_PATH */
 	sprintf(path, "%s/%s", to, ymd);
 	snprintf(sql, SQL_MAX,
-		"INSERT INTO images VALUES ('%s', '%s', %ld, '%s', '%s', 0)",
+		"INSERT INTO images VALUES ('%s', '%s', %ld, '%s', '%s', 0, 1)",
 					image_id, to, t, path, filename);
 	printf("SQL: %s\n", sql);
 	do_sql(sql);
