@@ -1336,18 +1336,19 @@ static void receipt_info(struct session *current_session, char *query)
 	mysql_real_escape_string(conn, image_id, get_var(qvars, "image_id"),
 					strlen(get_var(qvars, "image_id")));
 	snprintf(sql, SQL_MAX, "SELECT images.timestamp AS images_timestamp, "
-				"images.path, images.name, tags.timestamp AS "
-				"tags_timestamp, tags.employee_number, "
-				"tags.department, tags.po_num, "
-				"tags.cost_codes, tags.account_codes, "
-				"tags.supplier_name, tags.supplier_town, "
-				"tags.currency, tags.gross_amount, "
-				"tags.vat_amount, tags.net_amount, "
-				"tags.vat_rate, tags.vat_number, "
-				"tags.receipt_date, tags.reason, "
-				"tags.payment_method FROM images "
-				"INNER JOIN tags ON (images.id = tags.id) "
-				"WHERE images.id = '%s' LIMIT 1", image_id);
+				"images.path, images.name, images.approved,"
+				"tags.timestamp AS tags_timestamp, "
+				"tags.employee_number, tags.department, "
+				"tags.po_num, tags.cost_codes, "
+				"tags.account_codes, tags.supplier_name, "
+				"tags.supplier_town, tags.currency, "
+				"tags.gross_amount, tags.vat_amount, "
+				"tags.net_amount, tags.vat_rate, "
+				"tags.vat_number, tags.receipt_date, "
+				"tags.reason, tags.payment_method FROM "
+				"images INNER JOIN tags ON "
+				"(images.id = tags.id) WHERE "
+				"images.id = '%s' LIMIT 1", image_id);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 
@@ -1441,6 +1442,13 @@ static void receipt_info(struct session *current_session, char *query)
 									NULL);
 	vl = TMPL_add_var(vl, "payment_method", get_var(db_row,
 						"payment_method"), NULL);
+
+	if (atoi(get_var(db_row, "approved")) == REJECTED)
+		vl = TMPL_add_var(vl, "approved", "rejected", NULL);
+	else if (atoi(get_var(db_row, "approved")) == PENDING)
+		vl = TMPL_add_var(vl, "approved", "pending", NULL);
+	else
+		vl = TMPL_add_var(vl, "approved", "yes", NULL);
 
 	free_vars(db_row);
 

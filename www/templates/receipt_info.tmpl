@@ -18,7 +18,7 @@
 	<tbody>
 
 	<tr>
-		<td rowspan = "18">
+		<td rowspan = "19">
 		<img src = '/get_image/<tmpl_var name = "image_path" />/medium/<tmpl_var name = "image_name" />' width = "300" height = "300" />
 		</td>
 
@@ -91,6 +91,18 @@
 	<tr>
 		<td><big><tmpl_var name = "fields.payment_method" /></big></td>
 		<td> : <tmpl_var name = "payment_method" /></td>
+	</tr>
+	<tr>
+		<td><big>Approval Status</big></td>
+		<td> :&nbsp;
+			<tmpl_if name = "approved" value = "rejected">
+				<span class = "rejected">Rejected</span>
+			<tmpl_elsif name = "approved" value = "pending">
+				<span class = "pending">Pending</span>
+			<tmpl_else>
+				<span class = "approved">Approved</span>
+			</tmpl_if>
+		</td>
 	</tr>
 
 	</tbody>
