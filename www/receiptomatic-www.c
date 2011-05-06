@@ -74,10 +74,13 @@ static FILE *error_log;
 static FILE *debug_log;
 
 #define NR_PROCS	5	/* Number of processes to fork at startup */
+
 #define BUF_SIZE	4096
 #define SQL_MAX		8192
+
 #define IMAGE_PATH	"/data/www/opentechlabs.net/receiptomatic/receipt_images"
 #define BASE_URL	"http://ri.opentechlabs.net"
+
 #define SESSION_DB	"/dev/shm/receiptomatic-www-sessions.sqlite"
 #define SESSION_CHECK	60 * 60		/* Check for old sessions every hour */
 #define SESSION_EXPIRY	60 * 60 * 4	/* 4 hours */
@@ -85,6 +88,9 @@ static FILE *debug_log;
 #define GRID_SIZE	9
 #define ROW_SIZE	3
 #define COL_SIZE	3
+
+#define USER		0
+#define APPROVER	1
 
 /*
  * Wrapper around fprintf(). It will prepend the text passed it with
