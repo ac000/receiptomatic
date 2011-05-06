@@ -92,6 +92,10 @@ static FILE *debug_log;
 #define USER		0
 #define APPROVER	1
 
+#define REJECTED	0
+#define PENDING		1
+#define APPROVED	2
+
 /*
  * Wrapper around fprintf(). It will prepend the text passed it with
  * seconds.microseconds pid function:
@@ -1490,9 +1494,10 @@ static void tagged_receipts(struct session *current_session, char *query)
 	mysql_real_escape_string(conn, u_email, current_session->u_email,
 					strlen(current_session->u_email));
 	snprintf(sql, SQL_MAX, "SELECT tags.receipt_date, images.id, "
-				"images.path, images.name FROM tags "
-				"INNER JOIN images ON (tags.id = images.id) "
-				"WHERE images.processed = 1 AND images.who = "
+				"images.path, images.name, images.approved "
+				"FROM tags INNER JOIN images ON "
+				"(tags.id = images.id) WHERE "
+				"images.processed = 1 AND images.who = "
 				"'%s' ORDER BY tags.timestamp LIMIT %d, %d",
 				u_email, from, GRID_SIZE);
 	d_fprintf(sql_log, "%s\n", sql);
@@ -1535,6 +1540,14 @@ static void tagged_receipts(struct session *current_session, char *query)
                 loop = TMPL_add_varlist(loop, vl);
 		vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
                 loop = TMPL_add_varlist(loop, vl);
+
+		if (atoi(get_var(db_row, "approved")) == REJECTED)
+			vl = TMPL_add_var(vl, "approved", "rejected", NULL);
+		else if (atoi(get_var(db_row, "approved")) == PENDING)
+			vl = TMPL_add_var(vl, "approved", "pending", NULL);
+		else
+			vl = TMPL_add_var(vl, "approved", "yes", NULL);
+		loop = TMPL_add_varlist(loop, vl);
 
 		/* We want a 3 x 3 grid */
 		if (c == COL_SIZE) /* Close off row */

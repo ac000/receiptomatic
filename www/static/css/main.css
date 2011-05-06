@@ -1,3 +1,19 @@
 body {
         font-family: sans-serif;
 }
+
+.lighter {
+	color: rgb(130, 130, 130);
+}
+
+.rejected {
+	color: rgb(255, 0, 0);
+}
+
+.pending {
+	color: rgb(230, 160, 70);
+}
+
+.approved {
+	color: rgb(0, 255, 0);
+}

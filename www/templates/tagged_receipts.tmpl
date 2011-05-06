@@ -23,13 +23,27 @@
 		<a href = '/receipt_info/?image_id=<tmpl_var name = "id" />'>
 		<img src = '/get_image/<tmpl_var name = "image_path" />/small/<tmpl_var name = "image_name" />' width = "180" height = "180" /></a>
 		<br />
-		<tmpl_var name = "fields.receipt_date" />: <br /><tmpl_var name = "receipt_date" />
+		<span class = "lighter">
+			<tmpl_var name = "fields.receipt_date" />:
+		</span>
+		&nbsp;<tmpl_var name = "receipt_date" />
+		<br />
+		<span style = "color: rgb(130, 130, 130);">
+			Approval Status:&nbsp;
+		</span>
+		<tmpl_if name = "approved" value = "rejected">
+			<span class = "rejected">Rejected</span>
+		<tmpl_elsif name = "approved" value = "pending">
+			<span class = "pending">Pending</span>
+		<tmpl_else>
+			<span class = "approved">Approved</span>
+		</tmpl_if>
 		</td>
 		<tmpl_if name = "close_row" value = "yes">
-		</tr>
+			</tr>
 		</tmpl_if>
 		<tmpl_if name = "new_row" value = "yes">
-		<tr>
+			<tr>
 		</tmpl_if>
 </tmpl_loop>
 	</tr>
