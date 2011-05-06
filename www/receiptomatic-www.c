@@ -1032,6 +1032,7 @@ static void login(char *http_user_agent, char *http_x_forwarded_for)
 		vl = TMPL_add_var(0, "logged_in", "no", NULL);
 
 	printf("Content-Type: text/html\r\n\r\n");
+	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 	TMPL_write("templates/login.tmpl", NULL, NULL, vl, stdout, error_log);
 	TMPL_free_varlist(vl);
 }

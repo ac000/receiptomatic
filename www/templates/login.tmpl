@@ -6,7 +6,7 @@
 <tmpl_if name = "logged_in" value = "no">
 	<big>Login Failure. Please try again</big><p />
 </tmpl_if>
-	<form action = "http://ri.opentechlabs.net/login/" method = "POST">
+	<form action = "<tmpl_var name = 'base_url' />/login/" method = "POST">
 	<table>
 	<tbody>
 	<tr>
