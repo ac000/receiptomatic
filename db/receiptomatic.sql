@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: May 06, 2011 at 12:40 PM
+-- Generation Time: May 06, 2011 at 02:07 PM
 -- Server version: 5.0.77
 -- PHP Version: 5.1.6
 
@@ -58,7 +58,8 @@ CREATE TABLE IF NOT EXISTS `images` (
   `timestamp` int(10) unsigned NOT NULL,
   `path` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `processed` tinyint(4) NOT NULL,
+  `processed` tinyint(4) unsigned NOT NULL default '0',
+  `approved` tinyint(3) unsigned NOT NULL default '1',
   KEY `id` (`id`),
   KEY `processed` (`processed`),
   KEY `who` (`who`)
