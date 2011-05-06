@@ -44,7 +44,7 @@
 /* HTML template library */
 #include <ctemplate.h>
 
-#include "receiptomatc-www.h"
+#include "receiptomatic-www.h"
 #include "../db/db_config.h"
 
 
