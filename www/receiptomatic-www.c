@@ -1023,8 +1023,7 @@ static void login(char *http_user_agent, char *http_x_forwarded_for)
 			create_session(credentials, http_user_agent,
 					http_x_forwarded_for);
 
-			printf("Location: http://ri.opentechlabs.net/receipts/"
-								"\r\n\r\n");
+			printf("Location: %s/receipts/\r\n\r\n", BASE_URL);
 		}
 		free_vars(credentials);
 	}
@@ -1777,7 +1776,7 @@ static void handle_request()
 							http_x_forwarded_for,
 							request_uri);
 	if (!logged_in) {
-		printf("Location: http://ri.opentechlabs.net/login/\r\n\r\n");
+		printf("Location: %s/login/\r\n\r\n", BASE_URL);
 		goto out;
 	}
 	set_current_session(&current_session, http_cookie, request_uri);
@@ -1823,7 +1822,7 @@ static void handle_request()
 	}
 
 	/* Default location */
-	printf("Location: http://ri.opentechlabs.net/login/\r\n\r\n");
+	printf("Location: %s/login/\r\n\r\n", BASE_URL);
 
 out:
 	free(current_session.username);
