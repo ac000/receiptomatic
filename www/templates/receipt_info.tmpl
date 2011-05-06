@@ -4,7 +4,7 @@
 	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
 </head>
 <body>
-	| <a href = "http://ri.opentechlabs.net/logout/">logout</a> | <a href = "http://ri.opentechlabs.net/receipts/">receipts</a> | <a href = "http://ri.opentechlabs.net/tagged_receipts/">tagged receipts</a> | receipt info | <a href = "http://ri.opentechlabs.net/prefs/fmap/">field mapping</a> |
+	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | receipt info | <a href = "/prefs/fmap/">field mapping</a> |
 	<p />
 
 	<big><big><tmpl_var name = "name" /> | Receipt Info</big></big>
@@ -19,7 +19,7 @@
 
 	<tr>
 		<td rowspan = "18">
-		<img src = 'http://ri.opentechlabs.net/get_image/<tmpl_var name = "image_path" />/medium/<tmpl_var name = "image_name" />' width = "300" height = "300" />
+		<img src = '/get_image/<tmpl_var name = "image_path" />/medium/<tmpl_var name = "image_name" />' width = "300" height = "300" />
 		</td>
 
 		<td><big>Uploaded at </big></td>
