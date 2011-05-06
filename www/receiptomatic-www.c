@@ -77,6 +77,7 @@ static FILE *debug_log;
 #define BUF_SIZE	4096
 #define SQL_MAX		8192
 #define IMAGE_PATH	"/data/www/opentechlabs.net/receiptomatic/receipt_images"
+#define BASE_URL	"http://ri.opentechlabs.net"
 #define SESSION_DB	"/dev/shm/receiptomatic-www-sessions.sqlite"
 #define SESSION_CHECK	60 * 60		/* Check for old sessions every hour */
 #define SESSION_EXPIRY	60 * 60 * 4	/* 4 hours */
