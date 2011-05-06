@@ -1177,6 +1177,7 @@ static void prefs_fmap(struct session *current_session)
 		update_fmap(current_session, buf);
 
 	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
+	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 
 	fields = field_names;
 	set_custom_field_names(current_session, &fields);

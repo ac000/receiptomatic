@@ -3,7 +3,7 @@
 	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
 </head>
 <body>
-	| <a href = "http://ri.opentechlabs.net/logout/">logout</a> | <a href = "http://ri.opentechlabs.net/receipts/">receipts</a>  | <a href = "http://ri.opentechlabs.net/tagged_receipts/">tagged receipts</a> | field mapping |
+	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a>  | <a href = "/tagged_receipts/">tagged receipts</a> | field mapping |
 	<p />
 	<big><big><tmpl_var name = "name" /> | Change Field Names</big></big>
 	<hr />
@@ -12,7 +12,7 @@
 		<big>Fields updated</big><p />
 	</tmpl_if>
 
-	<form action = "http://ri.opentechlabs.net/prefs/fmap/" method = "POST">
+	<form action = "<tmpl_var name = 'base_url' />/prefs/fmap/" method = "POST">
 
 	<table border = "2">
 	<tbody>
