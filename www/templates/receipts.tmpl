@@ -4,7 +4,7 @@
 	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
 </head>
 <body>
-	| <a href = "http://ri.opentechlabs.net/logout/">logout</a> | receipts | <a href = "http://ri.opentechlabs.net/tagged_receipts/">tagged receipts</a> | <a href = "http://ri.opentechlabs.net/prefs/fmap/">field mapping</a> |
+	| <a href = "/logout/">logout</a> | receipts | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/fmap/">field mapping</a> |
 	<p />
 	<big><big> <tmpl_var name = "name" /> | Un-tagged Receipts</big></big>
 	<hr />
@@ -19,11 +19,11 @@
 <tmpl_loop name = "table">
 	<tr>
 		<td rowspan = "17">
-		<form action = "http://ri.opentechlabs.net/receipts/" method = "POST">
-		<img src = 'http://ri.opentechlabs.net/get_image/<tmpl_var name = "image_path" />/medium/<tmpl_var name = "image_name" />' width = "300" height = "300" />
+		<form action = "<tmpl_var name = 'base_url' />/receipts/" method = "POST">
+		<img src = '/get_image/<tmpl_var name = "image_path" />/medium/<tmpl_var name = "image_name" />' width = "300" height = "300" />
 		<br />
 		Uploaded at: <tmpl_var name = "timestamp" />
-		<a href = 'http://ri.opentechlabs.net/full_image/<tmpl_var name = "image_path" />/<tmpl_var name = "image_name" />'>[ Full Size ]</a>
+		<a href = '/full_image/<tmpl_var name = "image_path" />/<tmpl_var name = "image_name" />'>[ Full Size ]</a>
 		</td>
 
 		<td><big><tmpl_var name = "fields.department" /> </big></td>

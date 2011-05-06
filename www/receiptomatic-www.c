@@ -1593,6 +1593,7 @@ static void receipts(struct session *current_session)
 
 	/* Display the user's name at the top of the page */
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
+	ml = TMPL_add_var(ml, "base_url", BASE_URL, NULL);
 
 	conn = db_conn();
 	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
