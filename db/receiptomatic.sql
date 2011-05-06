@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: May 06, 2011 at 02:07 PM
+-- Generation Time: May 06, 2011 at 05:13 PM
 -- Server version: 5.0.77
 -- PHP Version: 5.1.6
 
@@ -18,6 +18,21 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 --
 -- Database: `receiptomatic`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `approved`
+--
+
+CREATE TABLE IF NOT EXISTS `approved` (
+  `id` varchar(64) NOT NULL,
+  `who` varchar(255) NOT NULL,
+  `timestamp` int(10) unsigned NOT NULL,
+  `status` smallint(5) unsigned NOT NULL,
+  `reason` varchar(255) NOT NULL,
+  KEY `id` (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
