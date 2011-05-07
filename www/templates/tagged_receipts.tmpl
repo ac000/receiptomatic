@@ -32,11 +32,11 @@
 			Approval Status:&nbsp;
 		</span>
 		<tmpl_if name = "approved" value = "rejected">
-			<span class = "rejected">Rejected</span>
+			<span class = "t_red">Rejected</span>
 		<tmpl_elsif name = "approved" value = "pending">
-			<span class = "pending">Pending</span>
+			<span class = "t_yellow">Pending</span>
 		<tmpl_else>
-			<span class = "approved">Approved</span>
+			<span class = "t_green">Approved</span>
 		</tmpl_if>
 		</td>
 		<tmpl_if name = "close_row" value = "yes">

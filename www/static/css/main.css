@@ -6,14 +6,14 @@ body {
 	color: rgb(130, 130, 130);
 }
 
-.rejected {
+.t_red {
 	color: rgb(255, 0, 0);
 }
 
-.pending {
+.t_yellow {
 	color: rgb(230, 160, 70);
 }
 
-.approved {
+.t_green {
 	color: rgb(0, 255, 0);
 }

@@ -96,11 +96,11 @@
 		<td><big><span class = "lighter">Approval Status</span></big></td>
 		<td> :&nbsp;
 			<tmpl_if name = "approved" value = "rejected">
-				<span class = "rejected">Rejected</span>
+				<span class = "t_red">Rejected</span>
 			<tmpl_elsif name = "approved" value = "pending">
-				<span class = "pending">Pending</span>
+				<span class = "t_yellow">Pending</span>
 			<tmpl_else>
-				<span class = "approved">Approved</span>
+				<span class = "t_green">Approved</span>
 			</tmpl_if>
 		</td>
 	</tr>
