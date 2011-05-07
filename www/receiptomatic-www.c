@@ -616,8 +616,8 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 	char *username;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	MYSQL_ROW row;
 	sqlite3 *db;
+	GHashTable *db_row = NULL;
 
 	conn = db_conn();
 
@@ -630,7 +630,7 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 						"username = '%s'", username);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
-	row = mysql_fetch_row(res);
+	db_row = get_dbrow(res);
 
 	request_id = create_session_id();
 	session_id = create_session_id();
@@ -645,9 +645,11 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 	snprintf(sql, SQL_MAX, "INSERT INTO sessions VALUES (%d, '%s', '%s', "
 					"'%s', %ld, %d, '%s', '%s', '%s', "
 					"'%s', %d)",
-					atoi(row[0]),
+					atoi(get_var(db_row, "uid")),
 					get_var(credentials, "username"),
-					row[1], row[2], (long)time(NULL), 0,
+					get_var(db_row, "name"),
+					get_var(db_row, "u_email"),
+					(long)time(NULL), 0,
 					http_x_forwarded_for,
 					http_user_agent,
 					request_id, session_id, restrict_ip);
@@ -659,6 +661,7 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 
 	mysql_close(conn);
 	mysql_free_result(res);
+	free_vars(db_row);
 	free(request_id);
 	free(session_id);
 }
