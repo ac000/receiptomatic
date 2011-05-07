@@ -5,7 +5,11 @@
 <body>
 	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a>  | <a href = "/tagged_receipts/">tagged receipts</a> | field mapping |
 	<p />
-	<big><big><tmpl_var name = "name" /> | Change Field Names</big></big>
+	<big><big> <tmpl_var name = "name" />&nbsp;</big></big>
+	<tmpl_if name = "user_type" value = "approver">
+		<span class = "t_red">(Approver)</span>&nbsp;
+	</tmpl_if>
+	<big><big>| Change Field Names</big></big>
 	<hr />
 
 	<tmpl_if name = "fields_updated" value = "yes">

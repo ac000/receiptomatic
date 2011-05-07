@@ -1193,6 +1193,8 @@ static void prefs_fmap(struct session *current_session)
 		update_fmap(current_session, buf);
 
 	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
+	if (current_session->type == APPROVER)
+		vl = TMPL_add_var(vl, "user_type", "approver", NULL);
 	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 
 	fields = field_names;
@@ -1329,6 +1331,8 @@ static void receipt_info(struct session *current_session, char *query)
 	TMPL_varlist *vl = NULL;
 
 	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
+	if (current_session->type == APPROVER)
+		vl = TMPL_add_var(vl, "user_type", "approver", NULL);
 
 	qvars = get_vars(query);
 	if (!tag_info_allowed(current_session, get_var(qvars, "image_id"))) {
@@ -1502,6 +1506,8 @@ static void tagged_receipts(struct session *current_session, char *query)
 	}
 
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
+	if (current_session->type == APPROVER)
+		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
 
 	conn = db_conn();
 	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
@@ -1626,6 +1632,8 @@ static void receipts(struct session *current_session)
 
 	/* Display the user's name at the top of the page */
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
+	if (current_session->type == APPROVER)
+		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
 	ml = TMPL_add_var(ml, "base_url", BASE_URL, NULL);
 
 	conn = db_conn();
