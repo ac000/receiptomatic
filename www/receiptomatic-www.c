@@ -541,6 +541,7 @@ static void set_current_session(struct session *current_session, char *cookies,
 	current_session->request_id = create_session_id();
 	current_session->session_id = strdup(results[columns + 9]);
 	current_session->restrict_ip = atoi(results[columns + 10]);
+	current_session->type = atoi(results[columns + 11]);
 
 	snprintf(sql, SQL_MAX, "UPDATE sessions SET request_id = '%s', "
 						"last_seen = '%ld' WHERE "
@@ -626,8 +627,9 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 						credentials, "username"),
 						strlen(get_var(credentials,
 						"username")));
-	snprintf(sql, SQL_MAX, "SELECT uid, name, u_email FROM passwd WHERE "
-						"username = '%s'", username);
+	snprintf(sql, SQL_MAX, "SELECT uid, name, u_email, type FROM passwd "
+						"WHERE username = '%s'",
+						username);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	db_row = get_dbrow(res);
@@ -644,7 +646,7 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 	sqlite3_open(SESSION_DB, &db);
 	snprintf(sql, SQL_MAX, "INSERT INTO sessions VALUES (%d, '%s', '%s', "
 					"'%s', %ld, %d, '%s', '%s', '%s', "
-					"'%s', %d)",
+					"'%s', %d, %d)",
 					atoi(get_var(db_row, "uid")),
 					get_var(credentials, "username"),
 					get_var(db_row, "name"),
@@ -652,7 +654,8 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 					(long)time(NULL), 0,
 					http_x_forwarded_for,
 					http_user_agent,
-					request_id, session_id, restrict_ip);
+					request_id, session_id, restrict_ip,
+					atoi(get_var(db_row, "type")));
 	sqlite3_exec(db, sql, NULL, NULL, NULL);
 	sqlite3_close(db);
 
@@ -1914,6 +1917,7 @@ static void create_server(int nr)
 static int __dump_session_state(void *arg, int argc, char **argv, char **column)
 {
 	fprintf(debug_log, "\tuid         : %s\n", argv[0]);
+	fprintf(debug_log, "\ttype        : %s\n", argv[11]);
 	fprintf(debug_log, "\tusername    : %s\n", argv[1]);
 	fprintf(debug_log, "\tname        : %s\n", argv[2]);
 	fprintf(debug_log, "\tu_email     : %s\n", argv[3]);
@@ -2011,7 +2015,8 @@ static void initialise_session_db()
 						"client_id VARCHAR(255), "
 						"request_id VARCHAR(64), "
 						"session_id VARCHAR(64), "
-						"restrict_ip INTEGER)");
+						"restrict_ip INTEGER, "
+						"type INTEGER)");
 	sqlite3_exec(db, sql, NULL, NULL, NULL);
 	sqlite3_close(db);
 }
