@@ -967,6 +967,21 @@ out2:
 }
 
 /*
+ * Checks if the logged in user is an approver.
+ *
+ * Returns 1 for yes, 0 for no.
+ */
+static int is_approver(struct session *current_session)
+{
+	int ret = 0;
+
+	if (current_session->type == APPROVER)
+		ret = 1;
+
+	return ret;
+}
+
+/*
  * Checks the users permission to access receipt tag information.
  */
 static int tag_info_allowed(struct session *current_session, char *image_id)
