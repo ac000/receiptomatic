@@ -501,6 +501,37 @@ static void free_vars(GHashTable *vars)
 }
 
 /*
+ * Given a username return the real name, which should be free'd.
+ */
+static char *username_to_name(char *username)
+{
+	char sql[SQL_MAX];
+	char *who;
+	char *name;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
+
+	conn = db_conn();
+
+	who = alloca(strlen(username) * 2 + 1);
+	mysql_real_escape_string(conn, who, username, strlen(username));
+
+	snprintf(sql, SQL_MAX, "SELECT name FROM passwd WHERE username = '%s'",
+									who);
+	mysql_real_query(conn, sql, strlen(sql));
+	res = mysql_store_result(conn);
+	row = mysql_fetch_row(res);
+
+	name = strdup(row[0]);
+
+	mysql_free_result(res);
+	mysql_close(conn);
+
+	return name;
+}
+
+/*
  * Sets up the current_session structure. This contains various bits of
  * information pertaining to the users session.
  */

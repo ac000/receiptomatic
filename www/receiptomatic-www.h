@@ -55,6 +55,7 @@ static GHashTable *get_dbrow(MYSQL_RES *res);
 static GHashTable *get_vars(char *query);
 static char *get_var(GHashTable *vars, char *key);
 static void free_vars(GHashTable *vars);
+static char *username_to_name(char *username);
 static void set_current_session(struct session *current_session, char *cookies,
 							char *request_uri);
 static char *create_session_id();
