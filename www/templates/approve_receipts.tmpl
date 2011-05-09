@@ -1,0 +1,116 @@
+<html>
+<body>
+<head>
+	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
+</head>
+<body>
+	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/fmap/">field mapping</a> |
+	<tmpl_if name = "user_type" value = "approver">
+	&nbsp;<span class = t_red>|</span> approve receipts <span class = t_red>|</span>
+	</tmpl_if>
+	<p />
+	<big><big> <tmpl_var name = "name" />&nbsp;</big></big>
+	<tmpl_if name = "user_type" value = "approver">
+		<span class = "t_red">(Approver)</span>&nbsp;
+	</tmpl_if>
+	<big><big>| Approve Receipts</big></big>
+	<hr />
+
+<tmpl_if name = "receipts" value = "no">
+</body>
+</html>
+<tmpl_else>
+	<form action = "<tmpl_var name = 'base_url' />/process_receipt_approval/" method = "POST">
+	<table>
+	<tbody>
+
+<tmpl_loop name = "table">
+	<tr>
+		<td><small><span class = "lighter">User</span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.department" /></span></small></td>
+                <td><small><span class = "lighter"><tmpl_var name = "fields.employee_number" /></span></small></td>
+		<td><small><span class = "lighter">Uploaded at</span></small></td>
+		<td><small><span class = "lighter">Tagged at</span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.receipt_date" /></span></small></td>
+		<td width = "10%"></td>
+		<td rowspan = "8">
+		<a href = "/full_image/<tmpl_var name = 'image_path' />/<tmpl_var name = 'image_name' />"><img src = '/get_image/<tmpl_var name = "image_path" />/small/<tmpl_var name = "image_name" />' width = "145" height = "145" /></a>
+		</td>
+	</tr>
+	<tr>
+		<td><small><tmpl_var name = "name" /><small></td>
+		<td><small><tmpl_var name = "department" /></small></td>
+		<td><small><tmpl_var name = "employee_number" /></small></td>
+		<td><small><tmpl_var name = "images_timestamp" /></small></td>
+		<td><small><tmpl_var name = "tags_timestamp" /></small></td>
+		<td><small><tmpl_var name = "receipt_date" /></small></td>
+	</tr>
+	<tr>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.cost_codes" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.account_codes" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.po_num" /></span></small></td>
+	</tr>
+		<td><small><tmpl_var name = "cost_codes" /></small></td>
+		<td><small><tmpl_var name = "account_codes" /></small></td>
+		<td><small><tmpl_var name = "po_num" /></small></td>
+	</tr>
+	<tr>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.gross_amount" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_amount" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.net_amount" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_rate" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.currency" /></span><small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.payment_method" /></span></small></td>
+	</tr>
+		<td><small><tmpl_var name = "gross_amount" /></small></td>
+		<td><small><tmpl_var name = "vat_amount" /></small></td>
+		<td><small><tmpl_var name = "net_amount" /></small></td>
+		<td><small><tmpl_var name = "vat_rate" /></small></td>
+		<td><small><tmpl_var name = "currency" /></small></td>
+		<td><small><tmpl_var name = "payment_method" /></small></td>
+	</tr>
+	<tr>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.supplier_name" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.supplier_town" /></span></small></td>	
+		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_number" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.reason" /></span></small></td>
+	</tr>
+		<td><small><tmpl_var name = "supplier_name" /></small></td>
+		<td><small><tmpl_var name = "supplier_town" /></small></td>
+		<td><small><tmpl_var name = "vat_number" /></small></td>
+		<td><small><tmpl_var name = "reason" /></small></td>
+	</tr>
+	<tr>
+		<td colspan = "8" align = "right">
+		Skip <input type = "radio" name = "<tmpl_var name = 'id' />" value = "<tmpl_var name = 'id' />.s" checked />&nbsp;&nbsp;
+		Approve <input type = "radio" name = "<tmpl_var name = 'id' />" value = "<tmpl_var name = 'id' />.a" />&nbsp;&nbsp;
+		Reject <input type = "radio" name = "<tmpl_var name = 'id' />" value = "<tmpl_var name = 'id' />.r" />
+		</td>
+	</tr>
+	<tr>
+		<td colspan = "8"><p /></td>
+	</tr>
+</tmpl_loop>
+
+	</tbody>
+	</table>
+
+	<br />
+
+	<div id = "footer" style = "width; 100%">
+		<div id = "form_btn" style = "width: 75%; float: left;">
+		<input type = "submit" value = "Submit" />
+		</div>
+		<div id = "page_nav" style = "width: 25%; float: right;">
+		<a href = "/approve_receipts/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
+		&nbsp;::&nbsp;
+		<a href = "/approve_receipts/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
+		</div>
+	</div>
+
+	</form>
+
+</tmpl_if>
+
+</body>
+</html>

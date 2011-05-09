@@ -72,6 +72,8 @@ static void logout(struct session *current_session);
 static void get_image(struct session *current_session, char *image);
 static void full_image(struct session *current_session, char *image);
 static void prefs_fmap(struct session *current_session);
+static void process_receipt_approval(struct session *current_session);
+static void approve_receipts(struct session *current_session, char *query);
 static void receipt_info(struct session *current_session, char *query);
 static void tagged_receipts(struct session *current_session, char *query);
 static void receipts(struct session *current_session);

@@ -89,6 +89,8 @@ static FILE *debug_log;
 #define ROW_SIZE	3
 #define COL_SIZE	3
 
+#define APPROVER_ROWS	3	/* No. of rows / page on /approve_receipts/ */
+
 #define USER		0
 #define APPROVER	1
 
@@ -1055,8 +1057,12 @@ static int image_access_allowed(struct session *current_session, char *path)
 {
 	int ret = 0;
 
-	if (strncmp(path + strlen(IMAGE_PATH) + 1, current_session->u_email,
-				strlen(current_session->u_email)) == 0)
+	/* Approvers can see all images */
+	if (is_approver(current_session))
+		ret = 1;
+	else if (strncmp(path + strlen(IMAGE_PATH) + 1,
+					current_session->u_email,
+					strlen(current_session->u_email)) == 0)
 		ret = 1;
 
 	return ret;
@@ -1354,6 +1360,325 @@ static void prefs_fmap(struct session *current_session)
 	TMPL_write("templates/prefs_fmap.tmpl", NULL, NULL, vl, stdout,
 								error_log);
 	TMPL_free_varlist(vl);
+}
+
+/*
+ * /process_receipt_approval/
+ *
+ * Processes the form data from /approve_receipts/
+ */
+static void process_receipt_approval(struct session *current_session)
+{
+	char sql[SQL_MAX];
+	char buf[SQL_MAX];
+	char action[2];         /* [ars] */
+	char id[65];
+	char *username;
+	int pos;
+	MYSQL *conn;
+
+	if (!is_approver(current_session))
+		return;
+
+	fread(buf, SQL_MAX - 1, 1, stdin);
+	if (!strstr(buf, "=") && !strstr(buf, "&"))
+		return;
+
+	conn = db_conn();
+
+	username = alloca(strlen(current_session->username) * 2 + 1);
+	mysql_real_escape_string(conn, username, current_session->username,
+					strlen(current_session->username));
+
+	while (buf[pos] != '\0') {
+		pos += 65; /* First id + = */
+		strncpy(id, buf + pos, 64);
+		id[64] = '\0';
+		strncpy(action, buf + pos + 65, 1);
+		action[1] = '\0';
+		if (action[0] == 'a') { /* approved */
+			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
+						"'%s', '%s', %ld, %d, '%s')",
+						id, username, time(NULL),
+						APPROVED, "");
+			d_fprintf(sql_log, "%s\n", sql);
+			mysql_real_query(conn, sql, strlen(sql));
+			snprintf(sql, SQL_MAX, "UPDATE images SET approved = "
+						"%d WHERE id = '%s'",
+						APPROVED, id);
+			d_fprintf(sql_log, "%s\n", sql);
+			mysql_query(conn, sql);
+		} else if (action[0] == 'r') { /* rejected */
+			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
+						"'%s', '%s', %ld, %d, '%s')",
+						id, username, time(NULL),
+						REJECTED, "");
+			d_fprintf(sql_log, "%s\n", sql);
+			mysql_real_query(conn, sql, strlen(sql));
+			snprintf(sql, SQL_MAX, "UPDATE images SET approved = "
+						"%d WHERE id = '%s'",
+						REJECTED, id);
+			d_fprintf(sql_log, "%s\n", sql);
+			mysql_query(conn, sql);
+		}
+
+		pos += 67; /* id + .[ars]& */
+	}
+
+	mysql_close(conn);
+
+	printf("Location: %s/approve_receipts/\r\n\r\n", BASE_URL);
+}
+
+/*
+ * /approve_receipts/
+ *
+ * HTML is in templates/approve_receipts.tmpl
+ *
+ * Allows an approver to approve or reject receipts.
+ */
+static void approve_receipts(struct session *current_session, char *query)
+{
+	char sql[SQL_MAX];
+	char page[10];
+	MYSQL *conn;
+	MYSQL_RES *res;
+	int i;
+	int nr_rows;
+	int from = 0;
+	int page_no = 1;
+	struct field_names fields;
+	GHashTable *qvars = NULL;
+	TMPL_varlist *ml = NULL;
+	TMPL_varlist *vl = NULL;
+	TMPL_loop *loop = NULL;
+
+	if (!is_approver(current_session))
+		return;
+
+	if (strlen(query) > 0) {
+		qvars = get_vars(query);
+		page_no = atoi(get_var(qvars, "page_no"));
+		if (page_no < 1)
+			page_no = 1;
+		/* Determine the LIMIT offset to start from in the SQL */
+		from = page_no * APPROVER_ROWS - APPROVER_ROWS;
+	}
+
+	conn = db_conn();
+
+	snprintf(sql, SQL_MAX, "SELECT images.id, images.who, "
+					"images.timestamp AS its, "
+					"images.path, images.name, "
+					"tags.username, "
+					"tags.timestamp AS tts, "
+					"tags.employee_number, "
+					"tags.department, tags.po_num, "
+					"tags.cost_codes, tags.account_codes, "
+					"tags.supplier_town, "
+					"tags.supplier_name, tags.currency, "
+					"tags.gross_amount, tags.vat_amount, "
+					"tags.net_amount, tags.vat_rate, "
+					"tags.vat_number, tags.receipt_date, "
+					"tags.reason, tags.payment_method "
+					"FROM images INNER JOIN tags ON "
+					"(images.id = tags.id) WHERE "
+					"images.approved = 1 LIMIT %d, %d",
+					from, APPROVER_ROWS);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_query(conn, sql);
+	res = mysql_store_result(conn);
+
+	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
+	if (is_approver(current_session))
+		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
+
+	nr_rows = mysql_num_rows(res);
+	if (nr_rows == 0) {
+		ml = TMPL_add_var(ml, "receipts", "no", NULL);
+		goto out;
+	}
+
+	fields = field_names;
+	set_custom_field_names(current_session, &fields);
+
+	for (i = 0; i < nr_rows; i++) {
+		char tbuf[64];
+		char *name;
+		time_t secs;
+		GHashTable *db_row = NULL;
+
+		db_row = get_dbrow(res);
+
+		vl = TMPL_add_var(NULL, "image_path", get_var(db_row, "path"),
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		name = username_to_name(get_var(db_row, "username"));
+		vl = TMPL_add_var(vl, "name", name, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+		free(name);
+
+		secs = atol(get_var(db_row, "its"));
+		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
+		vl = TMPL_add_var(vl, "images_timestamp", tbuf, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		secs = atol(get_var(db_row, "tts"));
+		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
+		vl = TMPL_add_var(vl, "tags_timestamp", tbuf, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.department", fields.department,
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "department", get_var(db_row,
+							"department"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.employee_number",
+						fields.employee_number, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "employee_number", get_var(db_row,
+						"employee_number"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes,
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "cost_codes", get_var(db_row,
+							"cost_codes"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.account_codes",
+						fields.account_codes, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "account_codes", get_var(db_row,
+						"account_codes"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "po_num", get_var(db_row, "po_num"),
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.supplier_name",
+						fields.supplier_name, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "supplier_name", get_var(db_row,
+						"supplier_name"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.supplier_town",
+						fields.supplier_town, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "supplier_town", get_var(db_row,
+						"supplier_town"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.currency", fields.currency,
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "currency", get_var(db_row, "currency"),
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.gross_amount",
+						fields.gross_amount, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "gross_amount", get_var(db_row,
+							"gross_amount"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount,
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "vat_amount", get_var(db_row,
+							"vat_amount"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount,
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "net_amount", get_var(db_row,
+							"net_amount"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate,
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "vat_rate", get_var(db_row, "vat_rate"),
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "vat_number", get_var(db_row,
+							"vat_number"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.receipt_date",
+						fields.receipt_date, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		secs = atol(get_var(db_row, "receipt_date"));
+		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
+		vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.payment_method",
+						fields.payment_method, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "payment_method", get_var(db_row,
+						"payment_method"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "fields.reason", fields.reason, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "reason", get_var(db_row, "reason"),
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "id", get_var(db_row, "id"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		free_vars(db_row);
+	}
+	snprintf(page, 10, "%d", page_no - 1);
+	ml = TMPL_add_var(ml, "prev_page", page, NULL);
+	snprintf(page, 10, "%d", page_no + 1);
+	ml = TMPL_add_var(ml, "next_page", page, NULL);
+	ml = TMPL_add_loop(ml, "table", loop);
+	TMPL_add_varlist(loop, vl);
+
+out:
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/approve_receipts.tmpl", NULL, NULL, ml, stdout,
+								error_log);
+	TMPL_free_varlist(ml);
+	mysql_free_result(res);
+	mysql_close(conn);
+	free_vars(qvars);
 }
 
 /*
@@ -1871,6 +2196,8 @@ static void handle_request()
 	}
 	set_current_session(&current_session, http_cookie, request_uri);
 
+	/* Add new url handlers after here */
+
 	if (strstr(request_uri, "/receipts/")) {
 		receipts(&current_session);
 		goto out;
@@ -1883,6 +2210,16 @@ static void handle_request()
 
 	if (strstr(request_uri, "/receipt_info/")) {
 		receipt_info(&current_session, query_string);
+		goto out;
+	}
+
+	if (strstr(request_uri, "/approve_receipts/")) {
+		approve_receipts(&current_session, query_string);
+		goto out;
+	}
+
+	if (strstr(request_uri, "/process_receipt_approval/")) {
+		process_receipt_approval(&current_session);
 		goto out;
 	}
 
