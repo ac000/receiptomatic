@@ -63,7 +63,11 @@
 		<td><small><span class = "lighter"><tmpl_var name = "fields.currency" /></span><small></td>
 		<td><small><span class = "lighter"><tmpl_var name = "fields.payment_method" /></span></small></td>
 	</tr>
-	<tr>
+	<tmpl_if name = "amnt_err" value = "no">
+	<tr style = "background-color: rgb(210, 250, 200);">
+	<tmpl_else>
+	<tr style = "background-color: rgb(240, 180, 175);">
+	</tmpl_if>
 		<td><small><tmpl_var name = "gross_amount" /></small></td>
 		<td><small><tmpl_var name = "vat_amount" /></small></td>
 		<td><small><tmpl_var name = "net_amount" /></small></td>

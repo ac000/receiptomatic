@@ -1506,6 +1506,10 @@ static void approve_receipts(struct session *current_session, char *query)
 		char tbuf[64];
 		char *name;
 		time_t secs;
+		double gross;
+		double net;
+		double vat;
+		double vr;
 		GHashTable *db_row = NULL;
 
 		db_row = get_dbrow(res);
@@ -1625,6 +1629,22 @@ static void approve_receipts(struct session *current_session, char *query)
 
 		vl = TMPL_add_var(vl, "vat_rate", get_var(db_row, "vat_rate"),
 									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		/* Sanity check the amounts */
+		gross = strtod(get_var(db_row, "gross_amount"), NULL);
+		net = strtod(get_var(db_row, "net_amount"), NULL);
+		vat = strtod(get_var(db_row, "vat_amount"), NULL);
+		vr = strtod(get_var(db_row, "vat_rate"), NULL);
+		/* Allow a 0.01 derivation */
+		if (net + vat < gross - 0.01 || net + vat > gross + 0.01 ||
+					round(net * (vr / 100 + 1) * 100) /
+					100 < gross - 0.01 ||
+					round(net * (vr / 100 + 1) * 100 /
+					100 > gross + 0.01))
+			vl = TMPL_add_var(vl, "amnt_err", "yes", NULL);
+		else
+			vl = TMPL_add_var(vl, "amnt_err", "no", NULL);
 		loop = TMPL_add_varlist(loop, vl);
 
 		vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
