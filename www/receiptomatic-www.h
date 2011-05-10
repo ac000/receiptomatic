@@ -15,7 +15,7 @@
  */
 struct session {
 	unsigned int uid;
-	unsigned int type;
+	unsigned char type;
 	char *username;
 	char *name;
 	char *u_email;

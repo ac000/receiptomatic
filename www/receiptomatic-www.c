@@ -92,7 +92,12 @@ static FILE *debug_log;
 #define APPROVER_ROWS	3	/* No. of rows / page on /approve_receipts/ */
 
 #define USER		0
-#define APPROVER	1
+
+#define APPROVER		(1 << 0)	/*  1 */
+#define APPROVER_SELF		(1 << 1)	/*  2 */
+#define APPROVER_CASH		(1 << 2)	/*  4 */
+#define APPROVER_CARD		(1 << 3)	/*  8 */
+#define APPROVER_CHEQUE 	(1 << 4)	/* 16 */
 
 #define REJECTED	0
 #define PENDING		1
@@ -1000,21 +1005,6 @@ out2:
 }
 
 /*
- * Checks if the logged in user is an approver.
- *
- * Returns 1 for yes, 0 for no.
- */
-static int is_approver(struct session *current_session)
-{
-	int ret = 0;
-
-	if (current_session->type == APPROVER)
-		ret = 1;
-
-	return ret;
-}
-
-/*
  * Checks the users permission to access receipt tag information.
  */
 static int tag_info_allowed(struct session *current_session, char *image_id)
@@ -1058,7 +1048,7 @@ static int image_access_allowed(struct session *current_session, char *path)
 	int ret = 0;
 
 	/* Approvers can see all images */
-	if (is_approver(current_session))
+	if (current_session->type & APPROVER)
 		ret = 1;
 	else if (strncmp(path + strlen(IMAGE_PATH) + 1,
 					current_session->u_email,
@@ -1245,7 +1235,7 @@ static void prefs_fmap(struct session *current_session)
 		update_fmap(current_session, buf);
 
 	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
-	if (is_approver(current_session))
+	if (current_session->type & APPROVER)
 		vl = TMPL_add_var(vl, "user_type", "approver", NULL);
 	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 
@@ -1377,7 +1367,7 @@ static void process_receipt_approval(struct session *current_session)
 	int pos;
 	MYSQL *conn;
 
-	if (!is_approver(current_session))
+	if (!(current_session->type & APPROVER))
 		return;
 
 	fread(buf, SQL_MAX - 1, 1, stdin);
@@ -1453,7 +1443,7 @@ static void approve_receipts(struct session *current_session, char *query)
 	TMPL_varlist *vl = NULL;
 	TMPL_loop *loop = NULL;
 
-	if (!is_approver(current_session))
+	if (!(current_session->type & APPROVER))
 		return;
 
 	if (strlen(query) > 0) {
@@ -1490,7 +1480,7 @@ static void approve_receipts(struct session *current_session, char *query)
 	res = mysql_store_result(conn);
 
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
-	if (is_approver(current_session))
+	if (current_session->type & APPROVER)
 		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
 
 	nr_rows = mysql_num_rows(res);
@@ -1722,7 +1712,7 @@ static void receipt_info(struct session *current_session, char *query)
 	TMPL_varlist *vl = NULL;
 
 	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
-	if (is_approver(current_session))
+	if (current_session->type & APPROVER)
 		vl = TMPL_add_var(vl, "user_type", "approver", NULL);
 
 	qvars = get_vars(query);
@@ -1897,7 +1887,7 @@ static void tagged_receipts(struct session *current_session, char *query)
 	}
 
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
-	if (is_approver(current_session))
+	if (current_session->type & APPROVER)
 		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
 
 	conn = db_conn();
@@ -2023,7 +2013,7 @@ static void receipts(struct session *current_session)
 
 	/* Display the user's name at the top of the page */
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
-	if (is_approver(current_session))
+	if (current_session->type & APPROVER)
 		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
 	ml = TMPL_add_var(ml, "base_url", BASE_URL, NULL);
 
