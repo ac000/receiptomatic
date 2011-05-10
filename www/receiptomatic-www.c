@@ -1209,7 +1209,8 @@ static void full_image(struct session *current_session, char *image)
 	printf("Content-Type: application/download\r\n");
 	printf("Content-Transfer-Encoding: binary\r\n");
 	printf("Content-Length: %ld\r\n", sb.st_size);
-	printf("Content-Disposition: filename = %s\r\n\r\n", basename(image_path));
+	printf("Content-Disposition: filename = %s\r\n\r\n",
+							basename(image_path));
 
 	while (bytes_read > 0) {
 		bytes_read = read(fd, &buf, BUF_SIZE);
