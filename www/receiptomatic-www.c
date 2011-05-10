@@ -1756,6 +1756,8 @@ static void receipt_info(struct session *current_session, char *query)
 	vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"), NULL);
 	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"), NULL);
 
+	vl = TMPL_add_var(vl, "id", image_id, NULL);
+
 	/* image upload timestamp */
 	secs = atol(get_var(db_row, "images_timestamp"));
 	strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z", localtime(&secs));
