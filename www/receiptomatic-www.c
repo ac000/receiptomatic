@@ -25,6 +25,7 @@
 #include <signal.h>
 #include <ctype.h>	/* can be removed once switched to g_url_decode() */
 #include <alloca.h>
+#include <math.h>
 
 /* SQLite, for the sessions */
 #include <sqlite3.h>
@@ -1564,6 +1565,7 @@ static void approve_receipts(struct session *current_session, char *query)
 	int nr_rows;
 	int from = 0;
 	int page_no = 1;
+	int pages;
 	struct field_names fields;
 	GHashTable *qvars = NULL;
 	TMPL_varlist *ml = NULL;
@@ -1584,7 +1586,11 @@ static void approve_receipts(struct session *current_session, char *query)
 
 	conn = db_conn();
 
-	snprintf(sql, SQL_MAX, "SELECT images.id, images.who, "
+	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM images "
+					"INNER JOIN tags ON "
+					"(images.id = tags.id) WHERE "
+					"images.approved = 1) AS nrows, "
+					"images.id, images.who, "
 					"images.timestamp AS its, "
 					"images.path, images.name, "
 					"tags.username, "
@@ -1630,6 +1636,9 @@ static void approve_receipts(struct session *current_session, char *query)
 		GHashTable *db_row = NULL;
 
 		db_row = get_dbrow(res);
+
+		pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+							(float)APPROVER_ROWS);
 
 		vl = TMPL_add_var(NULL, "image_path", get_var(db_row, "path"),
 									NULL);
@@ -1802,9 +1811,14 @@ static void approve_receipts(struct session *current_session, char *query)
 		free_vars(db_row);
 	}
 	snprintf(page, 10, "%d", page_no - 1);
-	ml = TMPL_add_var(ml, "prev_page", page, NULL);
-	snprintf(page, 10, "%d", page_no + 1);
-	ml = TMPL_add_var(ml, "next_page", page, NULL);
+	if (page_no - 1 > 0) {
+		snprintf(page, 10, "%d", page_no - 1);
+		ml = TMPL_add_var(ml, "prev_page", page, NULL);
+	}
+	if (page_no + 1 <= pages)  {
+		snprintf(page, 10, "%d", page_no + 1);
+		ml = TMPL_add_var(ml, "next_page", page, NULL);
+	}
 	ml = TMPL_add_loop(ml, "table", loop);
 	TMPL_add_varlist(loop, vl);
 
