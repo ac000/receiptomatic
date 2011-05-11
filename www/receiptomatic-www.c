@@ -2008,8 +2008,9 @@ static void tagged_receipts(struct session *current_session, char *query)
 	int c = 1;		/* column number */
 	int from = 0;
 	int page_no = 1;
-	char page[10];
 	int nr_rows;
+	int pages;
+	char page[10];
 	char sql[SQL_MAX];
 	char *u_email;
 	MYSQL *conn;
@@ -2037,15 +2038,18 @@ static void tagged_receipts(struct session *current_session, char *query)
 	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
 	mysql_real_escape_string(conn, u_email, current_session->u_email,
 					strlen(current_session->u_email));
-	snprintf(sql, SQL_MAX, "SELECT tags.receipt_date, images.id, "
+	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM tags "
+				"INNER JOIN images ON "
+				"(tags.id = images.id) WHERE "
+				"images.processed = 1 AND images.who = '%s') "
+				"AS nrows, tags.receipt_date, images.id, "
 				"images.path, images.name, images.approved "
 				"FROM tags INNER JOIN images ON "
 				"(tags.id = images.id) WHERE "
 				"images.processed = 1 AND images.who = "
 				"'%s' ORDER BY tags.timestamp LIMIT %d, %d",
-				u_email, from, GRID_SIZE);
+				u_email, u_email, from, GRID_SIZE);
 	d_fprintf(sql_log, "%s\n", sql);
-
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 
@@ -2065,6 +2069,9 @@ static void tagged_receipts(struct session *current_session, char *query)
 		GHashTable *db_row = NULL;
 
 		db_row = get_dbrow(res);
+
+		pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+							(float)APPROVER_ROWS);
 
 		vl = TMPL_add_var(NULL, "id", get_var(db_row, "id"), NULL);
 		loop = TMPL_add_varlist(loop, vl);
@@ -2110,10 +2117,14 @@ static void tagged_receipts(struct session *current_session, char *query)
 		c++;
 		free_vars(db_row);
 	}
-	snprintf(page, 10, "%d", page_no - 1);
-	ml = TMPL_add_var(ml, "prev_page", page, NULL);
-	snprintf(page, 10, "%d", page_no + 1);
-        ml = TMPL_add_var(ml, "next_page", page, NULL);
+	if (page_no - 1 > 0) {
+		snprintf(page, 10, "%d", page_no - 1);
+		ml = TMPL_add_var(ml, "prev_page", page, NULL);
+	}
+	if (page_no + 1 <= pages)  {
+		snprintf(page, 10, "%d", page_no + 1);
+		ml = TMPL_add_var(ml, "next_page", page, NULL);
+	}
 	TMPL_add_varlist(loop, vl);
 	ml = TMPL_add_loop(ml, "table", loop);
 
