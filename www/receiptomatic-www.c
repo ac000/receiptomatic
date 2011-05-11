@@ -1489,33 +1489,38 @@ static void process_receipt_approval(struct session *current_session)
 					strlen(current_session->username));
 
 	while (buf[pos] != '\0') {
+		char *image_id;
+
 		pos += 65; /* First id + = */
 		strncpy(id, buf + pos, 64);
 		id[64] = '\0';
+		image_id = alloca(strlen(id) * 2 + 1);
+		mysql_real_escape_string(conn, image_id, id, strlen(id));
 		strncpy(action, buf + pos + 65, 1);
 		action[1] = '\0';
+
 		if (action[0] == 'a') { /* approved */
 			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
 						"'%s', '%s', %ld, %d, '%s')",
-						id, username, time(NULL),
+						image_id, username, time(NULL),
 						APPROVED, "");
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_real_query(conn, sql, strlen(sql));
 			snprintf(sql, SQL_MAX, "UPDATE images SET approved = "
 						"%d WHERE id = '%s'",
-						APPROVED, id);
+						APPROVED, image_id);
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_query(conn, sql);
 		} else if (action[0] == 'r') { /* rejected */
 			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
 						"'%s', '%s', %ld, %d, '%s')",
-						id, username, time(NULL),
+						image_id, username, time(NULL),
 						REJECTED, "");
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_real_query(conn, sql, strlen(sql));
 			snprintf(sql, SQL_MAX, "UPDATE images SET approved = "
 						"%d WHERE id = '%s'",
-						REJECTED, id);
+						REJECTED, image_id);
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_query(conn, sql);
 		}
