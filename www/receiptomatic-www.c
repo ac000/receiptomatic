@@ -1472,7 +1472,7 @@ static void process_receipt_approval(struct session *current_session)
 	char action[2];         /* [ars] */
 	char id[65];
 	char *username;
-	int pos;
+	int pos = 0;
 	MYSQL *conn;
 
 	if (!(current_session->type & APPROVER))
