@@ -1474,6 +1474,7 @@ static void process_receipt_approval(struct session *current_session)
 	char *username;
 	int pos = 0;
 	MYSQL *conn;
+	MYSQL_RES *res;
 
 	if (!(current_session->type & APPROVER))
 		return;
@@ -1488,6 +1489,8 @@ static void process_receipt_approval(struct session *current_session)
 	mysql_real_escape_string(conn, username, current_session->username,
 					strlen(current_session->username));
 
+	mysql_query(conn, "LOCK TABLES approved WRITE, images WRITE");
+
 	while (buf[pos] != '\0') {
 		char *image_id;
 
@@ -1498,6 +1501,15 @@ static void process_receipt_approval(struct session *current_session)
 		mysql_real_escape_string(conn, image_id, id, strlen(id));
 		strncpy(action, buf + pos + 65, 1);
 		action[1] = '\0';
+
+		/* Make sure this reciept hasn't already been processed */
+		snprintf(sql, SQL_MAX, "SELECT status from approved WHERE "
+							"id = '%s'", image_id);
+		d_fprintf(sql_log, "%s\n", sql);
+		mysql_real_query(conn, sql, strlen(sql));
+		res = mysql_store_result(conn);
+		if (mysql_num_rows(res) > 0)
+			action[0] = 's'; /* This receipt is already done */
 
 		if (action[0] == 'a') { /* approved */
 			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
@@ -1528,6 +1540,8 @@ static void process_receipt_approval(struct session *current_session)
 		pos += 67; /* id + .[ars]& */
 	}
 
+	mysql_query(conn, "UNLOCK TABLES");
+	mysql_free_result(res);
 	mysql_close(conn);
 
 	printf("Location: %s/approve_receipts/\r\n\r\n", BASE_URL);
