@@ -69,6 +69,7 @@ static int tag_info_allowed(struct session *current_session, char *image_id);
 static int image_access_allowed(struct session *current_session, char *path);
 static void login(char *http_user_agent, char *http_x_forwarded_for);
 static void logout(struct session *current_session);
+static void delete_image(struct session *current_session);
 static void get_image(struct session *current_session, char *image);
 static void full_image(struct session *current_session, char *image);
 static void prefs_fmap(struct session *current_session);

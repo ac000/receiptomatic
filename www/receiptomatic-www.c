@@ -1128,6 +1128,112 @@ static void logout(struct session *current_session)
 }
 
 /*
+ * /delete_image/
+ *
+ * HTML is in templates/delete_image.tmpl
+ *
+ * Given an image_id, this will delete an image from the filesystem and
+ * from the images table in the database.
+ *
+ * It will only delete images that are un-tagged.
+ */
+static void delete_image(struct session *current_session)
+{
+	char sql[SQL_MAX];
+	char buf[SQL_MAX];
+	char path[PATH_MAX];
+	char image_path[PATH_MAX];
+	char *image_id;
+	int headers_sent = 0;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	GHashTable *db_row = NULL;
+	GHashTable *qvars = NULL;
+	TMPL_varlist *vl = NULL;
+
+	fread(buf, sizeof(buf) - 1, 1, stdin);
+	if (!strstr(buf, "=") && !strstr(buf, "&"))
+		goto out2;
+
+	qvars = get_vars(buf);
+
+	conn = db_conn();
+
+	image_id = alloca(strlen(get_var(qvars, "image_id")) * 2 + 1);
+	mysql_real_escape_string(conn, image_id, get_var(qvars, "image_id"),
+					strlen(get_var(qvars, "image_id")));
+
+	/* Only allow to delete images that are un-tagged */
+	snprintf(sql, SQL_MAX, "SELECT path, name FROM images WHERE id = '%s' "
+						"AND processed = 0", image_id);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+	res = mysql_store_result(conn);
+	if (mysql_num_rows(res) == 0)
+		goto out1;
+
+	db_row = get_dbrow(res);
+
+	snprintf(path, PATH_MAX, "%s/%s/%s", IMAGE_PATH,
+						get_var(db_row, "path"),
+						get_var(db_row, "name"));
+	realpath(path, image_path);
+
+	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
+	vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"), NULL);
+	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"), NULL);
+	vl = TMPL_add_var(vl, "image_id", get_var(qvars, "image_id"), NULL);
+
+	/* Is it one of the users images? */
+	if (strncmp(image_path + strlen(IMAGE_PATH) + 1,
+				current_session->u_email,
+				strlen(current_session->u_email)) != 0)
+		goto out1;
+
+	if (strcmp(get_var(qvars, "confirm"), "yes") == 0) {
+		/* remove the full image */
+		unlink(image_path);
+
+		/* remove the small image */
+		snprintf(path, PATH_MAX, "%s/%s/small/%s", IMAGE_PATH,
+						get_var(db_row, "path"),
+						get_var(db_row, "name"));
+		realpath(path, image_path);
+		unlink(image_path);
+
+		/* remove the medium image */
+		snprintf(path, PATH_MAX, "%s/%s/medium/%s", IMAGE_PATH,
+						get_var(db_row, "path"),
+						get_var(db_row, "name"));
+		realpath(path, image_path);
+		unlink(image_path);
+
+		snprintf(sql, SQL_MAX, "DELETE FROM images WHERE id = '%s'",
+								image_id);
+		d_fprintf(sql_log, "%s\n", sql);
+		mysql_real_query(conn, sql, strlen(sql));
+
+		/* We don't want to display the delete_image page again */
+		goto out1;
+	}
+
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/delete_image.tmpl", NULL, NULL, vl, stdout,
+								error_log);
+	headers_sent = 1;
+
+out1:
+	mysql_close(conn);
+	mysql_free_result(res);
+	free_vars(db_row);
+	free_vars(qvars);
+	TMPL_free_varlist(vl);
+out2:
+	if (!headers_sent)
+		printf("Location: %s/receipts/\r\n\r\n", BASE_URL);
+}
+
+/*
  * /get_image/
  *
  * As the images aren't stored under the control of the webserver (don't
@@ -2244,6 +2350,11 @@ static void handle_request()
 
 	if (strstr(request_uri, "/full_image/")) {
 		full_image(&current_session, request_uri);
+		goto out;
+	}
+
+	if (strstr(request_uri, "/delete_image/")) {
+		delete_image(&current_session);
 		goto out;
 	}
 
