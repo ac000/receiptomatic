@@ -2201,7 +2201,7 @@ static void tagged_receipts(struct session *current_session, char *query)
 		db_row = get_dbrow(res);
 
 		pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
-							(float)APPROVER_ROWS);
+							(float)GRID_SIZE);
 
 		vl = TMPL_add_var(NULL, "id", get_var(db_row, "id"), NULL);
 		loop = TMPL_add_varlist(loop, vl);
