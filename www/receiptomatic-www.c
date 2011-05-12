@@ -1473,6 +1473,7 @@ static void process_receipt_approval(struct session *current_session)
 	char action[2];         /* [ars] */
 	char id[65];
 	char *username;
+	char *u_email;
 	int pos = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -1490,7 +1491,12 @@ static void process_receipt_approval(struct session *current_session)
 	mysql_real_escape_string(conn, username, current_session->username,
 					strlen(current_session->username));
 
-	mysql_query(conn, "LOCK TABLES approved WRITE, images WRITE");
+	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
+	mysql_real_escape_string(conn, u_email, current_session->u_email,
+					strlen(current_session->u_email));
+
+	mysql_query(conn, "LOCK TABLES approved WRITE, images WRITE, "
+								"tags READ");
 
 	while (buf[pos] != '\0') {
 		char *image_id;
@@ -1503,6 +1509,51 @@ static void process_receipt_approval(struct session *current_session)
 		strncpy(action, buf + pos + 65, 1);
 		action[1] = '\0';
 
+		/* Can user approve their own receipts? */
+		if (!(current_session->type & APPROVER_SELF)) {
+			snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE "
+						"id = '%s' AND who = '%s'",
+						image_id, u_email);
+			d_fprintf(sql_log, "%s\n", sql);
+			mysql_real_query(conn, sql, strlen(sql));
+			res = mysql_store_result(conn);
+			if (mysql_num_rows(res) > 0)
+				action[0] = 's';
+		}
+		/* Can user approve card transactions? */
+		if (!(current_session->type & APPROVER_CARD)) {
+			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
+						"id = '%s' AND payment_method "
+						"= 'card'", image_id);
+			d_fprintf(sql_log, "%s\n", sql);
+			mysql_real_query(conn, sql, strlen(sql));
+			res = mysql_store_result(conn);
+			if (mysql_num_rows(res) > 0)
+				action[0] = 's';
+		}
+		/* Can user approve cash transactions? */
+		if (!(current_session->type & APPROVER_CASH)) {
+			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
+						"id = '%s' AND payment_method "
+						"= 'cash'", image_id);
+			d_fprintf(sql_log, "%s\n", sql);
+			mysql_real_query(conn, sql, strlen(sql));
+			res = mysql_store_result(conn);
+			if (mysql_num_rows(res) > 0)
+				action[0] = 's';
+		}
+		/* Can user approve cheque transactions? */
+		if (!(current_session->type & APPROVER_CHEQUE)) {
+			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
+						"id = '%s' AND payment_method "
+						"= 'cheque'", image_id);
+			d_fprintf(sql_log, "%s\n", sql);
+			mysql_real_query(conn, sql, strlen(sql));
+			res = mysql_store_result(conn);
+			if (mysql_num_rows(res) > 0)
+				action[0] = 's';
+		}
+
 		/* Make sure this reciept hasn't already been processed */
 		snprintf(sql, SQL_MAX, "SELECT status from approved WHERE "
 							"id = '%s'", image_id);
@@ -1511,6 +1562,15 @@ static void process_receipt_approval(struct session *current_session)
 		res = mysql_store_result(conn);
 		if (mysql_num_rows(res) > 0)
 			action[0] = 's'; /* This receipt is already done */
+
+		/* Make sure it is a valid tagged-receipt */
+		snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE id = '%s'",
+								image_id);
+		d_fprintf(sql_log, "%s\n", sql);
+		mysql_real_query(conn, sql, strlen(sql));
+		res = mysql_store_result(conn);
+		if (mysql_num_rows(res) == 0)
+			action[0] = 's'; /* Not a valid receipt */
 
 		if (action[0] == 'a') { /* approved */
 			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
@@ -1558,7 +1618,15 @@ static void process_receipt_approval(struct session *current_session)
 static void approve_receipts(struct session *current_session, char *query)
 {
 	char sql[SQL_MAX];
+	char pmsql[128];
+	char assql[512];
 	char page[10];
+	static const char *pm = "tags.payment_method = ";
+	static const char *cash = "'cash'";
+	static const char *card = "'card'";
+	static const char *cheque = "'cheque'";
+	char join[5];
+	char *u_email;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	int i;
@@ -1584,13 +1652,51 @@ static void approve_receipts(struct session *current_session, char *query)
 		from = page_no * APPROVER_ROWS - APPROVER_ROWS;
 	}
 
+	memset(pmsql, 0, sizeof(pmsql));
+	/*
+	 * Prepare the payment_method sql clause depending on the users
+	 * approver capabilities.
+	 */
+	if (current_session->type & APPROVER_CASH) {
+		strcat(pmsql, pm);
+		strcat(pmsql, cash);
+	}
+	if (current_session->type & APPROVER_CARD) {
+		if (strlen(pmsql) > 0)
+			strcpy(join, " OR ");
+		else
+			strcpy(join, "\0");
+		strcat(pmsql, join);
+		strcat(pmsql, pm);
+		strcat(pmsql, card);
+	}
+	if (current_session->type & APPROVER_CHEQUE) {
+		if (strlen(pmsql) > 0)
+			strcpy(join, " OR ");
+		else
+			strcpy(join, "\0");
+		strcat(pmsql, join);
+		strcat(pmsql, pm);
+		strcat(pmsql, cheque);
+	}
+
 	conn = db_conn();
+
+	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
+	mysql_real_escape_string(conn, u_email, current_session->u_email,
+					strlen(current_session->u_email));
+	memset(assql, 0, sizeof(assql));
+	/* If the user isn't APPROVER_SELF, don't show them their receipts */
+	if (!(current_session->type & APPROVER_SELF))
+		sprintf(assql, "AND images.who != '%s'", u_email);
+	else
+		assql[0] = '\0';
 
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM images "
 					"INNER JOIN tags ON "
 					"(images.id = tags.id) WHERE "
-					"images.approved = 1) AS nrows, "
-					"images.id, images.who, "
+					"images.approved = 1 AND (%s) %s) AS "
+					"nrows, images.id, images.who, "
 					"images.timestamp AS its, "
 					"images.path, images.name, "
 					"tags.username, "
@@ -1606,8 +1712,10 @@ static void approve_receipts(struct session *current_session, char *query)
 					"tags.reason, tags.payment_method "
 					"FROM images INNER JOIN tags ON "
 					"(images.id = tags.id) WHERE "
-					"images.approved = 1 LIMIT %d, %d",
-					from, APPROVER_ROWS);
+					"images.approved = 1 AND (%s) %s "
+					"LIMIT %d, %d",
+					pmsql, assql, pmsql, assql, from,
+					APPROVER_ROWS);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
