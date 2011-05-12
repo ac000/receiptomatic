@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: May 06, 2011 at 05:13 PM
+-- Generation Time: May 12, 2011 at 03:01 PM
 -- Server version: 5.0.77
 -- PHP Version: 5.1.6
 
@@ -31,7 +31,8 @@ CREATE TABLE IF NOT EXISTS `approved` (
   `timestamp` int(10) unsigned NOT NULL,
   `status` smallint(5) unsigned NOT NULL,
   `reason` varchar(255) NOT NULL,
-  KEY `id` (`id`)
+  KEY `id` (`id`),
+  KEY `timestamp` (`timestamp`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -77,7 +78,8 @@ CREATE TABLE IF NOT EXISTS `images` (
   `approved` tinyint(3) unsigned NOT NULL default '1',
   KEY `id` (`id`),
   KEY `processed` (`processed`),
-  KEY `who` (`who`)
+  KEY `who` (`who`),
+  KEY `approved` (`approved`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -123,5 +125,6 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `reason` varchar(255) NOT NULL,
   `payment_method` varchar(6) NOT NULL,
   KEY `id` (`id`),
-  KEY `timestamp` (`timestamp`)
+  KEY `timestamp` (`timestamp`),
+  KEY `payment_method` (`payment_method`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
