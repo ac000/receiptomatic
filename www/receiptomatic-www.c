@@ -1963,6 +1963,136 @@ out:
 }
 
 /*
+ * /reviewed_receipts/
+ *
+ * HTML is in templates/reviewed_receipts.tmpl
+ *
+ * Displays previously reviewed receipts.
+ */
+static void reviewed_receipts(struct session *current_session, char *query)
+{
+	int i;
+	int c = 1;		/* column number */
+	int from = 0;
+	int page_no = 1;
+	int nr_rows;
+	int pages;
+	char page[10];
+	char sql[SQL_MAX];
+	MYSQL *conn;
+	MYSQL_RES *res;
+	GHashTable *qvars = NULL;
+	struct field_names fields;
+	TMPL_varlist *vl = NULL;
+	TMPL_varlist *ml = NULL;
+	TMPL_loop *loop = NULL;
+
+	if (!(current_session->type & APPROVER))
+		return;
+
+	if (strlen(query) > 0) {
+		qvars = get_vars(query);
+		page_no = atoi(get_var(qvars, "page_no"));
+		if (page_no < 1)
+			page_no = 1;
+		/* Determine the LIMIT offset to start from in the SQL */
+		from = page_no * GRID_SIZE - GRID_SIZE;
+	}
+
+	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
+	if (current_session->type & APPROVER)
+		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
+
+	conn = db_conn();
+	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM approved "
+				"INNER JOIN images ON "
+				"(approved.id = images.id)) AS nrows, "
+				"approved.timestamp, images.id, "
+				"images.path, images.name, approved.status "
+				"FROM approved INNER JOIN images ON "
+				"(approved.id = images.id) ORDER BY "
+				"approved.timestamp LIMIT %d, %d",
+				from, GRID_SIZE);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_query(conn, sql);
+	res = mysql_store_result(conn);
+	nr_rows = mysql_num_rows(res);
+	if (nr_rows == 0) {
+		ml = TMPL_add_var(ml, "receipts", "no", NULL);
+		goto out;
+	}
+
+	fields = field_names;
+	set_custom_field_names(current_session, &fields);
+	ml = TMPL_add_var(ml, "receipts", "yes", NULL);
+	/* Draw gallery grid */
+	for (i = 0; i < nr_rows; i++) {
+		char tbuf[64];
+		time_t secs;
+		GHashTable *db_row = NULL;
+
+		db_row = get_dbrow(res);
+
+		pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+							(float)GRID_SIZE);
+
+		vl = TMPL_add_var(NULL, "id", get_var(db_row, "id"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"),
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		secs = atol(get_var(db_row, "timestamp"));
+		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
+		vl = TMPL_add_var(vl, "review_date", "Review Date", NULL);
+		loop = TMPL_add_varlist(loop, vl);
+		vl = TMPL_add_var(vl, "apdate", tbuf, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		if (atoi(get_var(db_row, "status")) == REJECTED)
+			vl = TMPL_add_var(vl, "status", "rejected", NULL);
+		else
+			vl = TMPL_add_var(vl, "status", "approved", NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		if (c == COL_SIZE && i < nr_rows) { /* Start a new row */
+			vl = TMPL_add_var(vl, "new_row", "yes", NULL);
+			c = 0;
+		} else {
+			vl = TMPL_add_var(vl, "new_row", "no", NULL);
+		}
+		loop = TMPL_add_varlist(loop, vl);
+		c++;
+		free_vars(db_row);
+	}
+	if (page_no - 1 > 0) {
+		snprintf(page, 10, "%d", page_no - 1);
+		ml = TMPL_add_var(ml, "prev_page", page, NULL);
+	}
+	if (page_no + 1 <= pages)  {
+		snprintf(page, 10, "%d", page_no + 1);
+		ml = TMPL_add_var(ml, "next_page", page, NULL);
+	}
+	TMPL_add_varlist(loop, vl);
+	ml = TMPL_add_loop(ml, "table", loop);
+
+out:
+	printf("Cache-Control: private\r\n");
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/reviewed_receipts.tmpl", NULL, NULL, ml, stdout,
+								error_log);
+	TMPL_free_varlist(ml);
+	mysql_free_result(res);
+	mysql_close(conn);
+	free_vars(qvars);
+}
+
+/*
  * /receipt_info/
  *
  * HTML is in templates/receipt_info.tmpl
@@ -2514,6 +2644,11 @@ static void handle_request()
 
 	if (strstr(request_uri, "/process_receipt_approval/")) {
 		process_receipt_approval(&current_session);
+		goto out;
+	}
+
+	if (strstr(request_uri, "/reviewed_receipts/")) {
+		reviewed_receipts(&current_session, query_string);
 		goto out;
 	}
 
