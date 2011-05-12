@@ -200,6 +200,31 @@ static MYSQL *db_conn()
 }
 
 /*
+ * Checks the amounts given on the receipt tally up.
+ *
+ * We need to allow for a 0.01 deviation due to different VAT rounding
+ * that suppliers do.
+ *
+ * Some will ceil the vat e.g a vat amount of 1.77450 will become 1.78
+ * Others will floor the vat e.g a vat amount of 1.6660 will become 1.66
+ *
+ */
+static int check_amounts(double gross, double net, double vat, double vr)
+{
+	int ret = 0;
+
+	if (net + vat < gross - 0.01 || net + vat > gross + 0.01)
+		ret = -1;
+
+	if (round(net * (vr / 100 + 1) * 100) / 100 < gross - 0.01 ||
+				round(net * (vr / 100 + 1) * 100 /
+				100 > gross + 0.01))
+		ret = -1;
+
+	return ret;
+}
+
+/*
  * Stores custom image tag field names for a user in the database.
  */
 static void update_fmap(struct session *current_session, char *query)
@@ -1741,6 +1766,7 @@ static void approve_receipts(struct session *current_session, char *query)
 		double net;
 		double vat;
 		double vr;
+		int ret;
 		GHashTable *db_row = NULL;
 
 		db_row = get_dbrow(res);
@@ -1870,12 +1896,8 @@ static void approve_receipts(struct session *current_session, char *query)
 		net = strtod(get_var(db_row, "net_amount"), NULL);
 		vat = strtod(get_var(db_row, "vat_amount"), NULL);
 		vr = strtod(get_var(db_row, "vat_rate"), NULL);
-		/* Allow a 0.01 derivation */
-		if (net + vat < gross - 0.01 || net + vat > gross + 0.01 ||
-					round(net * (vr / 100 + 1) * 100) /
-					100 < gross - 0.01 ||
-					round(net * (vr / 100 + 1) * 100 /
-					100 > gross + 0.01))
+		ret = check_amounts(gross, net, vat, vr);
+		if (ret < 0)
 			vl = TMPL_add_var(vl, "amnt_err", "yes", NULL);
 		else
 			vl = TMPL_add_var(vl, "amnt_err", "no", NULL);

@@ -48,6 +48,7 @@ struct field_names {
 };
 
 static MYSQL *db_conn();
+static int check_amounts(double gross, double net, double vat, double vr);
 static void update_fmap(struct session *current_session, char *query);
 static void set_custom_field_names(struct session *current_session,
 						struct field_names *fields);
