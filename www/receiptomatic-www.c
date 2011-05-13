@@ -2248,15 +2248,14 @@ static void receipt_info(struct session *current_session, char *query)
 		vl = TMPL_add_var(vl, "approved", "yes", NULL);
 
 	free_vars(db_row);
-
+	mysql_free_result(res);
+	mysql_close(conn);
 out:
 	printf("Cache-Control: private\r\n");
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/receipt_info.tmpl", NULL, NULL, vl, stdout,
 								error_log);
 	TMPL_free_varlist(vl);
-	mysql_free_result(res);
-	mysql_close(conn);
 	free_vars(qvars);
 }
 
