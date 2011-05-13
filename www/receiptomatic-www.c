@@ -50,8 +50,7 @@
 
 
 extern char **environ;
-int rargc;
-char **rargv;
+static char **rargv;
 
 /* Initialise the default receipt tag field names */
 static const struct field_names field_names = {
@@ -2731,31 +2730,36 @@ static void accept_request()
  * This is likely to only work on Linux and basically just makes a
  * copy of the environment and clobbers the old one with the new name.
  *
- * Based on code from; avhai, util-linux-ng and code found on the web.
+ * Based on code from; nginx
  */
 static void set_proc_title(char *title)
 {
-	unsigned int i;
 	size_t size = 0;
-	char **envp = environ;
-	char *args = rargv[0];
+	int i;
+	char *p;
+	char *argv_last;
 
-	for (i = 0; envp[i]; i++);
+	for (i = 0; environ[i]; i++)
+		size += strlen(environ[i]) + 1;
 
-	if (i > 0)
-		size = envp[i - 1] + strlen(envp[i - 1]) - rargv[0];
-	else
-		size = rargv[rargc - 1] + strlen(rargv[rargc - 1]) - rargv[0];
+	p = malloc(size);
 
-	environ = malloc(size);
+	argv_last = rargv[0] + strlen(rargv[0]) + 1;
 
-	for (i = 0; envp[i]; i++)
-		environ[i] = strdup(envp[i]);
+	for (i = 0; environ[i]; i++) {
+		if (argv_last == environ[i]) {
+			size = strlen(environ[i]) + 1;
+			argv_last = environ[i] + size;
 
-	environ[i] = NULL;
+			strncpy(p, environ[i], size);
+			environ[i] = p;
+			p += size;
+		}
+	}
+	argv_last--;
 
-	memset(args, '\0', size);
-	strncpy(args, title, size - 1);
+	rargv[1] = NULL;
+	p = strncpy(rargv[0], title, argv_last -rargv[0]);
 }
 
 /*
@@ -2890,8 +2894,7 @@ int main(int argc, char **argv)
 	struct sigaction action;
 	int status;
 
-	/* These are used by set_proc_title() */
-	rargc = argc;
+	/* Used by set_proc_title() */
 	rargv = argv;
 
 	mysql_library_init(0, NULL, NULL);
