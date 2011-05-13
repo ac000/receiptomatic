@@ -1,1 +1,1 @@
-pkill -f receiptomatic-www; spawn-fcgi -a 127.0.0.1 -p 9191 -P /tmp/receiptomatic-www.pid -- /home/andrew/programming/projects/opentechlabs/receiptomatic/www/receiptomatic-www
+pkill -f receiptomatic-www:; spawn-fcgi -a 127.0.0.1 -p 9191 -P /tmp/receiptomatic-www.pid -- /home/andrew/programming/projects/opentechlabs/receiptomatic/www/receiptomatic-www
