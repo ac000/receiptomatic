@@ -49,6 +49,10 @@
 #include "../db/db_config.h"
 
 
+extern char **environ;
+int rargc;
+char **rargv;
+
 /* Initialise the default receipt tag field names */
 static const struct field_names field_names = {
 	"Receipt Date",
@@ -2722,6 +2726,39 @@ static void accept_request()
 }
 
 /*
+ * This function will change the process name to 'title'
+ *
+ * This is likely to only work on Linux and basically just makes a
+ * copy of the environment and clobbers the old one with the new name.
+ *
+ * Based on code from; avhai, util-linux-ng and code found on the web.
+ */
+static void set_proc_title(char *title)
+{
+	unsigned int i;
+	size_t size = 0;
+	char **envp = environ;
+	char *args = rargv[0];
+
+	for (i = 0; envp[i]; i++);
+
+	if (i > 0)
+		size = envp[i - 1] + strlen(envp[i - 1]) - rargv[0];
+	else
+		size = rargv[rargc - 1] + strlen(rargv[rargc - 1]) - rargv[0];
+
+	environ = malloc(size);
+
+	for (i = 0; envp[i]; i++)
+		environ[i] = strdup(envp[i]);
+
+	environ[i] = NULL;
+
+	memset(args, '\0', size);
+	strncpy(args, title, size - 1);
+}
+
+/*
  * Create nr server processes.
  */
 static void create_server(int nr)
@@ -2731,8 +2768,10 @@ static void create_server(int nr)
 
 	for (i = 0; i < nr; i++) {
 		pid = fork();
-		if (pid == 0)   /* child */
+		if (pid == 0) {  /* child */
+			set_proc_title("receiptomatic-www: worker");
 			accept_request();
+		}
 	}
 }
 
@@ -2846,10 +2885,14 @@ static void initialise_session_db()
 	sqlite3_close(db);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char **argv)
 {
 	struct sigaction action;
 	int status;
+
+	/* These are used by set_proc_title() */
+	rargc = argc;
+	rargv = argv;
 
 	mysql_library_init(0, NULL, NULL);
 
@@ -2868,8 +2911,11 @@ int main(int argc, char *argv[])
 	initialise_session_db();
 	init_clear_session_timer();
 
-	/* Pre-fork NR_PROCS processes */
+	/* Pre-fork NR_PROCS worker processes */
 	create_server(NR_PROCS);
+
+	/* Set the process name for the master process */
+	set_proc_title("receiptomatic-www: master");
 
 	for (;;) {
 		waitpid(-1, &status, 0);
