@@ -3,7 +3,7 @@
 	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
 </head>
 <body>
-	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | tagged receipts | <a href = "/prefs/fmap/">field mapping</a> |
+	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/fmap/">field mapping</a> |
 	<tmpl_if name = "user_type" value = "approver">
 	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/"> approve receipts</a> | reviewed receipts </a><span class = t_red>|</span>
 	</tmpl_if>
