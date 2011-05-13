@@ -1678,15 +1678,6 @@ static void approve_receipts(struct session *current_session, char *query)
 	if (!(current_session->type & APPROVER))
 		return;
 
-	if (strlen(query) > 0) {
-		qvars = get_vars(query);
-		page_no = atoi(get_var(qvars, "page_no"));
-		if (page_no < 1)
-			page_no = 1;
-		/* Determine the LIMIT offset to start from in the SQL */
-		from = page_no * APPROVER_ROWS - APPROVER_ROWS;
-	}
-
 	memset(pmsql, 0, sizeof(pmsql));
 	/*
 	 * Prepare the payment_method sql clause depending on the users
@@ -1713,6 +1704,31 @@ static void approve_receipts(struct session *current_session, char *query)
 		strcat(pmsql, join);
 		strcat(pmsql, pm);
 		strcat(pmsql, cheque);
+	}
+	/*
+	 * If we get here but pmsql is empty then it means even though we
+	 * are an approver, we don't seem to have any actual approver
+	 * capabilities. This is likely due to an incorrect type entry in
+	 * the passwd table.
+	 *
+	 * This shouldn't happen. If it does, just log the fact to the
+	 * error log and return (to avoid a segfault due to the subsequent
+	 * incomplete SQL query).
+	 */
+	if (strlen(pmsql) == 0) {
+		d_fprintf(error_log, "User %u seems to have an invalid type "
+					"setting in the passwd table.\n",
+					current_session->uid);
+		return;
+	}
+
+	if (strlen(query) > 0) {
+		qvars = get_vars(query);
+		page_no = atoi(get_var(qvars, "page_no"));
+		if (page_no < 1)
+			page_no = 1;
+		/* Determine the LIMIT offset to start from in the SQL */
+		from = page_no * APPROVER_ROWS - APPROVER_ROWS;
 	}
 
 	conn = db_conn();
