@@ -1045,6 +1045,12 @@ static int tag_info_allowed(struct session *current_session, char *image_id)
 	MYSQL *conn;
 	MYSQL_RES *res;
 
+	/* Approvers can see all tags */
+	if (current_session->type & APPROVER) {
+		ret = 1;
+		goto out;
+	}
+
 	conn = db_conn();
 
 	s_image_id = alloca(strlen(image_id) * 2 + 1);
@@ -1065,6 +1071,7 @@ static int tag_info_allowed(struct session *current_session, char *image_id)
 	mysql_free_result(res);
 	mysql_close(conn);
 
+out:
 	return ret;
 }
 
