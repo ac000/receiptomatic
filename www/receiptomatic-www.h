@@ -65,7 +65,8 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 static int is_logged_in(char *cookies, char *client_id, char *remote_ip,
 							char *request_uri);
 static int check_auth(GHashTable *credentials);
-static void tag_image(struct session *current_session, char *query);
+static void tag_image(struct session *current_session, GHashTable *qvars);
+static int is_users_receipt(struct session *current_session, char *id);
 static int tag_info_allowed(struct session *current_session, char *image_id);
 static int image_access_allowed(struct session *current_session, char *path);
 static void login(char *http_user_agent, char *http_x_forwarded_for);

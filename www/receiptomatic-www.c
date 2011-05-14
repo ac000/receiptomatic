@@ -107,6 +107,8 @@ static FILE *debug_log;
 #define PENDING		1
 #define APPROVED	2
 
+#define MAX_RECEIPT_AGE	60 * 60 * 24 * 180	/* 180 days */
+
 /*
  * Wrapper around fprintf(). It will prepend the text passed it with
  * seconds.microseconds pid function:
@@ -867,9 +869,9 @@ out:
 }
 
 /*
- * Takes the form data from /receipts/ and enters it into the database
+ * Takes the form data from /process_receipt/ and enters it into the database.
  */
-static void tag_image(struct session *current_session, char *query)
+static void tag_image(struct session *current_session, GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char *image_id;
@@ -893,13 +895,6 @@ static void tag_image(struct session *current_session, char *query)
 	char secs[11];
 	MYSQL *conn;
 	MYSQL_RES *res;
-	GHashTable *qvars = NULL;
-
-	qvars = get_vars(query);
-
-	/* Prevent users from tagging other users receipts */
-	if (!tag_info_allowed(current_session, get_var(qvars, "image_id")))
-		goto out2;
 
 	conn = db_conn();
 	image_id = alloca(strlen(get_var(qvars, "image_id")) * 2 + 1);
@@ -1029,8 +1024,41 @@ static void tag_image(struct session *current_session, char *query)
 out:
 	mysql_free_result(res);
 	mysql_close(conn);
-out2:
-	free_vars(qvars);
+}
+
+/*
+ * Checks that an image/receipt id belongs to a specified user.
+ */
+static int is_users_receipt(struct session *current_session, char *id)
+{
+	char sql[SQL_MAX];
+	char *s_id;
+	char *u_email;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	int ret = 0;
+
+	conn = db_conn();
+
+	s_id = alloca(strlen(id) * 2 + 1);
+	mysql_real_escape_string(conn, s_id, id, strlen(id));
+
+	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
+	mysql_real_escape_string(conn, u_email, current_session->u_email,
+					strlen(current_session->u_email));
+
+	snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE id = '%s' AND "
+					"who = '%s'", s_id, u_email);
+
+	mysql_real_query(conn, sql, strlen(sql));
+	res = mysql_store_result(conn);
+	if (mysql_num_rows(res) > 0)
+		ret = 1;
+
+	mysql_free_result(res);
+	mysql_close(conn);
+
+	return ret;
 }
 
 /*
@@ -2425,6 +2453,175 @@ out:
 }
 
 /*
+ * /process_receipt/
+ *
+ * HTML is in templates/process_receipt.tmpl
+ *
+ * Processes receipt tag information as entered into /receipts/
+ */
+static void process_receipt(struct session *current_session)
+{
+	char buf[SQL_MAX];
+	char secs[11];
+	struct tm tm;
+	int tag_error = 0;
+	int ret;
+	double gross;
+	double net;
+	double vat;
+	double vr;
+	struct field_names fields;
+	GHashTable *qvars = NULL;
+	TMPL_varlist *vl = NULL;
+
+	fread(buf, SQL_MAX - 1, 1, stdin);
+	if (!strstr(buf, "=") && !strstr(buf, "&"))
+		return;
+
+	qvars = get_vars(buf);
+
+	/* Prevent users from tagging other users receipts */
+	if (!is_users_receipt(current_session, get_var(qvars, "image_id")))
+		goto out;
+
+	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
+	vl = TMPL_add_var(vl, "image_id", get_var(qvars, "image_id"), NULL);
+	vl = TMPL_add_var(vl, "image_path", get_var(qvars, "image_path"),
+									NULL);
+	vl = TMPL_add_var(vl, "image_name", get_var(qvars, "image_name"),
+									NULL);
+	fields = field_names;
+	set_custom_field_names(current_session, &fields);
+
+	if (strlen(get_var(qvars, "department")) == 0) {
+		tag_error = 1;
+		vl = TMPL_add_var(vl, "error.department", "1", NULL);
+	}
+	vl = TMPL_add_var(vl, "fields.department", fields.department, NULL);
+	vl = TMPL_add_var(vl, "department", get_var(qvars, "department"),
+									NULL);
+
+	if (strlen(get_var(qvars, "employee_number")) == 0) {
+		tag_error = 1;
+		vl = TMPL_add_var(vl, "error.employee_number", "1", NULL);
+	}
+	vl = TMPL_add_var(vl, "fields.employee_number", fields.employee_number,
+									NULL);
+	vl = TMPL_add_var(vl, "employee_number", get_var(qvars,
+						"employee_number"), NULL);
+
+	if (strlen(get_var(qvars, "cost_codes")) == 0) {
+		tag_error = 1;
+		vl = TMPL_add_var(vl, "error.cost_codes", "1", NULL);
+	}
+	vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes, NULL);
+	vl = TMPL_add_var(vl, "cost_codes", get_var(qvars, "cost_codes"),
+									NULL);
+
+	if (strlen(get_var(qvars, "account_codes")) == 0) {
+		tag_error = 1;
+		vl = TMPL_add_var(vl, "error.account_codes", "1", NULL);
+	}
+	vl = TMPL_add_var(vl, "fields.account_codes", fields.account_codes,
+									NULL);
+	vl = TMPL_add_var(vl, "account_codes", get_var(qvars, "account_codes"),
+									NULL);
+
+	if (strlen(get_var(qvars, "po_num")) == 0) {
+		tag_error = 1;
+		vl = TMPL_add_var(vl, "error.po_num", "1", NULL);
+	}
+	vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, NULL);
+	vl = TMPL_add_var(vl, "po_num", get_var(qvars, "po_num"), NULL);
+
+	if (strlen(get_var(qvars, "supplier_name")) == 0) {
+		tag_error = 1;
+		vl = TMPL_add_var(vl, "error.supplier_name", "1", NULL);
+	}
+	vl = TMPL_add_var(vl, "fields.supplier_name", fields.supplier_name,
+									NULL);
+	vl = TMPL_add_var(vl, "supplier_name", get_var(qvars, "supplier_name"),
+									NULL);
+
+	if (strlen(get_var(qvars, "supplier_town")) == 0) {
+		tag_error = 1;
+		vl = TMPL_add_var(vl, "error.supplier_town", "1", NULL);
+	}
+	vl = TMPL_add_var(vl, "fields.supplier_town", fields.supplier_town,
+									NULL);
+	vl = TMPL_add_var(vl, "supplier_town", get_var(qvars, "supplier_town"),
+									NULL);
+
+	vl = TMPL_add_var(vl, "fields.currency", fields.currency, NULL);
+	vl = TMPL_add_var(vl, "currency", get_var(qvars, "currency"), NULL);
+
+	gross = strtod(get_var(qvars, "gross_amount"), NULL);
+	net = strtod(get_var(qvars, "net_amount"), NULL);
+	vat = strtod(get_var(qvars, "vat_amount"), NULL);
+	vr = strtod(get_var(qvars, "vat_rate"), NULL);
+	ret = check_amounts(gross, net, vat, vr);
+	if (ret < 0) {
+		tag_error = 1;
+		vl = TMPL_add_var(vl, "error.amounts", "1", NULL);
+	}
+	vl = TMPL_add_var(vl, "fields.gross_amount", fields.gross_amount,
+									NULL);
+	vl = TMPL_add_var(vl, "gross_amount", get_var(qvars, "gross_amount"),
+									NULL);
+	vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount, NULL);
+	vl = TMPL_add_var(vl, "net_amount", get_var(qvars, "net_amount"),
+									NULL);
+	vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount, NULL);
+	vl = TMPL_add_var(vl, "vat_amount", get_var(qvars, "vat_amount"),
+									NULL);
+	vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate, NULL);
+	vl = TMPL_add_var(vl, "vat_rate", get_var(qvars, "vat_rate"), NULL);
+
+	if (strlen(get_var(qvars, "vat_number")) == 0) {
+		tag_error = 1;
+		vl = TMPL_add_var(vl, "error.vat_number", "1", NULL);
+	}
+	vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number, NULL);
+	vl = TMPL_add_var(vl, "vat_number", get_var(qvars, "vat_number"),
+									NULL);
+
+	vl = TMPL_add_var(vl, "fields.reason", fields.reason, NULL);
+	vl = TMPL_add_var(vl, "reason", get_var(qvars, "reason"), NULL);
+
+	memset(&tm, 0, sizeof(tm));
+	strptime(get_var(qvars, "receipt_date"), "%Y-%m-%d", &tm);
+	strftime(secs, sizeof(secs), "%s", &tm);
+	if (strtol(secs, NULL, 10) < time(NULL) - MAX_RECEIPT_AGE ||
+					strtol(secs, NULL, 10) > time(NULL)) {
+		tag_error = 1;
+		vl = TMPL_add_var(vl, "error.receipt_date", "1", NULL);
+	}
+	vl = TMPL_add_var(vl, "fields.receipt_date", fields.receipt_date,
+									NULL);
+	vl = TMPL_add_var(vl, "receipt_date", get_var(qvars, "receipt_date"),
+									NULL);
+
+	vl = TMPL_add_var(vl, "fields.payment_method", fields.payment_method,
+									NULL);
+	vl = TMPL_add_var(vl, "payment_method", get_var(qvars,
+						"payment_method"), NULL);
+
+	if (!tag_error) {
+		tag_image(current_session, qvars);
+		printf("Location: %s/receipts/\r\n\r\n", BASE_URL);
+	} else {
+		printf("Cache-Control: private\r\n");
+		printf("Content-Type: text/html\r\n\r\n");
+		TMPL_write("templates/process_receipt.tmpl", NULL, NULL, vl,
+							stdout, error_log);
+		TMPL_free_varlist(vl);
+	}
+
+out:
+	free_vars(qvars);
+}
+
+/*
  * /receipts/
  *
  * HTML is in templates/receipts.tmpl
@@ -2437,7 +2634,6 @@ static void receipts(struct session *current_session)
 	int i;
 	int nr_rows;
 	char sql[SQL_MAX];
-	char buf[SQL_MAX];
 	char *u_email;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -2445,10 +2641,6 @@ static void receipts(struct session *current_session)
 	TMPL_varlist *vl = NULL;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
-
-	fread(buf, SQL_MAX - 1, 1, stdin);
-	if (strstr(buf, "=") && strstr(buf, "&"))
-		tag_image(current_session, buf);
 
 	/* Display the user's name at the top of the page */
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
@@ -2649,6 +2841,11 @@ static void handle_request()
 
 	if (strstr(request_uri, "/receipts/")) {
 		receipts(&current_session);
+		goto out;
+	}
+
+	if (strstr(request_uri, "/process_receipt/")) {
+		process_receipt(&current_session);
 		goto out;
 	}
 

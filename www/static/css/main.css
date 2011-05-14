@@ -17,3 +17,7 @@ body {
 .t_green {
 	color: rgb(0, 255, 0);
 }
+
+.input_error {
+	background-color: rgb(240, 180, 175);
+}

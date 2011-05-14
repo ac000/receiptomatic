@@ -1,0 +1,185 @@
+<html>
+<body>
+<head>
+	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
+</head>
+<body>
+
+<span class = "lighter">You are seeing this page due to one or more errors being found in the information you submitted.</span>
+<p />
+<span class = "lighter">The problem fields are highlighted in </span><span class = "input_error">red</span><span class = "lighter">.</span>
+<p />
+<span class = "lighter">If the amount fields are highlighted, make sure that you haven't entered any currency sign.</span><br />
+<span class = "lighter">The only valid characters for the amount fields are</span> 0-9 <span class = "lighter">and</span>.<br />
+<span class = "lighter">If the net and vat amounts add up to the gross amount, check that you have entered the correct vat rate.</span>
+<p />
+<span class = "lighter">If the date field is highlighted, ensure that you have entered the date as YYYY-MM-DD. e.g </span>2011-12-01
+<p />
+
+<form action = "<tmpl_var name = 'base_url' />/process_receipt/" method = "POST">
+
+<table>
+<tbody>
+
+<tr>
+	<td rowspan = "16">
+	<a href = "/full_image/<tmpl_var name = 'image_path' />/<tmpl_var name = 'image_name' />">
+	<img src = '/get_image/<tmpl_var name = "image_path" />/medium/<tmpl_var name = "image_name" />' width = "300" height = "300" />
+	</a>
+	</td>
+	<td><span class = "lighter"><tmpl_var name = "fields.department" /></span></td>
+	<td> : <input type = "text" name = "department" value = "<tmpl_var name = 'department' />"
+		class = "
+		<tmpl_if name = 'error.department'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.employee_number" /></span></td>
+	<td> : <input type = "text" name = "employee_number" value = "<tmpl_var name = 'employee_number' />"
+		class = "
+		<tmpl_if name = 'error.employee_number'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.cost_codes" /></span></td>
+	<td> : <input type = "text" name = "cost_codes" value = "<tmpl_var name = 'cost_codes' />"
+		class = "
+		<tmpl_if name = 'error.cost_codes'>
+			input_error
+                </tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.account_codes" /></span></td>
+	<td> : <input type = "text" name = "account_codes" value = "<tmpl_var name = 'account_codes' />"
+		class = "
+		<tmpl_if name = 'error.account_codes'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.po_num" /></span></td>
+	<td> : <input type = "text" name = "po_num" value = "<tmpl_var name = 'po_num' />"
+		class = "
+		<tmpl_if name = 'error.po_num'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.supplier_name" /></span></td>
+	<td> : <input type = "text" name = "supplier_name" value = "<tmpl_var name = 'supplier_name' />"
+		class = "
+		<tmpl_if name = 'error.supplier_name'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.supplier_town" /></span></td>
+	<td> : <input type = "text" name = "supplier_town" value = "<tmpl_var name = 'supplier_town' />"
+		class = "
+		<tmpl_if name = 'error.supplier_town'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.currency" /></span></td>
+	<input type = "hidden" name = "currency" value = "<tmpl_var name = 'currency' />" />
+	<td> : <tmpl_var name = "currency" />
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.gross_amount" /></span></td>
+	<td> : <input type = "text" name = "gross_amount" value = "<tmpl_var name = 'gross_amount' />"
+		class = "
+		<tmpl_if name = 'error.amounts'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.vat_amount" /></span></td>
+	<td> : <input type = "text" name = "vat_amount" value = "<tmpl_var name = 'vat_amount' />"
+		class = "
+		<tmpl_if name = 'error.amounts'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.net_amount" /></span></td>
+	<td> : <input type = "text" name = "net_amount" value = "<tmpl_var name = 'net_amount' />"
+		class = "
+		<tmpl_if name = 'error.amounts'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.vat_rate" /></span></td>
+	<td> : <input type = "text" name = "vat_rate" value = "<tmpl_var name = 'vat_rate' />"
+		class = "
+		<tmpl_if name = 'error.amounts'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.vat_number" /></span></td>
+	<td> : <input type = "text" name = "vat_number" value = "<tmpl_var name = 'vat_number' />"
+		class = "
+		<tmpl_if name = 'error.vat_number'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.reason" /></span></td>
+	<td> : <input type = "text" name = "reason" value = "<tmpl_var name = 'reason' />" /></td>
+</tr>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.receipt_date" /></span></td>
+	<td> : <input type = "text" name = "receipt_date" value = "<tmpl_var name = 'receipt_date' />"
+		class = "
+		<tmpl_if name = 'error.receipt_date'>
+			input_error
+		</tmpl_if>
+		" />
+	</td>
+<tr>
+	<td><span class = "lighter"><tmpl_var name = "fields.payment_method" /></span></td>
+	<input type = "hidden" name = "payment_method" value = "<tmpl_var name = 'payment_method' />" />
+	<td> : <tmpl_var name = "payment_method" />
+</tr>
+
+</tbody>
+</table>
+
+<p />
+
+<input type = "hidden" name = "image_path" value = "<tmpl_var name = 'image_path' />" />
+<input type = "hidden" name = "image_name" value = "<tmpl_var name = 'image_name' />" />
+<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'image_id' />" />
+<input type = "submit" value = "Submit" />
+</form>
+
+</body>
+</html>
