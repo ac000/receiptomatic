@@ -2798,7 +2798,7 @@ static void handle_request()
 	char *http_x_forwarded_for;
 	char *query_string;
 
-	request_uri = strdupa(getenv("REQUEST_URI"));;
+	request_uri = strdupa(getenv("REQUEST_URI"));
 	if (getenv("HTTP_COOKIE"))
 		http_cookie = strdupa(getenv("HTTP_COOKIE"));
 	http_user_agent = strdupa(getenv("HTTP_USER_AGENT"));
