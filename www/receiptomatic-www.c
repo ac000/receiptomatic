@@ -2793,21 +2793,24 @@ static void handle_request()
 	struct session current_session;
 	int logged_in = 0;
 	char *request_uri;
+	char *request_method;
 	char *http_cookie = "\0";	/* we might not get any cookies */
 	char *http_user_agent;
 	char *http_x_forwarded_for;
 	char *query_string;
 
 	request_uri = strdupa(getenv("REQUEST_URI"));
+	request_method = strdupa(getenv("REQUEST_METHOD"));
 	if (getenv("HTTP_COOKIE"))
 		http_cookie = strdupa(getenv("HTTP_COOKIE"));
 	http_user_agent = strdupa(getenv("HTTP_USER_AGENT"));
 	http_x_forwarded_for = strdupa(getenv("HTTP_X_FORWARDED_FOR"));
 	query_string = strdupa(getenv("QUERY_STRING"));
 
-	d_fprintf(access_log, "Got request from %s for %s\n",
+	d_fprintf(access_log, "Got request from %s for %s (%s)\n",
 							http_x_forwarded_for,
-							request_uri);
+							request_uri,
+							request_method);
 	d_fprintf(debug_log, "Cookies: %s\n", http_cookie);
 
 	memset(&current_session, 0, sizeof(current_session));
