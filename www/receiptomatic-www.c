@@ -894,22 +894,12 @@ static void tag_image(struct session *current_session, GHashTable *qvars)
 	struct tm tm;
 	char secs[11];
 	MYSQL *conn;
-	MYSQL_RES *res;
 
 	conn = db_conn();
+
 	image_id = alloca(strlen(get_var(qvars, "image_id")) * 2 + 1);
 	mysql_real_escape_string(conn, image_id, get_var(qvars, "image_id"),
 					strlen(get_var(qvars, "image_id")));
-	/*
-	 * Prevent images from being tagged multiple times.
-	 * Perhaps due to re-POSTing.
-	 */
-	snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE id = '%s'",
-								image_id);
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
-	if (mysql_num_rows(res) > 0)
-		goto out;
 
 	username = alloca(strlen(current_session->username) * 2 + 1);
 	mysql_real_escape_string(conn, username, current_session->username,
@@ -1021,8 +1011,6 @@ static void tag_image(struct session *current_session, GHashTable *qvars)
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 
-out:
-	mysql_free_result(res);
 	mysql_close(conn);
 }
 
