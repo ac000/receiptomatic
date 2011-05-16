@@ -1324,7 +1324,7 @@ static void get_image(struct session *current_session, char *image)
 	printf("Cache-Control: private\r\n");
 	printf("Content-Type: %s\r\n", mime_type);
 	printf("Content-Length: %ld\n\n", sb.st_size);
-	d_fprintf(access_log, "Sending image: %s\n", image);
+	d_fprintf(debug_log, "Sending image: %s\n", image);
 
 	while (bytes_read > 0) {
 		bytes_read = read(fd, &buf, BUF_SIZE);
