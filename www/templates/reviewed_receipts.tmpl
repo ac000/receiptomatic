@@ -8,7 +8,8 @@
 	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/"> approve receipts</a> | reviewed receipts </a><span class = t_red>|</span>
 	</tmpl_if>
 	<p />
-	<big><big> <tmpl_var name = "name" />&nbsp;</big></big>
+	<big><big> <tmpl_var name = "name" /></big></big>
+	<small><span class = "lighter"> (<tmpl_var name = "uid" />) </span></small>
 	<tmpl_if name = "user_type" value = "approver">
 		<span class = "t_red">(Approver)</span>&nbsp;
 	</tmpl_if>

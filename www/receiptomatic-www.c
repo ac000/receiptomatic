@@ -1387,6 +1387,7 @@ static void full_image(struct session *current_session, char *image)
 static void prefs_fmap(struct session *current_session)
 {
 	char buf[SQL_MAX];
+	char uid[11];
 	struct field_names fields;
 	TMPL_varlist *vl = NULL;
 
@@ -1395,6 +1396,8 @@ static void prefs_fmap(struct session *current_session)
 		update_fmap(current_session, buf);
 
 	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
+	snprintf(uid, 11, "%u", current_session->uid);
+	vl = TMPL_add_var(vl, "uid", uid, NULL);
 	if (current_session->type & APPROVER)
 		vl = TMPL_add_var(vl, "user_type", "approver", NULL);
 	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
@@ -1672,6 +1675,7 @@ static void approve_receipts(struct session *current_session, char *query)
 	char pmsql[128];
 	char assql[512];
 	char page[10];
+	char uid[11];
 	static const char *pm = "tags.payment_method = ";
 	static const char *cash = "'cash'";
 	static const char *card = "'card'";
@@ -1788,6 +1792,8 @@ static void approve_receipts(struct session *current_session, char *query)
 	res = mysql_store_result(conn);
 
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
+	snprintf(uid, 11, "%u", current_session->uid);
+	ml = TMPL_add_var(ml, "uid", uid, NULL);
 	if (current_session->type & APPROVER)
 		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
 
@@ -2021,6 +2027,7 @@ static void reviewed_receipts(struct session *current_session, char *query)
 	int pages;
 	char page[10];
 	char sql[SQL_MAX];
+	char uid[11];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *qvars = NULL;
@@ -2042,6 +2049,8 @@ static void reviewed_receipts(struct session *current_session, char *query)
 	}
 
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
+	snprintf(uid, 11, "%u", current_session->uid);
+	ml = TMPL_add_var(ml, "uid", uid, NULL);
 	if (current_session->type & APPROVER)
 		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
 
@@ -2146,6 +2155,7 @@ static void receipt_info(struct session *current_session, char *query)
 	char sql[SQL_MAX];
 	char tbuf[60];
 	char *image_id;
+	char uid[11];
 	struct field_names fields;
 	time_t secs;
 	MYSQL *conn;
@@ -2155,6 +2165,8 @@ static void receipt_info(struct session *current_session, char *query)
 	TMPL_varlist *vl = NULL;
 
 	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
+	snprintf(uid, 11, "%u", current_session->uid);
+	vl = TMPL_add_var(vl, "uid", uid, NULL);
 	if (current_session->type & APPROVER)
 		vl = TMPL_add_var(vl, "user_type", "approver", NULL);
 
@@ -2314,6 +2326,7 @@ static void tagged_receipts(struct session *current_session, char *query)
 	char page[10];
 	char sql[SQL_MAX];
 	char *u_email;
+	char uid[11];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *qvars = NULL;
@@ -2332,6 +2345,8 @@ static void tagged_receipts(struct session *current_session, char *query)
 	}
 
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
+	snprintf(uid, 11, "%u", current_session->uid);
+	ml = TMPL_add_var(ml, "uid", uid, NULL);
 	if (current_session->type & APPROVER)
 		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
 
@@ -2623,6 +2638,7 @@ static void receipts(struct session *current_session)
 	int nr_rows;
 	char sql[SQL_MAX];
 	char *u_email;
+	char uid[11];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
@@ -2630,8 +2646,10 @@ static void receipts(struct session *current_session)
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 
-	/* Display the user's name at the top of the page */
+	/* Display the user's name and UID at the top of the page */
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
+	snprintf(uid, 11, "%u", current_session->uid);
+	ml = TMPL_add_var(ml, "uid", uid, NULL);
 	if (current_session->type & APPROVER)
 		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
 	ml = TMPL_add_var(ml, "base_url", BASE_URL, NULL);
