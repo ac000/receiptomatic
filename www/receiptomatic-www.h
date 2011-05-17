@@ -53,6 +53,9 @@ static void update_fmap(struct session *current_session, char *query);
 static void set_custom_field_names(struct session *current_session,
 						struct field_names *fields);
 static GHashTable *get_dbrow(MYSQL_RES *res);
+static GList *get_avars(char *query);
+static char *get_avar(GList *avars, int index, char *key);
+static void free_avars(GList *avars);
 static GHashTable *get_vars(char *query);
 static char *get_var(GHashTable *vars, char *key);
 static void free_vars(GHashTable *vars);

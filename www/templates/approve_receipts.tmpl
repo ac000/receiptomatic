@@ -89,10 +89,15 @@
 		<td><small><tmpl_var name = "reason" /></small></td>
 	</tr>
 	<tr>
-		<td colspan = "8" align = "right">
-		Skip <input type = "radio" name = "<tmpl_var name = 'id' />" value = "<tmpl_var name = 'id' />.s" checked />&nbsp;&nbsp;
-		Approve <input type = "radio" name = "<tmpl_var name = 'id' />" value = "<tmpl_var name = 'id' />.a" />&nbsp;&nbsp;
-		Reject <input type = "radio" name = "<tmpl_var name = 'id' />" value = "<tmpl_var name = 'id' />.r" />
+		<td colspan = "6">
+		<small><span class = "lighter">Reason </span>
+		<input type = "text" name = "i<tmpl_var name = 'item' />[reason]" size = "60" /></small>
+		</td>
+		<td colspan = "2">
+		<input type = "hidden" name = "i<tmpl_var name = 'item' />[id]" value = "<tmpl_var name = 'id' />" />
+		Skip <input type = "radio" name = "i<tmpl_var name = 'item' />[approved_status]" value = "s" checked />&nbsp;&nbsp;
+		Approve <input type = "radio" name = "i<tmpl_var name = 'item' />[approved_status]" value = "a" />&nbsp;&nbsp;
+		Reject <input type = "radio" name = "i<tmpl_var name = 'item' />[approved_status]" value = "r" />
 		</td>
 	</tr>
 	<tr>

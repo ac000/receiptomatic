@@ -30,7 +30,7 @@
 	<tbody>
 
 	<tr>
-		<td rowspan = "19">
+		<td rowspan = "20">
 		<img src = '/get_image/<tmpl_var name = "image_path" />/medium/<tmpl_var name = "image_name" />' width = "300" height = "300" />
 		</td>
 
@@ -115,6 +115,12 @@
 				<span class = "t_green">Approved</span>
 			</tmpl_if>
 		</td>
+	</tr>
+	<tr>
+		<tmpl_if name = "reject_reason">
+			<td><big><span class = "lighter">Reject Reason</span></big></td>
+			<td> : <tmpl_var name = "reject_reason" /></td>
+		</tmpl_if>
 	</tr>
 
 	</tbody>

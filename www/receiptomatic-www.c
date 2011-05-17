@@ -473,6 +473,120 @@ static GHashTable *get_dbrow(MYSQL_RES *res)
 }
 
 /*
+ * Create a GList of GHashTables of name=value pairs.
+ *
+ * This is will most likely be used when needing to send POST
+ * array values, e,g
+ *
+ * 	form0[name]
+ * 	form0[email]
+ *
+ * If you need to send singular items also, then you should make them
+ * a single entity array. i.e, don't mix array's and non-array's.
+ */
+static GList *get_avars(char *query)
+{
+	char *token;
+	char *idx;
+	char *lidx = "\0";
+	char *subtoken;
+	char *saveptr1 = NULL;
+	char *saveptr2 = NULL;
+	char *string;
+	GHashTable *query_values;
+	GList *avars = NULL;
+
+	query_values = g_hash_table_new_full(g_str_hash, g_str_equal,
+							g_free, g_free);
+
+	string = strdupa(query);
+	for (;;) {
+		char *key;
+		char *value;
+
+		token = strtok_r(string, "&", &saveptr1);
+		if (token == NULL)
+			break;
+
+		/* get the array name */
+		subtoken = strtok_r(token, "%", &saveptr2);
+		idx = strdupa(subtoken);
+		if (strcmp(idx, lidx) != 0) {
+			if (lidx[0] != '\0') {
+				avars = g_list_append(avars, query_values);
+				query_values = g_hash_table_new_full(
+							g_str_hash,
+							g_str_equal,
+							g_free, g_free);
+			}
+		}
+		lidx = idx;
+		token = NULL;
+
+		/* get the array index */
+		subtoken = strtok_r(token, "=", &saveptr2);
+		key = alloca(strlen(subtoken));
+		memset(key, 0, strlen(subtoken));
+		strncpy(key, subtoken + 2, strlen(subtoken + 2) - 3);
+		token = NULL;
+
+		/* get the array value */
+		subtoken = strtok_r(token, "=", &saveptr2);
+		if (!subtoken) { /* Maybe there is no value */
+			value = malloc(1);
+			value[0] = '\0';
+		} else {
+			value = url_decode(subtoken);
+		}
+		string = NULL;
+
+		g_hash_table_replace(query_values, g_strdup(key),
+							g_strdup(value));
+		d_fprintf(debug_log, "Adding key: %s with value: %s to hash "
+							"table\n", key, value);
+
+		free(value);
+	}
+	avars = g_list_append(avars, query_values);
+	d_fprintf(debug_log, "Added %d elements to the list\n",
+							g_list_length(avars));
+
+	return avars;
+}
+
+/*
+ * Given a GList and index and a key, return the coresponding value from
+ * the hash table contained within.
+ */
+static char *get_avar(GList *avars, int index, char *key)
+{
+	char *val;
+	GHashTable *vars;
+
+	vars = g_list_nth_data(avars, index);
+	val = g_hash_table_lookup(vars, key);
+
+	return val;
+}
+
+/*
+ * Free's the given hash table.
+ */
+static void free_avars(GList *avars)
+{
+	GHashTable *query_vars;
+	int i;
+	int size;
+
+	size = g_list_length(avars);
+	for (i = 0; i < size; i++) {
+		query_vars = g_list_nth_data(avars, i);
+		g_hash_table_destroy(query_vars);
+	}
+	g_list_free(avars);
+}
+
+/*
  * Create a hash table of name=value pairs, generated from GET and POST
  * data.
  */
@@ -1524,13 +1638,13 @@ static void process_receipt_approval(struct session *current_session)
 {
 	char sql[SQL_MAX];
 	char buf[SQL_MAX];
-	char action[2];         /* [ars] */
-	char id[65];
 	char *username;
 	char *u_email;
-	int pos = 0;
+	int list_size;
+	int i;
 	MYSQL *conn;
 	MYSQL_RES *res;
+	GList *post_vars = NULL;
 
 	if (!(current_session->type & APPROVER))
 		return;
@@ -1538,6 +1652,8 @@ static void process_receipt_approval(struct session *current_session)
 	fread(buf, SQL_MAX - 1, 1, stdin);
 	if (!strstr(buf, "=") && !strstr(buf, "&"))
 		return;
+
+	post_vars = get_avars(buf);
 
 	conn = db_conn();
 
@@ -1552,16 +1668,26 @@ static void process_receipt_approval(struct session *current_session)
 	mysql_query(conn, "LOCK TABLES approved WRITE, images WRITE, "
 								"tags READ");
 
-	while (buf[pos] != '\0') {
+	list_size = g_list_length(post_vars);
+	for (i = 0; i < list_size; i++) {
+		char *action = get_avar(post_vars, i, "approved_status");
+		char *reason;
 		char *image_id;
 
-		pos += 65; /* First id + = */
-		strncpy(id, buf + pos, 64);
-		id[64] = '\0';
-		image_id = alloca(strlen(id) * 2 + 1);
-		mysql_real_escape_string(conn, image_id, id, strlen(id));
-		strncpy(action, buf + pos + 65, 1);
-		action[1] = '\0';
+		image_id = alloca(strlen(get_avar(post_vars, i, "id")) *
+									2 + 1);
+		mysql_real_escape_string(conn, image_id, get_avar(post_vars,
+							i, "id"),
+							strlen(get_avar(
+							post_vars, i, "id")));
+
+		reason = alloca(strlen(get_avar(post_vars, i, "reason")) *
+									2 + 1);
+		mysql_real_escape_string(conn, reason, get_avar(post_vars,
+							i, "reason"),
+							strlen(get_avar(
+							post_vars, i,
+							"reason")));
 
 		/* Can user approve their own receipts? */
 		if (!(current_session->type & APPROVER_SELF)) {
@@ -1630,7 +1756,7 @@ static void process_receipt_approval(struct session *current_session)
 			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
 						"'%s', '%s', %ld, %d, '%s')",
 						image_id, username, time(NULL),
-						APPROVED, "");
+						APPROVED, reason);
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_real_query(conn, sql, strlen(sql));
 			snprintf(sql, SQL_MAX, "UPDATE images SET approved = "
@@ -1642,7 +1768,7 @@ static void process_receipt_approval(struct session *current_session)
 			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
 						"'%s', '%s', %ld, %d, '%s')",
 						image_id, username, time(NULL),
-						REJECTED, "");
+						REJECTED, reason);
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_real_query(conn, sql, strlen(sql));
 			snprintf(sql, SQL_MAX, "UPDATE images SET approved = "
@@ -1651,13 +1777,12 @@ static void process_receipt_approval(struct session *current_session)
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_query(conn, sql);
 		}
-
-		pos += 67; /* id + .[ars]& */
 	}
 
 	mysql_query(conn, "UNLOCK TABLES");
 	mysql_free_result(res);
 	mysql_close(conn);
+	free_avars(post_vars);
 
 	printf("Location: %s/approve_receipts/\r\n\r\n", BASE_URL);
 }
@@ -1809,6 +1934,7 @@ static void approve_receipts(struct session *current_session, char *query)
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
 		char *name;
+		char item[3];
 		time_t secs;
 		double gross;
 		double net;
@@ -1984,6 +2110,9 @@ static void approve_receipts(struct session *current_session, char *query)
 		loop = TMPL_add_varlist(loop, vl);
 
 		vl = TMPL_add_var(vl, "id", get_var(db_row, "id"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+		snprintf(item, 3, "%d", i);
+		vl = TMPL_add_var(vl, "item", item, NULL);
 		loop = TMPL_add_varlist(loop, vl);
 
 		free_vars(db_row);
@@ -2191,10 +2320,13 @@ static void receipt_info(struct session *current_session, char *query)
 				"tags.gross_amount, tags.vat_amount, "
 				"tags.net_amount, tags.vat_rate, "
 				"tags.vat_number, tags.receipt_date, "
-				"tags.reason, tags.payment_method FROM "
+				"tags.reason, tags.payment_method, "
+				"approved.reason AS r_reason FROM "
 				"images INNER JOIN tags ON "
-				"(images.id = tags.id) WHERE "
+				"(images.id = tags.id) INNER JOIN approved "
+				"ON (approved.id = tags.id) WHERE "
 				"images.id = '%s' LIMIT 1", image_id);
+	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 
@@ -2297,6 +2429,9 @@ static void receipt_info(struct session *current_session, char *query)
 		vl = TMPL_add_var(vl, "approved", "pending", NULL);
 	else
 		vl = TMPL_add_var(vl, "approved", "yes", NULL);
+
+	vl = TMPL_add_var(vl, "reject_reason", get_var(db_row, "r_reason"),
+									NULL);
 
 	free_vars(db_row);
 	mysql_free_result(res);
