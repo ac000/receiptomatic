@@ -2321,10 +2321,11 @@ static void receipt_info(struct session *current_session, char *query)
 				"tags.net_amount, tags.vat_rate, "
 				"tags.vat_number, tags.receipt_date, "
 				"tags.reason, tags.payment_method, "
-				"approved.reason AS r_reason FROM "
-				"images INNER JOIN tags ON "
-				"(images.id = tags.id) INNER JOIN approved "
-				"ON (approved.id = tags.id) WHERE "
+				"approved.reason AS r_reason, passwd.name AS "
+				"user, passwd.uid FROM images INNER JOIN tags "
+				"ON (images.id = tags.id) INNER JOIN approved "
+				"ON (approved.id = tags.id) INNER JOIN passwd "
+				"ON (images.who = passwd.u_email) WHERE "
 				"images.id = '%s' LIMIT 1", image_id);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
@@ -2343,6 +2344,8 @@ static void receipt_info(struct session *current_session, char *query)
 	vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"), NULL);
 	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"), NULL);
 
+	vl = TMPL_add_var(vl, "r_user", get_var(db_row, "user"), NULL);
+	vl = TMPL_add_var(vl, "r_uid", get_var(db_row, "uid"), NULL);
 	vl = TMPL_add_var(vl, "id", image_id, NULL);
 
 	/* image upload timestamp */
