@@ -27,8 +27,8 @@
 
 <tmpl_loop name = "table">
 		<td>
-		<a href = '/receipt_info/?image_id=<tmpl_var name = "id" />'>
-		<img src = '/get_image/<tmpl_var name = "image_path" />/small/<tmpl_var name = "image_name" />' width = "180" height = "180" /></a>
+		<a href = "/receipt_info/?image_id=<tmpl_var name = 'id' />">
+		<img src = "/get_image/<tmpl_var name = 'image_path' />/small/<tmpl_var name = 'image_name' />" width = "180" height = "180" /></a>
 		<br />
 		<span class = "lighter">
 			<tmpl_var name = "fields.receipt_date" />:
@@ -59,13 +59,13 @@
 	</center>
 
 	<tmpl_if name = "prev_page">
-		<a href = '/tagged_receipts/?page_no=<tmpl_var name = "prev_page" />'> Prev Page </a>
+		<a href = "/tagged_receipts/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
 	<tmpl_else>
 		Prev Page
 	</tmpl_if>
 	&nbsp;::&nbsp;
 	<tmpl_if name = "next_page">
-		<a href = '/tagged_receipts/?page_no=<tmpl_var name = "next_page" />'> Next Page </a>
+		<a href = "/tagged_receipts/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
 	<tmpl_else>
 		Next Page
 	</tmpl_if>
