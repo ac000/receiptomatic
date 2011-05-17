@@ -1248,9 +1248,9 @@ static void login(char *http_user_agent, char *http_x_forwarded_for)
 					http_x_forwarded_for);
 
 			printf("Location: %s/receipts/\r\n\r\n", BASE_URL);
+			free_vars(credentials);
+			return; /* Successful login */
 		}
-		free_vars(credentials);
-		return;	/* Successful login */
 	}
 
 	if (ret == -1)
