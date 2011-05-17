@@ -28,10 +28,10 @@
 	<tr>
 		<td rowspan = "16">
 		<form action = "<tmpl_var name = 'base_url' />/process_receipt/" method = "POST">
-		<img src = '/get_image/<tmpl_var name = "image_path" />/medium/<tmpl_var name = "image_name" />' width = "300" height = "300" />
+		<img src = "/get_image/<tmpl_var name = 'image_path' />/medium/<tmpl_var name = 'image_name' />" width = "300" height = "300" />
 		<br />
 		<span class = "lighter">Uploaded at:</span> <tmpl_var name = "timestamp" />
-		<a href = '/full_image/<tmpl_var name = "image_path" />/<tmpl_var name = "image_name" />'>[ Full Size ]</a>
+		<a href = "/full_image/<tmpl_var name = 'image_path' />/<tmpl_var name = 'image_name' />">[ Full Size ]</a>
 		</td>
 
 		<td><big><tmpl_var name = "fields.department" /> </big></td>
@@ -111,13 +111,13 @@
 		<td></td>
 		<td></td>
 		<td align = "right">
-		<input type = "hidden" name = "image_id" value = '<tmpl_var name = "id" />' />
-		<input type = "hidden" name = "image_path" value = '<tmpl_var name = "image_path" />' />
-		<input type = "hidden" name = "image_name" value = '<tmpl_var name = "image_name" />' />
+		<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'id' />" />
+		<input type = "hidden" name = "image_path" value = "<tmpl_var name = 'image_path' />" />
+		<input type = "hidden" name = "image_name" value = "<tmpl_var name = 'image_name' />" />
 		<input type = "submit" value = "Tag It" />
 		</form>
 		<form action = "<tmpl_var name = 'base_url' />/delete_image/" method = "POST">
-		<input type = "hidden" name = "image_id" value = '<tmpl_var name = "id" />' />
+		<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'id' />" />
 		<input type = "submit" value = "Delete" />
 		</form>
 		</td>
