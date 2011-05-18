@@ -1267,7 +1267,7 @@ static void login(char *http_user_agent, char *http_x_forwarded_for)
  *
  * HTML is in templates/logout.tmpl
  *
- * Clean up a users session. Remove thier entry from the sessions db and
+ * Clean up a users session. Remove their entry from the sessions db and
  * set the session_id browser cookie to expired.
  */
 static void logout(struct session *current_session)
