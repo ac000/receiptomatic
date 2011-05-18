@@ -869,7 +869,7 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
  *    on the requesting ip address against the stored origin_ip that was
  *    used at login.
  *
- * If any of these checks fail, the request is denined and the user is
+ * If any of these checks fail, the request is denied and the user is
  * punted to the login screen.
  */
 static int is_logged_in(char *cookies, char *client_id, char *remote_ip,
