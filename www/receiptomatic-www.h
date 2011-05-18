@@ -89,11 +89,8 @@ static void handle_request();
 static void accept_request();
 static void set_proc_title(char *title);
 static void create_server(int nr);
-static int __dump_session_state(void *arg, int argc, char **argv,
-								char **column);
 static void dump_session_state();
 static void clear_old_sessions();
 static void init_clear_session_timer();
-static void initialise_session_db();
 
 #endif /* _RECEIPTOMATIC_WWW_H_ */

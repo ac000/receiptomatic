@@ -27,8 +27,12 @@
 #include <alloca.h>
 #include <math.h>
 
-/* SQLite, for the sessions */
-#include <sqlite3.h>
+/* For Tokyocabinet (user sessions) */
+#include <tcutil.h>
+#include <tctdb.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <libgen.h>
 
 /* MySQL */
 #include <my_global.h>
@@ -85,7 +89,7 @@ static FILE *debug_log;
 #define IMAGE_PATH	"/data/www/opentechlabs.net/receiptomatic/receipt_images"
 #define BASE_URL	"http://ri.opentechlabs.net"
 
-#define SESSION_DB	"/dev/shm/receiptomatic-www-sessions.sqlite"
+#define SESSION_DB	"/dev/shm/receiptomatic-www-sessions.tct"
 #define SESSION_CHECK	60 * 60		/* Check for old sessions every hour */
 #define SESSION_EXPIRY	60 * 60 * 4	/* 4 hours */
 
@@ -690,12 +694,20 @@ static char *username_to_name(char *username)
 static void set_current_session(struct session *current_session, char *cookies,
 							char *request_uri)
 {
-	sqlite3 *db;
-	char sql[SQL_MAX];
+	TCTDB *tdb;
+	TDBQRY *qry;
+	TCLIST *res;
+	TCMAP *cols;
+	int rsize;
+	int primary_key_size;
+	char pkbuf[256];
 	char session_id[65];
-	char **results;
-	int rows;
-	int columns;
+	char login_at[21];
+	char last_seen[21];
+	char uid[11];
+	char restrict_ip[2];
+	char type[3];
+	const char *rbuf;
 
 	/*
 	 * Don't assume the order we get the cookies back is the
@@ -708,36 +720,70 @@ static void set_current_session(struct session *current_session, char *cookies,
 
 	session_id[64] = '\0';
 
-	sqlite3_open(SESSION_DB, &db);
-	snprintf(sql, SQL_MAX, "SELECT * FROM sessions WHERE session_id = "
-							"'%s'", session_id);
-	sqlite3_get_table(db, sql, &results, &rows, &columns, NULL);
+	tdb = tctdbnew();
+	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
 
-	current_session->uid = atoi(results[columns + 0]);
-	current_session->username = strdup(results[columns + 1]);
-	current_session->name = strdup(results[columns + 2]);
-	current_session->u_email = strdup(results[columns + 3]);
-	current_session->login_at = atol(results[columns + 4]);
+	/* Get the users stored session */
+	qry = tctdbqrynew(tdb);
+	tctdbqryaddcond(qry, "session_id", TDBQCSTREQ, session_id);
+	res = tctdbqrysearch(qry);
+
+	rbuf = tclistval(res, 0, &rsize);
+	cols = tctdbget(tdb, rbuf, rsize);
+	tcmapiterinit(cols);
+
+	current_session->uid = atoi(tcmapget2(cols, "uid"));
+	current_session->username = strdup(tcmapget2(cols, "username"));
+	current_session->name = strdup(tcmapget2(cols, "name"));
+	current_session->u_email = strdup(tcmapget2(cols, "u_email"));
+	current_session->login_at = atol(tcmapget2(cols, "login_at"));
 	current_session->last_seen = time(NULL);
-	current_session->origin_ip = strdup(results[columns + 6]);
-	current_session->client_id = strdup(results[columns + 7]);
+	current_session->origin_ip = strdup(tcmapget2(cols, "origin_ip"));
+	current_session->client_id = strdup(tcmapget2(cols, "client_id"));
 	current_session->request_id = create_session_id();
-	current_session->session_id = strdup(results[columns + 9]);
-	current_session->restrict_ip = atoi(results[columns + 10]);
-	current_session->type = atoi(results[columns + 11]);
+	current_session->session_id = strdup(tcmapget2(cols, "session_id"));
+	current_session->restrict_ip = atoi(tcmapget2(cols, "restrict_ip"));
+	current_session->type = atoi(tcmapget2(cols, "type"));
 
-	snprintf(sql, SQL_MAX, "UPDATE sessions SET request_id = '%s', "
-						"last_seen = '%ld' WHERE "
-						"session_id = '%s'",
-						current_session->request_id,
-						current_session->last_seen,
-						session_id);
-	sqlite3_exec(db, sql, NULL, NULL, NULL);
+	tcmapdel(cols);
+	tclistdel(res);
+	tctdbqrydel(qry);
+
 	/*
-	 * OK, don't know why but without this some of the above sql
-	 * leaks into stdin. Seen on /prefs/fmap/ POST data.
+	 * We want to update the last_seen timestamp in the users session.
+	 * This entails removing the old session first then storing the new
+	 * updated session.
 	 */
-	memset(sql, 0, SQL_MAX);
+	qry = tctdbqrynew(tdb);
+	tctdbqryaddcond(qry, "session_id", TDBQCSTREQ, session_id);
+	res = tctdbqrysearch(qry);
+	rbuf = tclistval(res, 0, &rsize);
+	tctdbout(tdb, rbuf, strlen(rbuf));
+
+	tclistdel(res);
+	tctdbqrydel(qry);
+
+	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
+	snprintf(login_at, 21, "%ld", current_session->login_at);
+	snprintf(last_seen, 21, "%ld", current_session->last_seen);
+	snprintf(uid, 11, "%u", current_session->uid);
+	snprintf(restrict_ip, 2, "%d", current_session->restrict_ip);
+	snprintf(type, 3, "%d", current_session->type);
+	cols = tcmapnew3("uid", uid, "username", current_session->username,
+				"name", current_session->name, "u_email",
+				current_session->u_email, "login_at", login_at,
+				"last_seen", last_seen, "origin_ip",
+				current_session->origin_ip, "client_id",
+				current_session->client_id, "request_id",
+				current_session->request_id, "session_id",
+				current_session->session_id, "restrict_ip",
+				restrict_ip, "type", type, NULL);
+	tctdbput(tdb, pkbuf, primary_key_size, cols);
+
+	tcmapdel(cols);
+
+	tctdbclose(tdb);
+	tctdbdel(tdb);
 
 	/* See the comment in is_logged_in() about the below */
 #if 0
@@ -749,8 +795,6 @@ static void set_current_session(struct session *current_session, char *cookies,
 	printf("Set-Cookie: request_id=%s; path=/; httponly\r\n",
 						current_session->request_id);
 #endif
-	sqlite3_free_table(results);
-	sqlite3_close(db);
 }
 
 /*
@@ -795,12 +839,16 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 {
 	char *request_id;
 	char *session_id;
-	int restrict_ip = 0;
+	char restrict_ip[2] = "0\0";
 	char sql[SQL_MAX];
+	char pkbuf[256];
+	char timestamp[21];
 	char *username;
+	int primary_key_size;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	sqlite3 *db;
+	TCTDB *tdb;
+	TCMAP *cols;
 	GHashTable *db_row = NULL;
 
 	conn = db_conn();
@@ -823,24 +871,28 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 	if (strcmp(get_var(credentials, "restrict_ip"), "true") == 0) {
 		d_fprintf(debug_log, "Restricting session to origin ip "
 								"address\n");
-		restrict_ip = 1;
+		restrict_ip[0] = '1';
 	}
 
-	sqlite3_open(SESSION_DB, &db);
-	snprintf(sql, SQL_MAX, "INSERT INTO sessions VALUES (%d, '%s', '%s', "
-					"'%s', %ld, %d, '%s', '%s', '%s', "
-					"'%s', %d, %d)",
-					atoi(get_var(db_row, "uid")),
+	tdb = tctdbnew();
+	tctdbopen(tdb, SESSION_DB, TDBOWRITER | TDBOCREAT);
+	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
+	snprintf(timestamp, 21, "%ld", (long)time(NULL));
+	cols = tcmapnew3("uid", get_var(db_row, "uid"), "username",
 					get_var(credentials, "username"),
-					get_var(db_row, "name"),
-					get_var(db_row, "u_email"),
-					(long)time(NULL), 0,
-					http_x_forwarded_for,
-					http_user_agent,
-					request_id, session_id, restrict_ip,
-					atoi(get_var(db_row, "type")));
-	sqlite3_exec(db, sql, NULL, NULL, NULL);
-	sqlite3_close(db);
+					"name", get_var(db_row, "name"),
+					"u_email", get_var(db_row, "u_email"),
+					"login_at", timestamp, "last_seen",
+					timestamp, "origin_ip",
+					http_x_forwarded_for, "client_id",
+					http_user_agent, "request_id",
+					request_id, "session_id", session_id,
+					"restrict_ip", restrict_ip, "type",
+					get_var(db_row, "type"), NULL);
+	tctdbput(tdb, pkbuf, primary_key_size, cols);
+	tcmapdel(cols);
+	tctdbclose(tdb);
+	tctdbdel(tdb);
 
 	printf("Set-Cookie: session_id=%s; path=/; httponly\r\n", session_id);
 	printf("Set-Cookie: request_id=%s; path=/; httponly\r\n", request_id);
@@ -875,17 +927,18 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 static int is_logged_in(char *cookies, char *client_id, char *remote_ip,
 							char *request_uri)
 {
-	char sql[SQL_MAX];
 	char session_id[65];
 	char request_id[65];
-	sqlite3 *db;
-	char **results;
-	int rows;
-	int columns;
+	TCTDB *tdb;
+	TDBQRY *qry;
+	TCLIST *res;
+	TCMAP *cols;
+	int rsize;
 	int ret = 0;
+	const char *rbuf;
 
 	if (!cookies)
-		goto out2;
+		goto out3;
 
 	/*
 	 * Don't assume the order we get the cookies back is the
@@ -901,21 +954,27 @@ static int is_logged_in(char *cookies, char *client_id, char *remote_ip,
 	session_id[64] = '\0';
 	request_id[64] = '\0';
 
-	sqlite3_open(SESSION_DB, &db);
-	snprintf(sql, SQL_MAX, "SELECT * FROM sessions WHERE session_id = "
-							"'%s'", session_id);
-	sqlite3_get_table(db, sql, &results, &rows, &columns, NULL);
-	if (rows == 0)
-		goto out;
+	tdb = tctdbnew();
+	tctdbopen(tdb, SESSION_DB, TDBOREADER);
+
+	qry = tctdbqrynew(tdb);
+	tctdbqryaddcond(qry, "session_id", TDBQCSTREQ, session_id);
+	res = tctdbqrysearch(qry);
+	if (tclistnum(res) == 0)
+		goto out2;
+
+	rbuf = tclistval(res, 0, &rsize);
+	cols = tctdbget(tdb, rbuf, rsize);
+	tcmapiterinit(cols);
 
 	/* restrict_ip */
-	if (atoi(results[columns + 10]) == 1) {
+	if (atoi(tcmapget2(cols, "restrict_ip")) == 1) {
 		/* origin_ip */
-		if (strcmp(results[columns + 6], remote_ip) != 0)
+		if (strcmp(tcmapget2(cols, "origin_ip"), remote_ip) != 0)
 			goto out;
 	}
 	/* client_id */
-	if (strcmp(results[columns + 7], client_id) != 0)
+	if (strcmp(tcmapget2(cols, "client_id"), client_id) != 0)
 		goto out;
 	/*
 	 * Skip the request_id check for now. It seems that often the
@@ -926,16 +985,22 @@ static int is_logged_in(char *cookies, char *client_id, char *remote_ip,
 	goto out;
 
 	d_fprintf(debug_log, "request_id (b) %s\n", request_id);
-	d_fprintf(debug_log, "request_id (d) %s\n", results[columns + 8]);
+	d_fprintf(debug_log, "request_id (d) %s\n", tcmapget2(cols,
+								"request_id"));
 	/* request_id */
-	if (strcmp(results[columns + 8], request_id) == 0) {
+	if (strcmp(tcmapget2(cols, "request_id"), request_id) == 0) {
 		ret = 1;
 		goto out;
 	}
+
 out:
-	sqlite3_close(db);
-	sqlite3_free_table(results);
+	tcmapdel(cols);
 out2:
+	tctdbqrydel(qry);
+	tclistdel(res);
+	tctdbclose(tdb);
+	tctdbdel(tdb);
+out3:
 	return ret;
 }
 
@@ -1272,14 +1337,27 @@ static void login(char *http_user_agent, char *http_x_forwarded_for)
  */
 static void logout(struct session *current_session)
 {
-	char sql[SQL_MAX];
-	sqlite3 *db;
+	TCTDB *tdb;
+	TDBQRY *qry;
+	TCLIST *res;
+	int rsize;
+	const char *rbuf;
 
-	snprintf(sql, SQL_MAX, "DELETE FROM sessions WHERE session_id = '%s'",
-						current_session->session_id);
-	sqlite3_open(SESSION_DB, &db);
-	sqlite3_exec(db, sql, NULL, NULL, NULL);
-	sqlite3_close(db);
+	tdb = tctdbnew();
+	tctdbopen(tdb, SESSION_DB, TDBOWRITER);
+
+	qry = tctdbqrynew(tdb);
+	tctdbqryaddcond(qry, "session_id", TDBQCSTREQ,
+					current_session->session_id);
+	res = tctdbqrysearch(qry);
+	rbuf = tclistval(res, 0, &rsize);
+	tctdbout(tdb, rbuf, strlen(rbuf));
+
+	tclistdel(res);
+	tctdbqrydel(qry);
+
+	tctdbclose(tdb);
+	tctdbdel(tdb);
 
 	/* Immediately expire the session cookies */
 	printf("Set-Cookie: session_id=deleted; "
@@ -3146,37 +3224,62 @@ static void create_server(int nr)
 }
 
 /*
- * Callback function called from dump_session_state()
- */
-static int __dump_session_state(void *arg, int argc, char **argv, char **column)
-{
-	fprintf(debug_log, "\tuid         : %s\n", argv[0]);
-	fprintf(debug_log, "\ttype        : %s\n", argv[11]);
-	fprintf(debug_log, "\tusername    : %s\n", argv[1]);
-	fprintf(debug_log, "\tname        : %s\n", argv[2]);
-	fprintf(debug_log, "\tu_email     : %s\n", argv[3]);
-	fprintf(debug_log, "\tlogin_at    : %s\n", argv[4]);
-	fprintf(debug_log, "\tlast_seen   : %s\n", argv[5]);
-	fprintf(debug_log, "\torigin_ip   : %s\n", argv[6]);
-	fprintf(debug_log, "\tclient_id   : %s\n", argv[7]);
-	fprintf(debug_log, "\trequest_id  : %s\n", argv[8]);
-	fprintf(debug_log, "\tsession_id  : %s\n", argv[9]);
-	fprintf(debug_log, "\trestrict_ip : %s\n\n", argv[10]);
-
-	return 0;
-}
-
-/*
  * Dumps session state upon receiving a SIGUSR1
  */
 static void dump_session_state()
 {
-	sqlite3 *db;
+	TCTDB *tdb;
+	TDBQRY *qry;
+	TCLIST *res;
+	TCMAP *cols;
+	int i;
+	int rsize;
+	int nres;
+	const char *rbuf;
 
-	sqlite3_open(SESSION_DB, &db);
-	sqlite3_exec(db, "SELECT * FROM sessions", __dump_session_state,
-								NULL, NULL);
-	sqlite3_close(db);
+	tdb = tctdbnew();
+	tctdbopen(tdb, SESSION_DB, TDBOREADER);
+
+	qry = tctdbqrynew(tdb);
+	res = tctdbqrysearch(qry);
+	nres = tclistnum(res);
+	for (i = 0; i < nres; i++) {
+		rbuf = tclistval(res, i, &rsize);
+		cols = tctdbget(tdb, rbuf, rsize);
+		tcmapiterinit(cols);
+
+		fprintf(debug_log, "\tuid         : %s\n", tcmapget2(cols,
+								"uid"));
+		fprintf(debug_log, "\ttype        : %s\n", tcmapget2(cols,
+								"type"));
+		fprintf(debug_log, "\tusername    : %s\n", tcmapget2(cols,
+								"username"));
+		fprintf(debug_log, "\tname        : %s\n", tcmapget2(cols,
+								"name"));
+		fprintf(debug_log, "\tu_email     : %s\n", tcmapget2(cols,
+								"u_email"));
+		fprintf(debug_log, "\tlogin_at    : %s\n", tcmapget2(cols,
+								"login_at"));
+		fprintf(debug_log, "\tlast_seen   : %s\n", tcmapget2(cols,
+								"last_seen"));
+		fprintf(debug_log, "\torigin_ip   : %s\n", tcmapget2(cols,
+								"origin_ip"));
+		fprintf(debug_log, "\tclient_id   : %s\n", tcmapget2(cols,
+								"client_id"));
+		fprintf(debug_log, "\trequest_id  : %s\n", tcmapget2(cols,
+								"request_id"));
+		fprintf(debug_log, "\tsession_id  : %s\n", tcmapget2(cols,
+								"session_id"));
+		fprintf(debug_log, "\trestrict_ip : %s\n\n", tcmapget2(cols,
+							"restrict_ip"));
+		tcmapdel(cols);
+	}
+	tclistdel(res);
+	tctdbqrydel(qry);
+
+	tctdbclose(tdb);
+	tctdbdel(tdb);
+
 	fflush(debug_log);
 }
 
@@ -3186,18 +3289,39 @@ static void dump_session_state()
  */
 static void clear_old_sessions()
 {
-	sqlite3 *db;
-	char sql[SQL_MAX];
-	time_t now;
+	TCTDB *tdb;
+	TDBQRY *qry;
+	TCLIST *res;
+	int i;
+	int nres;
+	int rsize;
+	char expiry[21];
+	const char *rbuf;
 
 	d_fprintf(debug_log, "Clearing old sessions\n");
 
-	now = time(NULL);
-	snprintf(sql, SQL_MAX, "DELETE FROM sessions WHERE last_seen < %ld",
-							now - SESSION_EXPIRY);
-	sqlite3_open(SESSION_DB, &db);
-	sqlite3_exec(db, sql, NULL, NULL, NULL);
-	sqlite3_close(db);
+	snprintf(expiry, 21, "%ld", time(NULL) - SESSION_EXPIRY);
+
+	tdb = tctdbnew();
+	tctdbopen(tdb, SESSION_DB, TDBOWRITER);
+
+	qry = tctdbqrynew(tdb);
+	tctdbqryaddcond(qry, "last_seen", TDBQCNUMLT, expiry);
+	res = tctdbqrysearch(qry);
+	nres = tclistnum(res);
+	if (nres < 1)
+		goto out;
+
+	for (i = 0; i < nres; i++) {
+		rbuf = tclistval(res, 0, &rsize);
+		tctdbout(tdb, rbuf, strlen(rbuf));
+	}
+
+out:
+	tclistdel(res);
+	tctdbqrydel(qry);
+	tctdbclose(tdb);
+	tctdbdel(tdb);
 }
 
 /*
@@ -3229,32 +3353,6 @@ static void init_clear_session_timer()
 	timer_settime(timerid, 0, &its, NULL);
 }
 
-/*
- * Sets up the sessions database. If it doesn't exist, it creates it.
- */
-static void initialise_session_db()
-{
-	char sql[SQL_MAX];
-	sqlite3 *db;
-
-	sqlite3_open(SESSION_DB, &db);
-	snprintf(sql, SQL_MAX, "CREATE TABLE IF NOT EXISTS sessions ("
-						"uid INTEGER, "
-						"username VARCHAR(255), "
-						"name VARCHAR(255), "
-						"u_email VARCHAR(255), "
-						"login_at INTEGER, "
-						"last_seen INTEGER, "
-						"origin_ip VARCHAR(64), "
-						"client_id VARCHAR(255), "
-						"request_id VARCHAR(64), "
-						"session_id VARCHAR(64), "
-						"restrict_ip INTEGER, "
-						"type INTEGER)");
-	sqlite3_exec(db, sql, NULL, NULL, NULL);
-	sqlite3_close(db);
-}
-
 int main(int argc, char **argv)
 {
 	struct sigaction action;
@@ -3277,7 +3375,6 @@ int main(int argc, char **argv)
 	action.sa_flags = SA_RESTART;
 	sigaction(SIGUSR1, &action, NULL);
 
-	initialise_session_db();
 	init_clear_session_timer();
 
 	/* Pre-fork NR_PROCS worker processes */
