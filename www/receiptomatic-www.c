@@ -3243,6 +3243,7 @@ static void dump_session_state()
 	qry = tctdbqrynew(tdb);
 	res = tctdbqrysearch(qry);
 	nres = tclistnum(res);
+	fprintf(debug_log, "Number of active sessions: %d\n", nres);
 	for (i = 0; i < nres; i++) {
 		rbuf = tclistval(res, i, &rsize);
 		cols = tctdbget(tdb, rbuf, rsize);
