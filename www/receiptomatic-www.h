@@ -1,7 +1,8 @@
 /*
  * receiptomatic-www.h
  *
- * Copyright (C) 2011 OpenTech Labs, Andrew Clayton <andrew@opentechlabs.co.uk>
+ * Copyright (C) 2011		OpenTech Labs
+ *				Andrew Clayton <andrew@opentechlabs.co.uk>
  * Released under the GNU General Public License (GPL) version 3.
  * See COPYING
  */
@@ -9,24 +10,30 @@
 #ifndef _RECEIPTOMATIC_WWW_H_
 #define _RECEIPTOMATIC_WWW_H_
 
-/*
- * Structure that defines a users session. The session is stored
- * in a SQLite databsse inbetween requests.
- */
-struct session {
-	unsigned int uid;
-	unsigned char type;
-	char *username;
-	char *name;
-	char *u_email;
-	time_t login_at;
-	time_t last_seen;
-	char *origin_ip;
-	char *client_id;
-	char *request_id;
-	char *session_id;
-	unsigned int restrict_ip;
-};
+#define NR_PROCS	5	/* Number of processes to fork at startup */
+
+#define IMAGE_PATH	"/data/www/opentechlabs.net/receiptomatic/receipt_images"
+#define BASE_URL	"http://ri.opentechlabs.net"
+
+#define SESSION_DB	"/dev/shm/receiptomatic-www-sessions.tct"
+#define SESSION_CHECK	60 * 60		/* Check for old sessions every hour */
+#define SESSION_EXPIRY	60 * 60 * 4	/* 4 hours */
+
+#define GRID_SIZE	9
+#define ROW_SIZE	3
+#define COL_SIZE	3
+
+#define APPROVER_ROWS	3	/* No. of rows / page on /approve_receipts/ */
+
+#define USER		0
+
+#define APPROVER		(1 << 0)	/*  1 */
+#define APPROVER_SELF		(1 << 1)	/*  2 */
+#define APPROVER_CASH		(1 << 2)	/*  4 */
+#define APPROVER_CARD		(1 << 3)	/*  8 */
+#define APPROVER_CHEQUE 	(1 << 4)	/* 16 */
+
+#define MAX_RECEIPT_AGE	60 * 60 * 24 * 180	/* 180 days */
 
 struct field_names {
 	char *receipt_date;
@@ -47,18 +54,10 @@ struct field_names {
 	char *payment_method;
 };
 
-static MYSQL *db_conn();
 static int check_amounts(double gross, double net, double vat, double vr);
 static void update_fmap(struct session *current_session, char *query);
 static void set_custom_field_names(struct session *current_session,
 						struct field_names *fields);
-static GHashTable *get_dbrow(MYSQL_RES *res);
-static GList *get_avars(char *query);
-static char *get_avar(GList *avars, int index, char *key);
-static void free_avars(GList *avars);
-static GHashTable *get_vars(char *query);
-static char *get_var(GHashTable *vars, char *key);
-static void free_vars(GHashTable *vars);
 static char *username_to_name(char *username);
 static void set_current_session(struct session *current_session, char *cookies,
 							char *request_uri);
@@ -78,6 +77,8 @@ static void delete_image(struct session *current_session);
 static void get_image(struct session *current_session, char *image);
 static void full_image(struct session *current_session, char *image);
 static void prefs_fmap(struct session *current_session);
+static void do_extract_data(struct session *current_session, char *query);
+static void extract_data(struct session *current_session);
 static void process_receipt_approval(struct session *current_session);
 static void approve_receipts(struct session *current_session, char *query);
 static void reviewed_receipts(struct session *current_session, char *query);

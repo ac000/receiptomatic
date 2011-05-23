@@ -1,7 +1,8 @@
 /*
  * receiptomatic-www.c
  *
- * Copyright (C) 2011 OpenTech Labs, Andrew Clayton <andrew@opentechlabs.co.uk>
+ * Copyright (C) 2011		OpenTech Labs
+ *				Andrew Clayton <andrew@opentechlabs.co.uk>
  * Released under the GNU General Public License (GPL) version 3.
  * See COPYING
  */
@@ -15,7 +16,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/syscall.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -23,7 +23,6 @@
 #include <time.h>
 #include <sys/time.h>
 #include <signal.h>
-#include <ctype.h>	/* can be removed once switched to g_url_decode() */
 #include <alloca.h>
 #include <math.h>
 
@@ -33,10 +32,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <libgen.h>
-
-/* MySQL */
-#include <my_global.h>
-#include <mysql.h>
 
 /* Hashing algorithms */
 #include <mhash.h>
@@ -49,8 +44,10 @@
 /* HTML template library */
 #include <ctemplate.h>
 
+#include "common.h"
+#include "utils.h"
 #include "receiptomatic-www.h"
-#include "../db/db_config.h"
+#include "data_extraction.h"
 
 
 extern char **environ;
@@ -76,137 +73,10 @@ static const struct field_names field_names = {
 	"Payment Method"
 };
 
-static FILE *access_log;
-static FILE *sql_log;
-static FILE *error_log;
-static FILE *debug_log;
-
-#define NR_PROCS	5	/* Number of processes to fork at startup */
-
-#define BUF_SIZE	4096
-#define SQL_MAX		8192
-
-#define IMAGE_PATH	"/data/www/opentechlabs.net/receiptomatic/receipt_images"
-#define BASE_URL	"http://ri.opentechlabs.net"
-
-#define SESSION_DB	"/dev/shm/receiptomatic-www-sessions.tct"
-#define SESSION_CHECK	60 * 60		/* Check for old sessions every hour */
-#define SESSION_EXPIRY	60 * 60 * 4	/* 4 hours */
-
-#define GRID_SIZE	9
-#define ROW_SIZE	3
-#define COL_SIZE	3
-
-#define APPROVER_ROWS	3	/* No. of rows / page on /approve_receipts/ */
-
-#define USER		0
-
-#define APPROVER		(1 << 0)	/*  1 */
-#define APPROVER_SELF		(1 << 1)	/*  2 */
-#define APPROVER_CASH		(1 << 2)	/*  4 */
-#define APPROVER_CARD		(1 << 3)	/*  8 */
-#define APPROVER_CHEQUE 	(1 << 4)	/* 16 */
-
-#define REJECTED	0
-#define PENDING		1
-#define APPROVED	2
-
-#define MAX_RECEIPT_AGE	60 * 60 * 24 * 180	/* 180 days */
-
-/*
- * Wrapper around fprintf(). It will prepend the text passed it with
- * seconds.microseconds pid function:
- *
- * e.g if you call it like: d_fprintf(debug, "This is a test\n");
- * You will get:
- *
- * 	1304600723.663486 1843 main: This is a test
- */
-#define d_fprintf(stream, fmt, ...) \
-	do { \
-		struct timeval tv; \
-		gettimeofday(&tv, NULL); \
-		fprintf(stream, "%ld.%ld %d %s: " fmt, tv.tv_sec, tv.tv_usec, \
-				getpid(), __FUNCTION__, ##__VA_ARGS__); \
-		fflush(stream); \
-	} while (0)
-
-
-/*
- * Function comes from: http://www.geekhideout.com/urlcode.shtml
- * Will replace with g_uri_unescape_string() from glib when we have
- * glib 2.16
- *
- * Converts a hex character to its integer value
- */
-char from_hex(char ch)
-{
-	return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
-}
-
-/*
- * Function comes from: http://www.geekhideout.com/urlcode.shtml
- * Will replace with g_uri_unescape_string() from glib when we have
- * glib 2.16
- *
- * Converts an integer value to its hex character
- */
-char to_hex(char code)
-{
-	static char hex[] = "0123456789abcdef";
-
-	return hex[code & 15];
-}
-
-/*
- * Function comes from: http://www.geekhideout.com/urlcode.shtml
- * Will replace with g_uri_unescape_string() from glib when we have
- * glib 2.16
- *
- * Returns a url-decoded version of str
- *
- * IMPORTANT: be sure to free() the returned string after use
- */
-char *url_decode(char *str)
-{
-	char *pstr = str;
-	char *buf = malloc(strlen(str) + 1);
-	char *pbuf = buf;
-
-	while (*pstr) {
-		if (*pstr == '%') {
-			if (pstr[1] && pstr[2]) {
-				*pbuf++ = from_hex(pstr[1]) << 4 |
-							from_hex(pstr[2]);
-				pstr += 2;
-			}
-		} else if (*pstr == '+') {
-			*pbuf++ = ' ';
-		} else {
-			*pbuf++ = *pstr;
-		}
-		pstr++;
-	}
-	*pbuf = '\0';
-
-	return buf;
-}
-
-/*
- * Opens a up a MySQL connection and returns the connection handle.
- */
-static MYSQL *db_conn()
-{
-	MYSQL *conn;
-
-	conn = mysql_init(NULL);
-	mysql_real_connect(conn, opt_hostname, opt_user_name,
-					opt_password, opt_db_name,
-					opt_port_num, opt_socket_name,
-					opt_flags);
-
-	return conn;
-}
+FILE *access_log;
+FILE *sql_log;
+FILE *error_log;
+FILE *debug_log;
 
 /*
  * Checks the amounts given on the receipt tally up.
@@ -446,214 +316,6 @@ static void set_custom_field_names(struct session *current_session,
 out:
 	mysql_free_result(res);
 	mysql_close(conn);
-}
-
-/*
- * Create a hash table of field name=value pairs for a mysql row result set.
- */
-static GHashTable *get_dbrow(MYSQL_RES *res)
-{
-	int num_fields;
-	int i;
-	MYSQL_ROW row;
-	MYSQL_FIELD *fields;
-	GHashTable *db_row;
-
-	db_row  = g_hash_table_new_full(g_str_hash, g_str_equal,
-							g_free, g_free);
-
-	num_fields = mysql_num_fields(res);
-	fields = mysql_fetch_fields(res);
-	row = mysql_fetch_row(res);
-	for (i = 0; i < num_fields; i++) {
-		d_fprintf(debug_log, "Adding key: %s with value: %s to "
-						"hash table\n",
-						fields[i].name, row[i]);
-		g_hash_table_insert(db_row, g_strdup(fields[i].name),
-							g_strdup(row[i]));
-	}
-
-	return db_row;
-}
-
-/*
- * Create a GList of GHashTables of name=value pairs.
- *
- * This is will most likely be used when needing to send POST
- * array values, e,g
- *
- * 	form0[name]
- * 	form0[email]
- *
- * If you need to send singular items also, then you should make them
- * a single entity array. i.e, don't mix array's and non-array's.
- */
-static GList *get_avars(char *query)
-{
-	char *token;
-	char *idx;
-	char *lidx = "\0";
-	char *subtoken;
-	char *saveptr1 = NULL;
-	char *saveptr2 = NULL;
-	char *string;
-	GHashTable *query_values;
-	GList *avars = NULL;
-
-	query_values = g_hash_table_new_full(g_str_hash, g_str_equal,
-							g_free, g_free);
-
-	string = strdupa(query);
-	for (;;) {
-		char *key;
-		char *value;
-
-		token = strtok_r(string, "&", &saveptr1);
-		if (token == NULL)
-			break;
-
-		/* get the array name */
-		subtoken = strtok_r(token, "%", &saveptr2);
-		idx = strdupa(subtoken);
-		if (strcmp(idx, lidx) != 0) {
-			if (lidx[0] != '\0') {
-				avars = g_list_append(avars, query_values);
-				query_values = g_hash_table_new_full(
-							g_str_hash,
-							g_str_equal,
-							g_free, g_free);
-			}
-		}
-		lidx = idx;
-		token = NULL;
-
-		/* get the array index */
-		subtoken = strtok_r(token, "=", &saveptr2);
-		key = alloca(strlen(subtoken));
-		memset(key, 0, strlen(subtoken));
-		strncpy(key, subtoken + 2, strlen(subtoken + 2) - 3);
-		token = NULL;
-
-		/* get the array value */
-		subtoken = strtok_r(token, "=", &saveptr2);
-		if (!subtoken) { /* Maybe there is no value */
-			value = malloc(1);
-			value[0] = '\0';
-		} else {
-			value = url_decode(subtoken);
-		}
-		string = NULL;
-
-		g_hash_table_replace(query_values, g_strdup(key),
-							g_strdup(value));
-		d_fprintf(debug_log, "Adding key: %s with value: %s to hash "
-							"table\n", key, value);
-
-		free(value);
-	}
-	avars = g_list_append(avars, query_values);
-	d_fprintf(debug_log, "Added %d elements to the list\n",
-							g_list_length(avars));
-
-	return avars;
-}
-
-/*
- * Given a GList and index and a key, return the coresponding value from
- * the hash table contained within.
- */
-static char *get_avar(GList *avars, int index, char *key)
-{
-	char *val;
-	GHashTable *vars;
-
-	vars = g_list_nth_data(avars, index);
-	val = g_hash_table_lookup(vars, key);
-
-	return val;
-}
-
-/*
- * Free's the given hash table.
- */
-static void free_avars(GList *avars)
-{
-	GHashTable *query_vars;
-	int i;
-	int size;
-
-	size = g_list_length(avars);
-	for (i = 0; i < size; i++) {
-		query_vars = g_list_nth_data(avars, i);
-		g_hash_table_destroy(query_vars);
-	}
-	g_list_free(avars);
-}
-
-/*
- * Create a hash table of name=value pairs, generated from GET and POST
- * data.
- */
-static GHashTable *get_vars(char *query)
-{
-	int i;
-	int j = 0;
-	int str_len;
-	char buf[255];
-	char key[255];
-	char *val;
-	GHashTable *query_values;
-
-	query_values = g_hash_table_new_full(g_str_hash, g_str_equal,
-							g_free, g_free);
-
-	memset(buf, 0, 255);
-	str_len = strlen(query);
-	for (i = 0; i <= str_len; i++) {
-		if (query[i] == '=') {
-			strcpy(key, buf);
-			memset(buf, 0, 255);
-			j = 0;
-		} else if (query[i] == '&' || query[i] == '\0') {
-			val = url_decode(buf);
-			d_fprintf(debug_log, "Adding key: %s with value: %s "
-						"to hash table\n", key, val);
-			g_hash_table_replace(query_values, g_strdup(key),
-								g_strdup(val));
-			memset(buf, 0, 255);
-			free(val);
-			j = 0;
-		} else {
-			buf[j++] = query[i];
-		}
-	}
-
-	return query_values;
-}
-
-/*
- * Given a key name, return its value from the given hash table.
- */
-static char *get_var(GHashTable *vars, char *key)
-{
-	char *val;
-
-	val = g_hash_table_lookup(vars, key);
-	if (!val) {
-		fprintf(error_log, "Unknown var: %s\n", key);
-		return "\0";
-	}
-
-	return val;
-}
-
-/*
- * Free's the given hash table.
- */
-static void free_vars(GHashTable *vars)
-{
-	if (vars != NULL)
-		g_hash_table_destroy(vars);
 }
 
 /*
@@ -1515,7 +1177,7 @@ static void get_image(struct session *current_session, char *image)
 
 	printf("Cache-Control: private\r\n");
 	printf("Content-Type: %s\r\n", mime_type);
-	printf("Content-Length: %ld\n\n", sb.st_size);
+	printf("Content-Length: %ld\r\n\r\n", sb.st_size);
 	d_fprintf(debug_log, "Sending image: %s\n", image);
 
 	while (bytes_read > 0) {
@@ -1544,7 +1206,7 @@ static void full_image(struct session *current_session, char *image)
 	snprintf(path, PATH_MAX, "%s/%s", IMAGE_PATH, image + 12);
 	realpath(path, image_path);
 
-	/* Don't let users access other user images */
+	/* Don't let users access other users images */
 	if (!image_access_allowed(current_session, image_path)) {
 		printf("Status: 401 Unauthorized\r\n\r\n");
 		d_fprintf(access_log, "Access denied to %s for %s\n", image,
@@ -1581,11 +1243,14 @@ static void prefs_fmap(struct session *current_session)
 	char buf[SQL_MAX];
 	char uid[11];
 	struct field_names fields;
+	int updated = 0;
 	TMPL_varlist *vl = NULL;
 
 	fread(buf, SQL_MAX - 1, 1, stdin);
-	if (strstr(buf, "=") && strstr(buf, "&"))
+	if (strstr(buf, "=") && strstr(buf, "&")) {
 		update_fmap(current_session, buf);
+		updated = 1;
+	}
 
 	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
 	snprintf(uid, 11, "%u", current_session->uid);
@@ -1597,7 +1262,7 @@ static void prefs_fmap(struct session *current_session)
 	fields = field_names;
 	set_custom_field_names(current_session, &fields);
 
-	if (strlen(buf) > 1)
+	if (updated)
 		vl = TMPL_add_var(vl, "fields_updated", "yes", NULL);
 
 	vl = TMPL_add_var(vl, "receipt_date", field_names.receipt_date, NULL);
@@ -1703,6 +1368,54 @@ static void prefs_fmap(struct session *current_session)
 
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/prefs_fmap.tmpl", NULL, NULL, vl, stdout,
+								error_log);
+	TMPL_free_varlist(vl);
+}
+
+static void do_extract_data(struct session *current_session, char *query)
+{
+	int fd;
+	char temp_name[30] = "/tmp/receiptomatic-www-XXXXXX";
+	GHashTable *qvars = NULL;
+
+	if (!(current_session->type & APPROVER))
+		return;
+
+	fd = mkstemp(temp_name);
+
+	qvars = get_vars(query);
+	if (strcmp(get_var(qvars, "whence"), "now") == 0)
+		extract_data_now(current_session, fd);
+
+	send_receipt_data(fd);
+
+	unlink(temp_name);
+	close(fd);
+}
+
+/*
+ * /extract_data/
+ *
+ * HTML is in templates/extract_data.tmpl
+ *
+ * Allows an approver to extract approved receipt data.
+ */
+static void extract_data(struct session *current_session)
+{
+	char uid[11];
+	TMPL_varlist *vl = NULL;
+
+	if (!(current_session->type & APPROVER))
+		return;
+
+	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
+	snprintf(uid, 11, "%u", current_session->uid);
+	vl = TMPL_add_var(vl, "uid", uid, NULL);
+	vl = TMPL_add_var(vl, "user_type", "approver", NULL);
+
+
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/extract_data.tmpl", NULL, NULL, vl, stdout,
 								error_log);
 	TMPL_free_varlist(vl);
 }
@@ -3096,6 +2809,16 @@ static void handle_request()
 
 	if (strstr(request_uri, "/reviewed_receipts/")) {
 		reviewed_receipts(&current_session, query_string);
+		goto out;
+	}
+
+	if (strstr(request_uri, "/extract_data/")) {
+		extract_data(&current_session);
+		goto out;
+	}
+
+	if (strstr(request_uri, "/do_extract_data/")) {
+		do_extract_data(&current_session, query_string);
 		goto out;
 	}
 
