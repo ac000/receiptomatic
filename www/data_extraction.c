@@ -69,7 +69,7 @@ extern void extract_data_now(struct session *current_session, int fd)
 					"tags.reason, tags.payment_method "
 					"FROM tags INNER JOIN approved ON "
 					"(tags.id = approved.id) WHERE "
-					"approved.who = '%s' AND "
+					"approved.username = '%s' AND "
 					"approved.timestamp > %ld AND "
 					"approved.status = %d", username,
 					current_session->login_at, APPROVED);

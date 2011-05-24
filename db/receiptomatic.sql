@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: May 24, 2011 at 09:59 AM
+-- Generation Time: May 24, 2011 at 02:12 PM
 -- Server version: 5.0.77
 -- PHP Version: 5.1.6
 
@@ -27,7 +27,7 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 
 CREATE TABLE IF NOT EXISTS `approved` (
   `id` varchar(64) NOT NULL,
-  `who` varchar(255) NOT NULL,
+  `username` varchar(255) NOT NULL,
   `timestamp` int(10) unsigned NOT NULL,
   `status` smallint(5) unsigned NOT NULL,
   `reason` varchar(255) NOT NULL,
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS `field_names` (
 
 CREATE TABLE IF NOT EXISTS `images` (
   `id` varchar(64) NOT NULL,
-  `who` varchar(255) NOT NULL,
+  `username` varchar(255) NOT NULL,
   `timestamp` int(10) unsigned NOT NULL,
   `path` varchar(255) NOT NULL,
   `name` varchar(255) NOT NULL,
@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS `images` (
   `approved` tinyint(3) unsigned NOT NULL default '1',
   UNIQUE KEY `id` (`id`),
   KEY `processed` (`processed`),
-  KEY `who` (`who`),
+  KEY `who` (`username`),
   KEY `approved` (`approved`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 

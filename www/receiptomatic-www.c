@@ -878,7 +878,7 @@ static int is_users_receipt(struct session *current_session, char *id)
 					strlen(current_session->username));
 
 	snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE id = '%s' AND "
-					"who = '%s'", s_id, username);
+					"username = '%s'", s_id, username);
 
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -919,7 +919,8 @@ static int tag_info_allowed(struct session *current_session, char *image_id)
 					strlen(current_session->username));
 
 	snprintf(sql, SQL_MAX, "SELECT path FROM images WHERE id = '%s' AND "
-					"who = '%s'", s_image_id, username);
+						"username = '%s'", s_image_id,
+						username);
 
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -1486,8 +1487,8 @@ static void process_receipt_approval(struct session *current_session)
 		/* Can user approve their own receipts? */
 		if (!(current_session->type & APPROVER_SELF)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE "
-						"id = '%s' AND who = '%s'",
-						image_id, username);
+						"id = '%s' AND username = "
+						"'%s'", image_id, username);
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_real_query(conn, sql, strlen(sql));
 			res = mysql_store_result(conn);
@@ -1678,7 +1679,7 @@ static void approve_receipts(struct session *current_session, char *query)
 	memset(assql, 0, sizeof(assql));
 	/* If the user isn't APPROVER_SELF, don't show them their receipts */
 	if (!(current_session->type & APPROVER_SELF))
-		sprintf(assql, "AND images.who != '%s'", username);
+		sprintf(assql, "AND images.username != '%s'", username);
 	else
 		assql[0] = '\0';
 
@@ -1686,7 +1687,7 @@ static void approve_receipts(struct session *current_session, char *query)
 					"INNER JOIN tags ON "
 					"(images.id = tags.id) WHERE "
 					"images.approved = 1 AND (%s) %s) AS "
-					"nrows, images.id, images.who, "
+					"nrows, images.id, images.username, "
 					"images.timestamp AS its, "
 					"images.path, images.name, "
 					"tags.username, "
@@ -2119,7 +2120,7 @@ static void receipt_info(struct session *current_session, char *query)
 				"user, passwd.uid FROM images INNER JOIN tags "
 				"ON (images.id = tags.id) LEFT JOIN approved "
 				"ON (approved.id = tags.id) INNER JOIN passwd "
-				"ON (images.who = passwd.username) WHERE "
+				"ON (images.username = passwd.username) WHERE "
 				"images.id = '%s' LIMIT 1", image_id);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
@@ -2307,12 +2308,12 @@ static void tagged_receipts(struct session *current_session, char *query)
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM tags "
 				"INNER JOIN images ON "
 				"(tags.id = images.id) WHERE "
-				"images.processed = 1 AND images.who = '%s') "
-				"AS nrows, tags.receipt_date, images.id, "
-				"images.path, images.name, images.approved "
-				"FROM tags INNER JOIN images ON "
-				"(tags.id = images.id) WHERE "
-				"images.processed = 1 AND images.who = "
+				"images.processed = 1 AND images.username = "
+				"'%s') AS nrows, tags.receipt_date, "
+				"images.id, images.path, images.name, "
+				"images.approved FROM tags INNER JOIN images "
+				"ON (tags.id = images.id) WHERE "
+				"images.processed = 1 AND images.username = "
 				"'%s' ORDER BY tags.timestamp LIMIT %d, %d",
 				username, username, from, GRID_SIZE);
 	d_fprintf(sql_log, "%s\n", sql);
@@ -2644,7 +2645,7 @@ static void receipts(struct session *current_session)
 					strlen(current_session->username));
 	snprintf(sql, SQL_MAX, "SELECT id, timestamp, path, name FROM images "
 						"WHERE processed = 0 AND "
-						"who = '%s'", username);
+						"username = '%s'", username);
 	d_fprintf(sql_log, "%s\n", sql);
 
 	mysql_real_query(conn, sql, strlen(sql));
