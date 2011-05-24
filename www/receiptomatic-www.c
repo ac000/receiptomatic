@@ -964,6 +964,7 @@ static void login(char *http_user_agent, char *http_x_forwarded_for)
 	char buf[80] = "\0";
 	TMPL_varlist *vl = NULL;
 
+	memset(buf, 0, sizeof(buf));
 	fread(buf, sizeof(buf) - 1, 1, stdin);
 	if (strstr(buf, "=") && strstr(buf, "&")) {
 		GHashTable *credentials;
@@ -1057,6 +1058,7 @@ static void delete_image(struct session *current_session)
 	GHashTable *qvars = NULL;
 	TMPL_varlist *vl = NULL;
 
+	memset(buf, 0, sizeof(buf));
 	fread(buf, sizeof(buf) - 1, 1, stdin);
 	if (!strstr(buf, "=") && !strstr(buf, "&"))
 		goto out2;
@@ -1246,7 +1248,8 @@ static void prefs_fmap(struct session *current_session)
 	int updated = 0;
 	TMPL_varlist *vl = NULL;
 
-	fread(buf, SQL_MAX - 1, 1, stdin);
+	memset(buf, 0, sizeof(buf));
+	fread(buf, sizeof(buf) - 1, 1, stdin);
 	if (strstr(buf, "=") && strstr(buf, "&")) {
 		update_fmap(current_session, buf);
 		updated = 1;
@@ -1439,7 +1442,8 @@ static void process_receipt_approval(struct session *current_session)
 	if (!(current_session->type & APPROVER))
 		return;
 
-	fread(buf, SQL_MAX - 1, 1, stdin);
+	memset(buf, 0, sizeof(buf));
+	fread(buf, sizeof(buf) - 1, 1, stdin);
 	if (!strstr(buf, "=") && !strstr(buf, "&"))
 		return;
 
@@ -2431,7 +2435,8 @@ static void process_receipt(struct session *current_session)
 	MYSQL *conn;
 	MYSQL_RES *res;
 
-	fread(buf, SQL_MAX - 1, 1, stdin);
+	memset(buf, 0, sizeof(buf));
+	fread(buf, sizeof(buf) - 1, 1, stdin);
 	if (!strstr(buf, "=") && !strstr(buf, "&"))
 		return;
 
