@@ -863,7 +863,7 @@ static int is_users_receipt(struct session *current_session, char *id)
 {
 	char sql[SQL_MAX];
 	char *s_id;
-	char *u_email;
+	char *username;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	int ret = 0;
@@ -873,12 +873,12 @@ static int is_users_receipt(struct session *current_session, char *id)
 	s_id = alloca(strlen(id) * 2 + 1);
 	mysql_real_escape_string(conn, s_id, id, strlen(id));
 
-	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
-	mysql_real_escape_string(conn, u_email, current_session->u_email,
-					strlen(current_session->u_email));
+	username = alloca(strlen(current_session->username) * 2 + 1);
+	mysql_real_escape_string(conn, username, current_session->username,
+					strlen(current_session->username));
 
 	snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE id = '%s' AND "
-					"who = '%s'", s_id, u_email);
+					"who = '%s'", s_id, username);
 
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -898,7 +898,7 @@ static int tag_info_allowed(struct session *current_session, char *image_id)
 {
 	char sql[SQL_MAX];
 	char *s_image_id;
-	char *u_email;
+	char *username;
 	int ret = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -914,12 +914,12 @@ static int tag_info_allowed(struct session *current_session, char *image_id)
 	s_image_id = alloca(strlen(image_id) * 2 + 1);
 	mysql_real_escape_string(conn, s_image_id, image_id, strlen(image_id));
 
-	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
-	mysql_real_escape_string(conn, u_email, current_session->u_email,
-					strlen(current_session->u_email));
+	username = alloca(strlen(current_session->username) * 2 + 1);
+	mysql_real_escape_string(conn, username, current_session->username,
+					strlen(current_session->username));
 
 	snprintf(sql, SQL_MAX, "SELECT path FROM images WHERE id = '%s' AND "
-					"who = '%s'", s_image_id, u_email);
+					"who = '%s'", s_image_id, username);
 
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -934,19 +934,21 @@ out:
 }
 
 /*
- * Determine if access to an image is allowed. It checks the u_email against
- * the start of the image path after IMAGE_PATH/.
+ * Determine if access to an image is allowed. It checks for /UID/ at the
+ * start of the image path after IMAGE_PATH.
  */
 static int image_access_allowed(struct session *current_session, char *path)
 {
 	int ret = 0;
+	char uidir[PATH_MAX];
+
+	memset(uidir, 0, sizeof(uidir));
+	snprintf(uidir, sizeof(uidir), "/%d/", current_session->uid);
 
 	/* Approvers can see all images */
 	if (current_session->type & APPROVER)
 		ret = 1;
-	else if (strncmp(path + strlen(IMAGE_PATH) + 1,
-					current_session->u_email,
-					strlen(current_session->u_email)) == 0)
+	else if (strncmp(path + strlen(IMAGE_PATH), uidir, strlen(uidir)) == 0)
 		ret = 1;
 
 	return ret;
@@ -1051,6 +1053,7 @@ static void delete_image(struct session *current_session)
 	char buf[SQL_MAX];
 	char path[PATH_MAX];
 	char image_path[PATH_MAX];
+	char uidir[PATH_MAX];
 	char *image_id;
 	int headers_sent = 0;
 	MYSQL *conn;
@@ -1093,10 +1096,11 @@ static void delete_image(struct session *current_session)
 	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"), NULL);
 	vl = TMPL_add_var(vl, "image_id", get_var(qvars, "image_id"), NULL);
 
+	memset(uidir, 0, sizeof(uidir));
+	snprintf(uidir, sizeof(uidir), "/%d/", current_session->uid);
 	/* Is it one of the users images? */
-	if (strncmp(image_path + strlen(IMAGE_PATH) + 1,
-				current_session->u_email,
-				strlen(current_session->u_email)) != 0)
+	if (strncmp(image_path + strlen(IMAGE_PATH), uidir, strlen(uidir))
+									!= 0)
 		goto out1;
 
 	if (strcmp(get_var(qvars, "confirm"), "yes") == 0) {
@@ -1433,7 +1437,6 @@ static void process_receipt_approval(struct session *current_session)
 	char sql[SQL_MAX];
 	char buf[SQL_MAX];
 	char *username;
-	char *u_email;
 	int list_size;
 	int i;
 	MYSQL *conn;
@@ -1455,10 +1458,6 @@ static void process_receipt_approval(struct session *current_session)
 	username = alloca(strlen(current_session->username) * 2 + 1);
 	mysql_real_escape_string(conn, username, current_session->username,
 					strlen(current_session->username));
-
-	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
-	mysql_real_escape_string(conn, u_email, current_session->u_email,
-					strlen(current_session->u_email));
 
 	mysql_query(conn, "LOCK TABLES approved WRITE, images WRITE, "
 								"tags READ");
@@ -1488,7 +1487,7 @@ static void process_receipt_approval(struct session *current_session)
 		if (!(current_session->type & APPROVER_SELF)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE "
 						"id = '%s' AND who = '%s'",
-						image_id, u_email);
+						image_id, username);
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_real_query(conn, sql, strlen(sql));
 			res = mysql_store_result(conn);
@@ -1601,7 +1600,7 @@ static void approve_receipts(struct session *current_session, char *query)
 	static const char *card = "'card'";
 	static const char *cheque = "'cheque'";
 	char join[5];
-	char *u_email;
+	char *username;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	int i;
@@ -1673,13 +1672,13 @@ static void approve_receipts(struct session *current_session, char *query)
 
 	conn = db_conn();
 
-	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
-	mysql_real_escape_string(conn, u_email, current_session->u_email,
-					strlen(current_session->u_email));
+	username = alloca(strlen(current_session->username) * 2 + 1);
+	mysql_real_escape_string(conn, username, current_session->username,
+					strlen(current_session->username));
 	memset(assql, 0, sizeof(assql));
 	/* If the user isn't APPROVER_SELF, don't show them their receipts */
 	if (!(current_session->type & APPROVER_SELF))
-		sprintf(assql, "AND images.who != '%s'", u_email);
+		sprintf(assql, "AND images.who != '%s'", username);
 	else
 		assql[0] = '\0';
 
@@ -2120,7 +2119,7 @@ static void receipt_info(struct session *current_session, char *query)
 				"user, passwd.uid FROM images INNER JOIN tags "
 				"ON (images.id = tags.id) LEFT JOIN approved "
 				"ON (approved.id = tags.id) INNER JOIN passwd "
-				"ON (images.who = passwd.u_email) WHERE "
+				"ON (images.who = passwd.username) WHERE "
 				"images.id = '%s' LIMIT 1", image_id);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
@@ -2276,7 +2275,7 @@ static void tagged_receipts(struct session *current_session, char *query)
 	int pages;
 	char page[10];
 	char sql[SQL_MAX];
-	char *u_email;
+	char *username;
 	char uid[11];
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -2302,9 +2301,9 @@ static void tagged_receipts(struct session *current_session, char *query)
 		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
 
 	conn = db_conn();
-	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
-	mysql_real_escape_string(conn, u_email, current_session->u_email,
-					strlen(current_session->u_email));
+	username = alloca(strlen(current_session->username) * 2 + 1);
+	mysql_real_escape_string(conn, username, current_session->username,
+					strlen(current_session->username));
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM tags "
 				"INNER JOIN images ON "
 				"(tags.id = images.id) WHERE "
@@ -2315,7 +2314,7 @@ static void tagged_receipts(struct session *current_session, char *query)
 				"(tags.id = images.id) WHERE "
 				"images.processed = 1 AND images.who = "
 				"'%s' ORDER BY tags.timestamp LIMIT %d, %d",
-				u_email, u_email, from, GRID_SIZE);
+				username, username, from, GRID_SIZE);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -2622,7 +2621,7 @@ static void receipts(struct session *current_session)
 	int i;
 	int nr_rows;
 	char sql[SQL_MAX];
-	char *u_email;
+	char *username;
 	char uid[11];
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -2640,12 +2639,12 @@ static void receipts(struct session *current_session)
 	ml = TMPL_add_var(ml, "base_url", BASE_URL, NULL);
 
 	conn = db_conn();
-	u_email = alloca(strlen(current_session->u_email) * 2 + 1);
-	mysql_real_escape_string(conn, u_email, current_session->u_email,
-					strlen(current_session->u_email));
+	username = alloca(strlen(current_session->username) * 2 + 1);
+	mysql_real_escape_string(conn, username, current_session->username,
+					strlen(current_session->username));
 	snprintf(sql, SQL_MAX, "SELECT id, timestamp, path, name FROM images "
 						"WHERE processed = 0 AND "
-						"who = '%s'", u_email);
+						"who = '%s'", username);
 	d_fprintf(sql_log, "%s\n", sql);
 
 	mysql_real_query(conn, sql, strlen(sql));

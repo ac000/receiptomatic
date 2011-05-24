@@ -10,7 +10,6 @@
 #define _RECEIPTOMATIC_H_
 
 static char *create_image_id(char *path, char *filename);
-static int do_sql(char *sql);
 static void convert_image(char *path, char *filename, int size);
 static void save_image(GMimeObject *part, char *path, char *filename);
 static void process_part(GMimeObject *part, gpointer user_data);

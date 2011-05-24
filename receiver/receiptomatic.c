@@ -16,8 +16,6 @@
 #include <time.h>
 #include <fcntl.h>
 
-#include <mysql.h>
-
 #include <mhash.h>
 
 #include <magick/api.h>
@@ -27,7 +25,7 @@
 #include <glib.h>
 
 #include "receiptomatic.h"
-#include "../db/db_config.h"
+#include "../www/db.h"
 
 
 #define BUF_SIZE	4096
@@ -77,25 +75,6 @@ static char *create_image_id(char *path, char *filename)
 	free(hash);
 
 	return strdup(shash);
-}
-
-/*
- * Execute a SQL query
- */
-static int do_sql(char *sql)
-{
-	MYSQL *conn;
-	int ret = 0;
-
-	conn = mysql_init(NULL);
-	mysql_real_connect(conn, opt_hostname, opt_user_name,
-					opt_password, opt_db_name,
-					opt_port_num, opt_socket_name,
-					opt_flags);
-	mysql_query(conn, sql);
-	mysql_close(conn);
-
-	return ret;
 }
 
 static void convert_image(char *path, char *filename, int size)
@@ -177,12 +156,15 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	char filename[NAME_MAX];
 	char ext[5];
 	char path[PATH_MAX];
-	char sql[SQL_MAX];
+	char sql[1024];
 	char *to;
 	char *image_id;
 	int bytes;
 	time_t t;
 	DIR *dir;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
 
 	printf("Part: %s\n", (char *)g_mime_part_get_filename(
 							(GMimePart *)part));
@@ -198,13 +180,31 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	else
 		return;
 
-	/* Determine the path where to store the image */
-	to = (char *)internet_address_get_addr(user_data);
+	conn = db_conn();
+	/*
+	 * Determine the path where to store the image.
+	 *
+	 *	UID/YYYY/MM/DD
+	 */
+	to = alloca(strlen(internet_address_get_addr(user_data)) * 2 +1);
+	mysql_real_escape_string(conn, to, internet_address_get_addr(
+						user_data), strlen(
+						internet_address_get_addr(
+						user_data)));
+	snprintf(sql, sizeof(sql), "SELECT uid, username FROM passwd WHERE "
+							"u_email = '%s'", to);
+	printf("SQL: %s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+	res = mysql_store_result(conn);
+	if (mysql_num_rows(res) == 0)
+		goto out;
+	row = mysql_fetch_row(res);
+
 	t = time(NULL);
 	strftime(ymd, sizeof(ymd), "%Y/%m/%d", localtime(&t));
-	bytes = snprintf(path, PATH_MAX, "%s/%s/%s", BASE_PATH, to, ymd);
+	bytes = snprintf(path, PATH_MAX, "%s/%s/%s", BASE_PATH, row[0], ymd);
 	if (bytes >= PATH_MAX)
-		return;
+		goto out;
 	printf("Path: %s\n", path);
 
 	dir = opendir(path);
@@ -236,14 +236,19 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	image_id = create_image_id(path, filename);
 
 	/* In the database we only store the path relative from BASE_PATH */
-	sprintf(path, "%s/%s", to, ymd);
+	sprintf(path, "%s/%s", row[0], ymd);
 	snprintf(sql, SQL_MAX,
 		"INSERT INTO images VALUES ('%s', '%s', %ld, '%s', '%s', 0, 1)",
-					image_id, to, t, path, filename);
+						image_id, row[1], t, path,
+						filename);
 	printf("SQL: %s\n", sql);
-	do_sql(sql);
+	mysql_query(conn, sql);
 
 	free(image_id);
+
+out:
+	mysql_free_result(res);
+	mysql_close(conn);
 }
 
 /*
