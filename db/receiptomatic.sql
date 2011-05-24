@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: May 12, 2011 at 03:01 PM
+-- Generation Time: May 24, 2011 at 09:59 AM
 -- Server version: 5.0.77
 -- PHP Version: 5.1.6
 
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `approved` (
   `timestamp` int(10) unsigned NOT NULL,
   `status` smallint(5) unsigned NOT NULL,
   `reason` varchar(255) NOT NULL,
-  KEY `id` (`id`),
+  UNIQUE KEY `id` (`id`),
   KEY `timestamp` (`timestamp`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS `images` (
   `name` varchar(255) NOT NULL,
   `processed` tinyint(4) unsigned NOT NULL default '0',
   `approved` tinyint(3) unsigned NOT NULL default '1',
-  KEY `id` (`id`),
+  UNIQUE KEY `id` (`id`),
   KEY `processed` (`processed`),
   KEY `who` (`who`),
   KEY `approved` (`approved`)
@@ -95,7 +95,8 @@ CREATE TABLE IF NOT EXISTS `passwd` (
   `name` varchar(255) NOT NULL,
   `u_email` varchar(255) NOT NULL,
   `type` smallint(5) unsigned NOT NULL default '0',
-  KEY `username` (`username`)
+  KEY `username` (`username`),
+  KEY `u_email` (`u_email`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -124,7 +125,7 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `receipt_date` int(10) unsigned NOT NULL,
   `reason` varchar(255) NOT NULL,
   `payment_method` varchar(6) NOT NULL,
-  KEY `id` (`id`),
+  UNIQUE KEY `id` (`id`),
   KEY `timestamp` (`timestamp`),
   KEY `payment_method` (`payment_method`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;

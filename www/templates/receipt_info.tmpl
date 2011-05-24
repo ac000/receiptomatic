@@ -27,6 +27,10 @@
 	</center>
 	<p />
 
+	<tmpl_if name = "edit" value = "true">
+		<form action = "/process_receipt/" method = "POST">
+	</tmpl_if>
+
 	<table>
 	<tbody>
 
@@ -44,77 +48,181 @@
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.department" /></span></big></td>
-		<td> : <tmpl_var name = "department" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "department" value = "<tmpl_var name = 'department' />">
+		<tmpl_else>
+			<tmpl_var name = "department" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.employee_number" /></span></big></td>
-		<td> : <tmpl_var name = "employee_number" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "employee_number" value = "<tmpl_var name = 'employee_number' />">
+		<tmpl_else>
+			<tmpl_var name = "employee_number" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.cost_codes" /> </span></big></td>
-		<td> : <tmpl_var name = "cost_codes" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "cost_codes" value = "<tmpl_var name = 'cost_codes' />">
+		<tmpl_else>
+			<tmpl_var name = "cost_codes" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.account_codes" /></span></big></td>
-		<td> : <tmpl_var name = "account_codes" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "account_codes" value = "<tmpl_var name = 'account_codes' />">
+		<tmpl_else>
+			<tmpl_var name = "account_codes" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.po_num" /></span></big></td>
-		<td> : <tmpl_var name = "po_num" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "po_num" value = "<tmpl_var name = 'po_num' />">
+		<tmpl_else>
+			<tmpl_var name = "po_num" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.supplier_name" /></span></big></td>
-		<td> : <tmpl_var name = "supplier_name" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "supplier_name" value = "<tmpl_var name = 'supplier_name' />">
+		<tmpl_else>
+			<tmpl_var name = "supplier_name" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.supplier_town" /></span></big></td>
-		<td> : <tmpl_var name = "supplier_town" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "supplier_town" value = "<tmpl_var name = 'supplier_town' />">
+		<tmpl_else>
+			<tmpl_var name = "supplier_town" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.currency" /></span></big></td>
-		<td> : <tmpl_var name = "currency" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<select name = "currency">
+			<option value = "GBP" <tmpl_if name = "currency" value = "GBP">selected</tmpl_if>>GBP</option>
+			<option value = "USD" <tmpl_if name = "currency" value = "USD">selected</tmpl_if>>USD</option>
+			<option value = "EUR" <tmpl_if name = "currency" value = "EUR">selected</tmpl_if>>EUR</option>
+			</select>
+		<tmpl_else>
+			<tmpl_var name = "currency" />
+		</tmpl_if>
+		</td>
 	</tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.gross_amount" /></span></big></td>
-		<td> : <tmpl_var name = "gross_amount" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "gross_amount" value = "<tmpl_var name = 'gross_amount' />">
+		<tmpl_else>
+			<tmpl_var name = "gross_amount" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_amount" /></span></big></td>
-		<td> : <tmpl_var name = "vat_amount" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "vat_amount" value = "<tmpl_var name = 'vat_amount' />">
+		<tmpl_else>
+			<tmpl_var name = "vat_amount" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.net_amount" /></span></big></td>
-		<td> : <tmpl_var name = "net_amount" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "net_amount" value = "<tmpl_var name = 'net_amount' />">
+		<tmpl_else>
+			<tmpl_var name = "net_amount" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_rate" /></span></big></td>
-		<td> : <tmpl_var name = "vat_rate" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "vat_rate" value = "<tmpl_var name = 'vat_rate' />">
+		<tmpl_else>
+			<tmpl_var name = "vat_rate" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_number" /></span></big></td>
-		<td> : <tmpl_var name = "vat_number" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "vat_number" value = "<tmpl_var name = 'vat_number' />">
+		<tmpl_else>
+			<tmpl_var name = "vat_number" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.reason" /></span></big></td>
-		<td> : <tmpl_var name = "reason" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "reason" value = "<tmpl_var name = 'reason' />">
+		<tmpl_else>
+			<tmpl_var name = "reason" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.receipt_date" /></span></big></td>
-		<td> : <tmpl_var name = "receipt_date" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<input type = "text" name = "receipt_date" value = "<tmpl_var name = 'receipt_date' />">
+		<tmpl_else>
+			<tmpl_var name = "receipt_date" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter"><tmpl_var name = "fields.payment_method" /></span></big></td>
-		<td> : <tmpl_var name = "payment_method" /></td>
+		<td> :&nbsp;
+		<tmpl_if name = "edit" value = "true">
+			<select name = "payment_method">
+			<option value = "Card" <tmpl_if name = "payment_method" value = "Card">selected</tmpl_if>>Card</option>
+			<option value = "Cash" <tmpl_if name = "payment_method" value = "Cash">selected</tmpl_if>>Cash</option>
+			<option value = "Cheque" <tmpl_if name = "payment_method" value = "Cheque">selected</tmpl_if>>Cheque</option>
+			</select>
+		<tmpl_else>
+			<tmpl_var name = "payment_method" />
+		</tmpl_if>
+		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter">Approval Status</span></big></td>
 		<td> :&nbsp;
-			<tmpl_if name = "approved" value = "rejected">
-				<span class = "t_red">Rejected</span>
-			<tmpl_elsif name = "approved" value = "pending">
-				<span class = "t_yellow">Pending</span>
-			<tmpl_else>
-				<span class = "t_green">Approved</span>
-			</tmpl_if>
+		<tmpl_if name = "approved" value = "rejected">
+			<span class = "t_red">Rejected</span>
+		<tmpl_elsif name = "approved" value = "pending">
+			<span class = "t_yellow">Pending</span>
+		<tmpl_else>
+			<span class = "t_green">Approved</span>
+		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
@@ -126,6 +234,23 @@
 
 	</tbody>
 	</table>
+
+	<tmpl_if name = "showedit" value = "true">
+		<form action = "/receipt_info/" method = "GET">
+			<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'id' />" />
+			<input type = "hidden" name = "edit" value = "true" />
+			<input type = "submit" value = "Edit" />
+		</form>
+	</tmpl_if>
+
+	<tmpl_if name = "edit" value = "true">
+		<input type = "hidden" name = "image_path" value = "<tmpl_var name = 'image_path' />" />
+		<input type = "hidden" name = "image_name" value = "<tmpl_var name = 'image_name' />" />
+		<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'id' />" />
+		<input type = "hidden" name = "from" value = "receipt_info" />
+		<input type = "submit" value = "Update" />
+		</form>
+	</tmpl_if>
 
 </body>
 </html>

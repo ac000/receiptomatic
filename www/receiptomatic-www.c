@@ -830,7 +830,7 @@ static void tag_image(struct session *current_session, GHashTable *qvars)
 					qvars, "payment_method"), strlen(
 					get_var(qvars, "payment_method")));
 
-	snprintf(sql, SQL_MAX, "INSERT INTO tags VALUES ('%s', '%s', %ld, "
+	snprintf(sql, SQL_MAX, "REPLACE INTO tags VALUES ('%s', '%s', %ld, "
 				"'%s', '%s', '%s', '%s', '%s', '%s', '%s', "
 				"'%s', %.2f, %.2f, %.2f, %.2f, '%s', %ld, "
 				"'%s', '%s')",
@@ -1412,7 +1412,6 @@ static void extract_data(struct session *current_session)
 	snprintf(uid, 11, "%u", current_session->uid);
 	vl = TMPL_add_var(vl, "uid", uid, NULL);
 	vl = TMPL_add_var(vl, "user_type", "approver", NULL);
-
 
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/extract_data.tmpl", NULL, NULL, vl, stdout,
@@ -2114,7 +2113,7 @@ static void receipt_info(struct session *current_session, char *query)
 				"tags.reason, tags.payment_method, "
 				"approved.reason AS r_reason, passwd.name AS "
 				"user, passwd.uid FROM images INNER JOIN tags "
-				"ON (images.id = tags.id) INNER JOIN approved "
+				"ON (images.id = tags.id) LEFT JOIN approved "
 				"ON (approved.id = tags.id) INNER JOIN passwd "
 				"ON (images.who = passwd.u_email) WHERE "
 				"images.id = '%s' LIMIT 1", image_id);
@@ -2209,7 +2208,7 @@ static void receipt_info(struct session *current_session, char *query)
 	vl = TMPL_add_var(vl, "fields.receipt_date", fields.receipt_date,
 									NULL);
 	secs = atol(get_var(db_row, "receipt_date"));
-	strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
+	strftime(tbuf, sizeof(tbuf), "%a %b %d, %Y", localtime(&secs));
 	vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
 
 	vl = TMPL_add_var(vl, "fields.payment_method", fields.payment_method,
@@ -2227,9 +2226,27 @@ static void receipt_info(struct session *current_session, char *query)
 	vl = TMPL_add_var(vl, "reject_reason", get_var(db_row, "r_reason"),
 									NULL);
 
+	/* Only PENDING receipts are editable */
+	if (atoi(get_var(db_row, "approved")) == PENDING) {
+		vl = TMPL_add_var(vl, "showedit", "true", NULL);
+		if (strcmp(get_var(qvars, "edit"), "true") == 0) {
+			/* Don't show the Edit button when editing */
+			vl = TMPL_add_var(vl, "showedit", "false", NULL);
+			vl = TMPL_add_var(vl, "edit", "true", NULL);
+			/*
+			 * Put the date into the same format that it should be
+			 * entered by the user (YYYY-MM-DD).
+			 */
+			strftime(tbuf, sizeof(tbuf), "%Y-%m-%d",
+							localtime(&secs));
+			vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
+		}
+	}
+
 	free_vars(db_row);
 	mysql_free_result(res);
 	mysql_close(conn);
+
 out:
 	printf("Cache-Control: private\r\n");
 	printf("Content-Type: text/html\r\n\r\n");
@@ -2389,12 +2406,18 @@ out:
  *
  * HTML is in templates/process_receipt.tmpl
  *
- * Processes receipt tag information as entered into /receipts/
+ * Processes receipt tag information as entered into /receipts/ or
+ * /receipt_info/
+ *
+ * Users can only tag/edit their own receipts and only receipts that
+ * are PENDING.
  */
 static void process_receipt(struct session *current_session)
 {
 	char buf[SQL_MAX];
+	char sql[SQL_MAX];
 	char secs[11];
+	char *image_id;
 	struct tm tm;
 	int tag_error = 0;
 	int ret;
@@ -2405,6 +2428,8 @@ static void process_receipt(struct session *current_session)
 	struct field_names fields;
 	GHashTable *qvars = NULL;
 	TMPL_varlist *vl = NULL;
+	MYSQL *conn;
+	MYSQL_RES *res;
 
 	fread(buf, SQL_MAX - 1, 1, stdin);
 	if (!strstr(buf, "=") && !strstr(buf, "&"))
@@ -2414,6 +2439,22 @@ static void process_receipt(struct session *current_session)
 
 	/* Prevent users from tagging other users receipts */
 	if (!is_users_receipt(current_session, get_var(qvars, "image_id")))
+		goto out;
+
+	conn = db_conn();
+
+	/* Receipt must be in PENDING status */
+	image_id = alloca(strlen(get_var(qvars, "image_id")) * 2 + 1);
+	mysql_real_escape_string(conn, image_id, get_var(qvars, "image_id"),
+					strlen(get_var(qvars, "image_id")));
+	snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE id = '%s' AND "
+						"approved = %d",
+						get_var(qvars, "image_id"),
+						PENDING);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+	res = mysql_store_result(conn);
+	if (mysql_num_rows(res) == 0)
 		goto out;
 
 	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
@@ -2540,8 +2581,15 @@ static void process_receipt(struct session *current_session)
 
 	if (!tag_error) {
 		tag_image(current_session, qvars);
-		printf("Location: %s/receipts/\r\n\r\n", BASE_URL);
+		if (strstr(get_var(qvars, "from"), "receipt_info"))
+			printf("Location: %s/receipt_info/?image_id=%s"
+						"\r\n\r\n", BASE_URL,
+						get_var(qvars, "image_id"));
+		else
+			printf("Location: %s/receipts/\r\n\r\n", BASE_URL);
 	} else {
+		if (strstr(get_var(qvars, "from"), "receipt_info"))
+			vl = TMPL_add_var(vl, "from", "receipt_info");
 		printf("Cache-Control: private\r\n");
 		printf("Content-Type: text/html\r\n\r\n");
 		TMPL_write("templates/process_receipt.tmpl", NULL, NULL, vl,
@@ -2550,6 +2598,8 @@ static void process_receipt(struct session *current_session)
 	}
 
 out:
+	mysql_free_result(res);
+	mysql_close(conn);
 	free_vars(qvars);
 }
 
