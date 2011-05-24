@@ -1162,7 +1162,8 @@ static void get_image(struct session *current_session, char *image)
 	const char *mime_type;
 
 	snprintf(path, PATH_MAX, "%s/%s", IMAGE_PATH, image + 11);
-	realpath(path, image_path);
+	if (!realpath(path, image_path))
+		return;
 
 	/* Don't let users access other user images */
 	if (!image_access_allowed(current_session, image_path)) {
@@ -1208,7 +1209,8 @@ static void full_image(struct session *current_session, char *image)
 	struct stat sb;
 
 	snprintf(path, PATH_MAX, "%s/%s", IMAGE_PATH, image + 12);
-	realpath(path, image_path);
+	if (!realpath(path, image_path))
+		return;
 
 	/* Don't let users access other users images */
 	if (!image_access_allowed(current_session, image_path)) {
