@@ -1,11 +1,14 @@
 <html>
 <head>
+	<title>receiptomatic login</title>
 	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
 </head>
 <body>
+	<center>
 <tmpl_if name = "logged_in" value = "no">
-	<big>Login Failure. Please try again</big><p />
+	<big><span class = "input_error">Login Failure. Please try again</span></big><p />
 </tmpl_if>
+	<big><big>Welcome to receiptomatic</big></big><p />
 	<form action = "<tmpl_var name = 'base_url' />/login/" method = "POST">
 	<table>
 	<tbody>
@@ -19,9 +22,10 @@
 	</tr>
 	</table>
 	</tbodY>
-	Restrict this session to your IP address: <input type = "checkbox" name = "restrict_ip" value = "true" checked />
+	<small>Restrict this session to your IP address: <input type = "checkbox" name = "restrict_ip" value = "true" checked /></small>
 	<p />
 	<input type = "submit" value = "Open Sesame" />
 	</form>
+	</center>
 </body>
 </html>
