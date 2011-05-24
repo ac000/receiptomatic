@@ -48,7 +48,6 @@ struct session {
 	unsigned char type;
 	char *username;
 	char *name;
-	char *u_email;
 	time_t login_at;
 	time_t last_seen;
 	char *origin_ip;

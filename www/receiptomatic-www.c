@@ -398,7 +398,6 @@ static void set_current_session(struct session *current_session, char *cookies,
 	current_session->uid = atoi(tcmapget2(cols, "uid"));
 	current_session->username = strdup(tcmapget2(cols, "username"));
 	current_session->name = strdup(tcmapget2(cols, "name"));
-	current_session->u_email = strdup(tcmapget2(cols, "u_email"));
 	current_session->login_at = atol(tcmapget2(cols, "login_at"));
 	current_session->last_seen = time(NULL);
 	current_session->origin_ip = strdup(tcmapget2(cols, "origin_ip"));
@@ -433,9 +432,8 @@ static void set_current_session(struct session *current_session, char *cookies,
 	snprintf(restrict_ip, 2, "%d", current_session->restrict_ip);
 	snprintf(type, 3, "%d", current_session->type);
 	cols = tcmapnew3("uid", uid, "username", current_session->username,
-				"name", current_session->name, "u_email",
-				current_session->u_email, "login_at", login_at,
-				"last_seen", last_seen, "origin_ip",
+				"name", current_session->name, "login_at",
+				login_at, "last_seen", last_seen, "origin_ip",
 				current_session->origin_ip, "client_id",
 				current_session->client_id, "request_id",
 				current_session->request_id, "session_id",
@@ -521,9 +519,8 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 						credentials, "username"),
 						strlen(get_var(credentials,
 						"username")));
-	snprintf(sql, SQL_MAX, "SELECT uid, name, u_email, type FROM passwd "
-						"WHERE username = '%s'",
-						username);
+	snprintf(sql, SQL_MAX, "SELECT uid, name, type FROM passwd WHERE "
+						"username = '%s'", username);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	db_row = get_dbrow(res);
@@ -544,7 +541,6 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 	cols = tcmapnew3("uid", get_var(db_row, "uid"), "username",
 					get_var(credentials, "username"),
 					"name", get_var(db_row, "name"),
-					"u_email", get_var(db_row, "u_email"),
 					"login_at", timestamp, "last_seen",
 					timestamp, "origin_ip",
 					http_x_forwarded_for, "client_id",
@@ -2914,7 +2910,6 @@ static void handle_request()
 out:
 	free(current_session.username);
 	free(current_session.name);
-	free(current_session.u_email);
 	free(current_session.origin_ip);
 	free(current_session.client_id);
 	free(current_session.request_id);
@@ -3036,8 +3031,6 @@ static void dump_session_state()
 								"username"));
 		fprintf(debug_log, "\tname        : %s\n", tcmapget2(cols,
 								"name"));
-		fprintf(debug_log, "\tu_email     : %s\n", tcmapget2(cols,
-								"u_email"));
 		fprintf(debug_log, "\tlogin_at    : %s\n", tcmapget2(cols,
 								"login_at"));
 		fprintf(debug_log, "\tlast_seen   : %s\n", tcmapget2(cols,
