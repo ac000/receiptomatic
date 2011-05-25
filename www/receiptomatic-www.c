@@ -2334,7 +2334,8 @@ static void tagged_receipts(struct session *current_session, char *query)
 				"(tags.id = images.id) LEFT JOIN approved ON "
 				"(tags.id = approved.id) WHERE "
 				"images.processed = 1 AND images.username = "
-				"'%s' ORDER BY tags.timestamp LIMIT %d, %d",
+				"'%s' ORDER BY tags.timestamp DESC LIMIT "
+				"%d, %d",
 				username, username, from, GRID_SIZE);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
