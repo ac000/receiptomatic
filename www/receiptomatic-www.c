@@ -1990,7 +1990,8 @@ static void reviewed_receipts(struct session *current_session, char *query)
 				"images ON (approved.id = images.id) "
 				"INNER JOIN passwd ON "
 				"(images.username = passwd.username) "
-				"ORDER BY approved.timestamp LIMIT %d, %d",
+				"ORDER BY approved.timestamp DESC LIMIT "
+				"%d, %d",
 				from, GRID_SIZE);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
