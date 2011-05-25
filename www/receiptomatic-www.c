@@ -1980,11 +1980,14 @@ static void reviewed_receipts(struct session *current_session, char *query)
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM approved "
 				"INNER JOIN images ON "
 				"(approved.id = images.id)) AS nrows, "
-				"approved.timestamp, images.id, "
-				"images.path, images.name, approved.status "
-				"FROM approved INNER JOIN images ON "
-				"(approved.id = images.id) ORDER BY "
-				"approved.timestamp LIMIT %d, %d",
+				"approved.timestamp AS ats, images.id, "
+				"images.path, images.name, images.timestamp "
+				"AS its, approved.status, passwd.name AS "
+				"user, passwd.uid FROM approved INNER JOIN "
+				"images ON (approved.id = images.id) "
+				"INNER JOIN passwd ON "
+				"(images.username = passwd.username) "
+				"ORDER BY approved.timestamp LIMIT %d, %d",
 				from, GRID_SIZE);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
@@ -2020,11 +2023,24 @@ static void reviewed_receipts(struct session *current_session, char *query)
 									NULL);
 		loop = TMPL_add_varlist(loop, vl);
 
-		secs = atol(get_var(db_row, "timestamp"));
+		vl = TMPL_add_var(vl, "user", get_var(db_row, "user"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+		vl = TMPL_add_var(vl, "uid", get_var(db_row, "uid"), NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		secs = atol(get_var(db_row, "ats"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
 		vl = TMPL_add_var(vl, "review_date", "Review Date", NULL);
 		loop = TMPL_add_varlist(loop, vl);
 		vl = TMPL_add_var(vl, "apdate", tbuf, NULL);
+		loop = TMPL_add_varlist(loop, vl);
+
+		secs = atol(get_var(db_row, "its"));
+		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
+		vl = TMPL_add_var(vl, "receipt_date", fields.receipt_date,
+									NULL);
+		loop = TMPL_add_varlist(loop, vl);
+		vl = TMPL_add_var(vl, "rdate", tbuf, NULL);
 		loop = TMPL_add_varlist(loop, vl);
 
 		if (atoi(get_var(db_row, "status")) == REJECTED)
