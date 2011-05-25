@@ -2309,8 +2309,10 @@ static void tagged_receipts(struct session *current_session, char *query)
 				"images.processed = 1 AND images.username = "
 				"'%s') AS nrows, tags.receipt_date, "
 				"images.id, images.path, images.name, "
-				"images.approved FROM tags INNER JOIN images "
-				"ON (tags.id = images.id) WHERE "
+				"images.approved, approved.timestamp FROM "
+				"tags INNER JOIN images ON "
+				"(tags.id = images.id) LEFT JOIN approved ON "
+				"(tags.id = approved.id) WHERE "
 				"images.processed = 1 AND images.username = "
 				"'%s' ORDER BY tags.timestamp LIMIT %d, %d",
 				username, username, from, GRID_SIZE);
@@ -2356,6 +2358,15 @@ static void tagged_receipts(struct session *current_session, char *query)
                 loop = TMPL_add_varlist(loop, vl);
 		vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
                 loop = TMPL_add_varlist(loop, vl);
+
+		/* If the receipt been reviewed, display its reviewed date */
+		if (strlen(get_var(db_row, "timestamp")) > 0) {
+			secs = atol(get_var(db_row, "timestamp"));
+			strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y",
+							localtime(&secs));
+			vl = TMPL_add_var(vl, "reviewed_date", tbuf, NULL);
+			loop = TMPL_add_varlist(loop, vl);
+		}
 
 		if (atoi(get_var(db_row, "approved")) == REJECTED)
 			vl = TMPL_add_var(vl, "approved", "rejected", NULL);
