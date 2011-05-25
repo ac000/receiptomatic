@@ -101,6 +101,9 @@ static int check_amounts(double gross, double net, double vat, double vr)
 				100 > gross + 0.01))
 		ret = -1;
 
+	if (net == 0.0 || gross == 0.0)
+		ret = -1;
+
 	return ret;
 }
 
