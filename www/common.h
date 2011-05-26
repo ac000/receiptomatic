@@ -52,7 +52,6 @@ struct session {
 	time_t last_seen;
 	char *origin_ip;
 	char *client_id;
-	char *request_id;
 	char *session_id;
 	unsigned int restrict_ip;
 };

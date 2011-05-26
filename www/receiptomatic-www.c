@@ -405,7 +405,6 @@ static void set_current_session(struct session *current_session, char *cookies,
 	current_session->last_seen = time(NULL);
 	current_session->origin_ip = strdup(tcmapget2(cols, "origin_ip"));
 	current_session->client_id = strdup(tcmapget2(cols, "client_id"));
-	current_session->request_id = create_session_id();
 	current_session->session_id = strdup(tcmapget2(cols, "session_id"));
 	current_session->restrict_ip = atoi(tcmapget2(cols, "restrict_ip"));
 	current_session->type = atoi(tcmapget2(cols, "type"));
@@ -438,8 +437,7 @@ static void set_current_session(struct session *current_session, char *cookies,
 				"name", current_session->name, "login_at",
 				login_at, "last_seen", last_seen, "origin_ip",
 				current_session->origin_ip, "client_id",
-				current_session->client_id, "request_id",
-				current_session->request_id, "session_id",
+				current_session->client_id, "session_id",
 				current_session->session_id, "restrict_ip",
 				restrict_ip, "type", type, NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
@@ -448,17 +446,6 @@ static void set_current_session(struct session *current_session, char *cookies,
 
 	tctdbclose(tdb);
 	tctdbdel(tdb);
-
-	/* See the comment in is_logged_in() about the below */
-#if 0
-	d_fprintf(debug_log, "Sending cookie for next request: %s\n",
-						current_session->request_id);
-	printf("Set-Cookie: request_id=deleted; "
-				"expires=Thu, 01-Jan-1970 00:00:01 GMT; "
-				"path=/; httponly\r\n");
-	printf("Set-Cookie: request_id=%s; path=/; httponly\r\n",
-						current_session->request_id);
-#endif
 }
 
 /*
@@ -501,7 +488,6 @@ static char *create_session_id()
 static void create_session(GHashTable *credentials, char *http_user_agent,
 						char *http_x_forwarded_for)
 {
-	char *request_id;
 	char *session_id;
 	char restrict_ip[2] = "0\0";
 	char sql[SQL_MAX];
@@ -528,7 +514,6 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 	res = mysql_store_result(conn);
 	db_row = get_dbrow(res);
 
-	request_id = create_session_id();
 	session_id = create_session_id();
 
 	if (strcmp(get_var(credentials, "restrict_ip"), "true") == 0) {
@@ -547,22 +532,19 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
 					"login_at", timestamp, "last_seen",
 					timestamp, "origin_ip",
 					http_x_forwarded_for, "client_id",
-					http_user_agent, "request_id",
-					request_id, "session_id", session_id,
-					"restrict_ip", restrict_ip, "type",
-					get_var(db_row, "type"), NULL);
+					http_user_agent, "session_id",
+					session_id, "restrict_ip", restrict_ip,
+					"type", get_var(db_row, "type"), NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
 	tcmapdel(cols);
 	tctdbclose(tdb);
 	tctdbdel(tdb);
 
 	printf("Set-Cookie: session_id=%s; path=/; httponly\r\n", session_id);
-	printf("Set-Cookie: request_id=%s; path=/; httponly\r\n", request_id);
 
 	mysql_close(conn);
 	mysql_free_result(res);
 	free_vars(db_row);
-	free(request_id);
 	free(session_id);
 }
 
@@ -570,14 +552,12 @@ static void create_session(GHashTable *credentials, char *http_user_agent,
  * This checks if a user is currently logged in. It is called at the start
  * of each request.
  *
- * There are upto four checks performed:
+ * There are upto three checks performed:
  *
  * 1) The session_id cookie from the browser is checked with the stored
  *    session_id generated at login.
  * 2) The client_id from the browser (currently the user agent string) is
  *    checked against the stored client_id.
- * 3) The request_id cookie from the browser is checked with the stored
- *    request_id, generated per request.
  *
  * 4) Optionally (enabled by default on the login screen) a check is made
  *    on the requesting ip address against the stored origin_ip that was
@@ -590,7 +570,6 @@ static int is_logged_in(char *cookies, char *client_id, char *remote_ip,
 							char *request_uri)
 {
 	char session_id[65];
-	char request_id[65];
 	TCTDB *tdb;
 	TDBQRY *qry;
 	TCLIST *res;
@@ -602,19 +581,8 @@ static int is_logged_in(char *cookies, char *client_id, char *remote_ip,
 	if (!cookies)
 		goto out3;
 
-	/*
-	 * Don't assume the order we get the cookies back is the
-	 * same order as we sent them.
-	 */
-	if (strncmp(cookies, "session_id", 10) == 0) {
-		strncpy(session_id, cookies + 11, 64);
-		strncpy(request_id, cookies + 88, 64);
-	} else {
-		strncpy(request_id, cookies + 11, 64);
-		strncpy(session_id, cookies + 88, 64);
-	}
+	strncpy(session_id, cookies + 11, 64);
 	session_id[64] = '\0';
-	request_id[64] = '\0';
 
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOREADER);
@@ -638,22 +606,9 @@ static int is_logged_in(char *cookies, char *client_id, char *remote_ip,
 	/* client_id */
 	if (strcmp(tcmapget2(cols, "client_id"), client_id) != 0)
 		goto out;
-	/*
-	 * Skip the request_id check for now. It seems that often the
-	 * browser will not store the new cookie before sending a
-	 * request with the old one.
-	 */
-	ret = 1;
-	goto out;
 
-	d_fprintf(debug_log, "request_id (b) %s\n", request_id);
-	d_fprintf(debug_log, "request_id (d) %s\n", tcmapget2(cols,
-								"request_id"));
-	/* request_id */
-	if (strcmp(tcmapget2(cols, "request_id"), request_id) == 0) {
-		ret = 1;
-		goto out;
-	}
+	/* We got here, all checks are OK */
+	ret = 1;
 
 out:
 	tcmapdel(cols);
@@ -1027,9 +982,6 @@ static void logout(struct session *current_session)
 
 	/* Immediately expire the session cookies */
 	printf("Set-Cookie: session_id=deleted; "
-				"expires=Thu, 01-Jan-1970 00:00:01 GMT; "
-				"path=/; httponly\r\n");
-	printf("Set-Cookie: request_id=deleted; "
 				"expires=Thu, 01-Jan-1970 00:00:01 GMT; "
 				"path=/; httponly\r\n");
 	printf("Content-Type: text/html\r\n\r\n");
@@ -2946,7 +2898,6 @@ out:
 	free(current_session.name);
 	free(current_session.origin_ip);
 	free(current_session.client_id);
-	free(current_session.request_id);
 	free(current_session.session_id);
 }
 
@@ -3073,8 +3024,6 @@ static void dump_session_state()
 								"origin_ip"));
 		fprintf(debug_log, "\tclient_id   : %s\n", tcmapget2(cols,
 								"client_id"));
-		fprintf(debug_log, "\trequest_id  : %s\n", tcmapget2(cols,
-								"request_id"));
 		fprintf(debug_log, "\tsession_id  : %s\n", tcmapget2(cols,
 								"session_id"));
 		fprintf(debug_log, "\trestrict_ip : %s\n\n", tcmapget2(cols,
