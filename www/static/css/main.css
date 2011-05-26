@@ -21,3 +21,11 @@ body {
 .input_error {
 	background-color: rgb(240, 180, 175);
 }
+
+#cookie_note {
+	position: relative;
+	height: 130px;
+	width: 670px;
+	margin: 100 auto;
+	background: #d4ddea;
+}
