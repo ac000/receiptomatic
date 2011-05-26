@@ -452,7 +452,7 @@ static void set_current_session(struct session *current_session, char *cookies,
  * Generate a session_id used to identify a users session.
  * It generates a SHA-256 from random dara.
  */
-static char *create_session_id()
+static char *create_session_id(void)
 {
 	int fd;
 	int i;
@@ -2751,7 +2751,7 @@ out:
  *
  * Displays the environment list.
  */
-static void env()
+static void env(void)
 {
 	extern char **environ;
 
@@ -2773,7 +2773,7 @@ static void env()
 /*
  * Main application. This is where the requests come in and routed.
  */
-static void handle_request()
+static void handle_request(void)
 {
 	struct session current_session;
 	int logged_in = 0;
@@ -2904,7 +2904,7 @@ out:
 /*
  * Main program loop. This sits in accept() waiting for connections.
  */
-static void accept_request()
+static void accept_request(void)
 {
 	/*
 	 * We use SIGUSR1 to dump the session state which we only want
@@ -2985,7 +2985,7 @@ static void create_server(int nr)
 /*
  * Dumps session state upon receiving a SIGUSR1
  */
-static void dump_session_state()
+static void dump_session_state(void)
 {
 	TCTDB *tdb;
 	TDBQRY *qry;
@@ -3043,7 +3043,7 @@ static void dump_session_state()
  * Clear out old sessions that haven't been accessed (last_seen) since
  * SESSION_EXPIRY ago.
  */
-static void clear_old_sessions()
+static void clear_old_sessions(void)
 {
 	TCTDB *tdb;
 	TDBQRY *qry;
@@ -3083,7 +3083,7 @@ out:
 /*
  * Sets up a timer to clear old sessions. Fires every SESSION_CHECK seconds.
  */
-static void init_clear_session_timer()
+static void init_clear_session_timer(void)
 {
 	timer_t timerid;
 	struct sigevent sev;

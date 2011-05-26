@@ -13,7 +13,7 @@
 /*
  * Opens a up a MySQL connection and returns the connection handle.
  */
-extern MYSQL *db_conn()
+MYSQL *db_conn(void)
 {
 	MYSQL *conn;
 

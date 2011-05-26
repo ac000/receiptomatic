@@ -14,6 +14,6 @@
 #include <my_global.h>
 #include <mysql.h>
 
-extern MYSQL *db_conn();
+MYSQL *db_conn(void);
 
 #endif /* _DB_H_ */

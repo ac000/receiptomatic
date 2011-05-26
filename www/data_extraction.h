@@ -10,7 +10,7 @@
 #ifndef _DATA_EXTRACTION_H_
 #define _DATA_EXTRACTION_H_
 
-extern void send_receipt_data(int fd);
-extern void extract_data_now(struct session *current_session, int fd);
+void send_receipt_data(int fd);
+void extract_data_now(struct session *current_session, int fd);
 
 #endif /* _DATA_EXTRACTION_H_ */

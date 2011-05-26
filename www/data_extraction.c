@@ -22,7 +22,7 @@
 #include "utils.h"
 #include "data_extraction.h"
 
-extern void send_receipt_data(int fd)
+void send_receipt_data(int fd)
 {
 	ssize_t bytes_read = 1;
 	char buf[BUF_SIZE];
@@ -42,7 +42,7 @@ extern void send_receipt_data(int fd)
 	}
 }
 
-extern void extract_data_now(struct session *current_session, int fd)
+void extract_data_now(struct session *current_session, int fd)
 {
 	char sql[SQL_MAX];
 	char *username;

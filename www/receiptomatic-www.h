@@ -61,7 +61,7 @@ static void set_custom_field_names(struct session *current_session,
 static char *username_to_name(char *username);
 static void set_current_session(struct session *current_session, char *cookies,
 							char *request_uri);
-static char *create_session_id();
+static char *create_session_id(void);
 static void create_session(GHashTable *credentials, char *http_user_agent,
 						char *http_x_forwarded_for);
 static int is_logged_in(char *cookies, char *client_id, char *remote_ip,
@@ -85,13 +85,13 @@ static void reviewed_receipts(struct session *current_session, char *query);
 static void receipt_info(struct session *current_session, char *query);
 static void tagged_receipts(struct session *current_session, char *query);
 static void receipts(struct session *current_session);
-static void env();
-static void handle_request();
-static void accept_request();
+static void env(void);
+static void handle_request(void);
+static void accept_request(void);
 static void set_proc_title(char *title);
 static void create_server(int nr);
-static void dump_session_state();
-static void clear_old_sessions();
-static void init_clear_session_timer();
+static void dump_session_state(void);
+static void clear_old_sessions(void);
+static void init_clear_session_timer(void);
 
 #endif /* _RECEIPTOMATIC_WWW_H_ */

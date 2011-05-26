@@ -27,23 +27,9 @@
  *
  * Converts a hex character to its integer value
  */
-extern char from_hex(char ch)
+static char from_hex(char ch)
 {
 	return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
-}
-
-/*
- * Function comes from: http://www.geekhideout.com/urlcode.shtml
- * Will replace with g_uri_unescape_string() from glib when we have
- * glib 2.16
- *
- * Converts an integer value to its hex character
- */
-extern char to_hex(char code)
-{
-	static char hex[] = "0123456789abcdef";
-
-	return hex[code & 15];
 }
 
 /*
@@ -55,7 +41,7 @@ extern char to_hex(char code)
  *
  * IMPORTANT: be sure to free() the returned string after use
  */
-extern char *url_decode(char *str)
+static char *url_decode(char *str)
 {
 	char *pstr = str;
 	char *buf = malloc(strlen(str) + 1);
@@ -83,7 +69,7 @@ extern char *url_decode(char *str)
 /*
  * Create a hash table of field name=value pairs for a mysql row result set.
  */
-extern GHashTable *get_dbrow(MYSQL_RES *res)
+GHashTable *get_dbrow(MYSQL_RES *res)
 {
 	int num_fields;
 	int i;
@@ -120,7 +106,7 @@ extern GHashTable *get_dbrow(MYSQL_RES *res)
  * If you need to send singular items also, then you should make them
  * a single entity array. i.e, don't mix array's and non-array's.
  */
-extern GList *get_avars(char *query)
+GList *get_avars(char *query)
 {
 	char *token;
 	char *idx;
@@ -194,7 +180,7 @@ extern GList *get_avars(char *query)
  * Given a GList and index and a key, return the coresponding value from
  * the hash table contained within.
  */
-extern char *get_avar(GList *avars, int index, char *key)
+char *get_avar(GList *avars, int index, char *key)
 {
 	char *val;
 	GHashTable *vars;
@@ -208,7 +194,7 @@ extern char *get_avar(GList *avars, int index, char *key)
 /*
  * Free's the given hash table.
  */
-extern void free_avars(GList *avars)
+void free_avars(GList *avars)
 {
 	GHashTable *query_vars;
 	int i;
@@ -226,7 +212,7 @@ extern void free_avars(GList *avars)
  * Create a hash table of name=value pairs, generated from GET and POST
  * data.
  */
-extern GHashTable *get_vars(char *query)
+GHashTable *get_vars(char *query)
 {
 	int i;
 	int j = 0;
@@ -266,7 +252,7 @@ extern GHashTable *get_vars(char *query)
 /*
  * Given a key name, return its value from the given hash table.
  */
-extern char *get_var(GHashTable *vars, char *key)
+char *get_var(GHashTable *vars, char *key)
 {
 	char *val;
 
@@ -282,7 +268,7 @@ extern char *get_var(GHashTable *vars, char *key)
 /*
  * Free's the given hash table.
  */
-extern void free_vars(GHashTable *vars)
+void free_vars(GHashTable *vars)
 {
 	if (vars != NULL)
 		g_hash_table_destroy(vars);
