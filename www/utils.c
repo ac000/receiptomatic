@@ -214,36 +214,37 @@ void free_avars(GList *avars)
  */
 GHashTable *get_vars(char *query)
 {
-	int i;
-	int j = 0;
-	int str_len;
-	char buf[255];
-	char key[255];
-	char *val;
+	char *string;
+	char *token;
+	char *subtoken;
+	char *saveptr1 = NULL;
+	char *saveptr2 = NULL;
 	GHashTable *query_values;
 
 	query_values = g_hash_table_new_full(g_str_hash, g_str_equal,
 							g_free, g_free);
 
-	memset(buf, 0, 255);
-	str_len = strlen(query);
-	for (i = 0; i <= str_len; i++) {
-		if (query[i] == '=') {
-			strcpy(key, buf);
-			memset(buf, 0, 255);
-			j = 0;
-		} else if (query[i] == '&' || query[i] == '\0') {
-			val = url_decode(buf);
-			d_fprintf(debug_log, "Adding key: %s with value: %s "
-						"to hash table\n", key, val);
-			g_hash_table_replace(query_values, g_strdup(key),
-								g_strdup(val));
-			memset(buf, 0, 255);
-			free(val);
-			j = 0;
-		} else {
-			buf[j++] = query[i];
-		}
+	string = strdupa(query);
+	for (;;) {
+		char *key;
+		char *value;
+
+		token = strtok_r(string, "&", &saveptr1);
+		if (token == NULL)
+			break;
+
+		subtoken = strtok_r(token, "=", &saveptr2);
+		key = subtoken;
+		token = NULL;
+		subtoken = strtok_r(token, "=", &saveptr2);
+		value = url_decode(subtoken);
+
+		d_fprintf(debug_log, "Adding key: %s with value: %s to hash "
+							"table\n", key, value);
+		g_hash_table_replace(query_values, g_strdup(key),
+							g_strdup(value));
+
+		string = NULL;
 	}
 
 	return query_values;
