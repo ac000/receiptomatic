@@ -72,6 +72,25 @@ struct session {
 	unsigned int restrict_ip;
 };
 
+struct field_names {
+	char *receipt_date;
+	char *department;
+	char *employee_number;
+	char *reason;
+	char *po_num;
+	char *cost_codes;
+	char *account_codes;
+	char *supplier_name;
+	char *supplier_town;
+	char *vat_number;
+	char *gross_amount;
+	char *net_amount;
+	char *vat_amount;
+	char *vat_rate;
+	char *currency;
+	char *payment_method;
+};
+
 extern FILE *access_log;
 extern FILE *sql_log;
 extern FILE *error_log;
