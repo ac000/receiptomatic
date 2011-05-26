@@ -14,6 +14,22 @@
 
 #include "db.h"
 
+#define IMAGE_PATH	"/data/www/opentechlabs.net/receiptomatic/receipt_images"
+#define BASE_URL	"http://ri.opentechlabs.net"
+#define SESSION_DB	"/dev/shm/receiptomatic-www-sessions.tct"
+
+#define GRID_SIZE	9
+#define ROW_SIZE	3
+#define COL_SIZE	3
+
+#define APPROVER_ROWS	3	/* No. of rows / page on /approve_receipts/ */
+
+#define APPROVER		(1 << 0)	/*  1 */
+#define APPROVER_SELF		(1 << 1)	/*  2 */
+#define APPROVER_CASH		(1 << 2)	/*  4 */
+#define APPROVER_CARD		(1 << 3)	/*  8 */
+#define APPROVER_CHEQUE 	(1 << 4)	/* 16 */
+
 #define BUF_SIZE	4096
 #define SQL_MAX		8192
 

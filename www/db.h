@@ -10,6 +10,13 @@
 #ifndef _DB_H_
 #define _DB_H_
 
+/* For Tokyocabinet (user sessions) */
+#include <tcutil.h>
+#include <tctdb.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <libgen.h>
+
 /* MySQL */
 #include <my_global.h>
 #include <mysql.h>
