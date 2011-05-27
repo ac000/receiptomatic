@@ -1352,8 +1352,10 @@ static void receipt_info(struct session *current_session, char *query)
 	vl = TMPL_add_var(vl, "reject_reason", get_var(db_row, "r_reason"),
 									NULL);
 
-	/* Only PENDING receipts are editable */
-	if (atoi(get_var(db_row, "approved")) == PENDING) {
+	/* Only PENDING receipts of the user are editable */
+	if (atoi(get_var(db_row, "approved")) == PENDING &&
+				atoi(get_var(db_row, "uid")) ==
+				current_session->uid) {
 		vl = TMPL_add_var(vl, "showedit", "true", NULL);
 		if (strcmp(get_var(qvars, "edit"), "true") == 0) {
 			/* Don't show the Edit button when editing */
