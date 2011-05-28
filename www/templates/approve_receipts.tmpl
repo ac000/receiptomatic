@@ -114,19 +114,22 @@
 		<div id = "form_btn" style = "width: 75%; float: left;">
 		<input type = "submit" value = "Submit" />
 		</div>
-		<div id = "page_nav" style = "width: 25%; float: right;">
-		<tmpl_if name = "prev_page">
-			<a href = "/approve_receipts/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
+		<tmpl_if name = "no_pages">
 		<tmpl_else>
-			Prev Page
+			<div id = "page_nav" style = "width: 25%; float: right;">
+			<tmpl_if name = "prev_page">
+				<a href = "/approve_receipts/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
+			<tmpl_else>
+				<span class = "lighter">Prev Page</span>
+			</tmpl_if>
+			&nbsp;::&nbsp;
+			<tmpl_if name = "next_page">
+				<a href = "/approve_receipts/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
+			<tmpl_else>
+				<span class = "lighter">Next Page</span>
+			</tmpl_if>
+			</div>
 		</tmpl_if>
-		&nbsp;::&nbsp;
-		<tmpl_if name = "next_page">
-			<a href = "/approve_receipts/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
-		<tmpl_else>
-			Next Page
-		</tmpl_if>
-		</div>
 	</div>
 
 	</form>

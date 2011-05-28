@@ -68,16 +68,19 @@
 	</table>
 	</center>
 
-	<tmpl_if name = "prev_page">
-		<a href = "/reviewed_receipts/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
+	<tmpl_if name = "no_pages">
 	<tmpl_else>
-		Prev Page
-	</tmpl_if>
-	&nbsp;::&nbsp;
-	<tmpl_if name = "next_page">
-		<a href = "/reviewed_receipts/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
-	<tmpl_else>
-		Next Page
+		<tmpl_if name = "prev_page">
+			<a href = "/reviewed_receipts/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
+		<tmpl_else>
+			<span class = "lighter">Prev Page</span>
+		</tmpl_if>
+		&nbsp;::&nbsp;
+		<tmpl_if name = "next_page">
+			<a href = "/reviewed_receipts/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
+		<tmpl_else>
+			<span class = "lighter">Next Page</span>
+		</tmpl_if>
 	</tmpl_if>
 
 </body>

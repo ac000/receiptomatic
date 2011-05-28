@@ -1016,14 +1016,18 @@ static void approve_receipts(struct session *current_session, char *query)
 
 		free_vars(db_row);
 	}
-	snprintf(page, 10, "%d", page_no - 1);
-	if (page_no - 1 > 0) {
-		snprintf(page, 10, "%d", page_no - 1);
-		ml = TMPL_add_var(ml, "prev_page", page, NULL);
-	}
-	if (page_no + 1 <= pages)  {
-		snprintf(page, 10, "%d", page_no + 1);
-		ml = TMPL_add_var(ml, "next_page", page, NULL);
+
+	if (pages > 1) {
+		if (page_no - 1 > 0) {
+			snprintf(page, 10, "%d", page_no - 1);
+			ml = TMPL_add_var(ml, "prev_page", page, NULL);
+		}
+		if (page_no + 1 <= pages) {
+			snprintf(page, 10, "%d", page_no + 1);
+			ml = TMPL_add_var(ml, "next_page", page, NULL);
+		}
+	} else {
+		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 	TMPL_add_varlist(loop, vl);
@@ -1166,13 +1170,18 @@ static void reviewed_receipts(struct session *current_session, char *query)
 		c++;
 		free_vars(db_row);
 	}
-	if (page_no - 1 > 0) {
-		snprintf(page, 10, "%d", page_no - 1);
-		ml = TMPL_add_var(ml, "prev_page", page, NULL);
-	}
-	if (page_no + 1 <= pages)  {
-		snprintf(page, 10, "%d", page_no + 1);
-		ml = TMPL_add_var(ml, "next_page", page, NULL);
+
+	if (pages > 1) {
+		if (page_no - 1 > 0) {
+			snprintf(page, 10, "%d", page_no - 1);
+			ml = TMPL_add_var(ml, "prev_page", page, NULL);
+		}
+		if (page_no + 1 <= pages) {
+			snprintf(page, 10, "%d", page_no + 1);
+			ml = TMPL_add_var(ml, "next_page", page, NULL);
+		}
+	} else {
+		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
 	}
 	TMPL_add_varlist(loop, vl);
 	ml = TMPL_add_loop(ml, "table", loop);
@@ -1519,13 +1528,18 @@ static void tagged_receipts(struct session *current_session, char *query)
 		c++;
 		free_vars(db_row);
 	}
-	if (page_no - 1 > 0) {
-		snprintf(page, 10, "%d", page_no - 1);
-		ml = TMPL_add_var(ml, "prev_page", page, NULL);
-	}
-	if (page_no + 1 <= pages)  {
-		snprintf(page, 10, "%d", page_no + 1);
-		ml = TMPL_add_var(ml, "next_page", page, NULL);
+
+	if (pages > 1) {
+		if (page_no - 1 > 0) {
+			snprintf(page, 10, "%d", page_no - 1);
+			ml = TMPL_add_var(ml, "prev_page", page, NULL);
+		}
+		if (page_no + 1 <= pages) {
+			snprintf(page, 10, "%d", page_no + 1);
+			ml = TMPL_add_var(ml, "next_page", page, NULL);
+		}
+	} else {
+		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
 	}
 	TMPL_add_varlist(loop, vl);
 	ml = TMPL_add_loop(ml, "table", loop);
