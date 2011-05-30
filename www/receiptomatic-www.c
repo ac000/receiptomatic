@@ -139,25 +139,25 @@ static void dump_session_state(int signo)
 		cols = tctdbget(tdb, rbuf, rsize);
 		tcmapiterinit(cols);
 
-		fprintf(debug_log, "\tuid         : %s\n", tcmapget2(cols,
+		fprintf(debug_log, "\tuid          : %s\n", tcmapget2(cols,
 								"uid"));
-		fprintf(debug_log, "\ttype        : %s\n", tcmapget2(cols,
-								"type"));
-		fprintf(debug_log, "\tusername    : %s\n", tcmapget2(cols,
+		fprintf(debug_log, "\tcapabilities : %s\n", tcmapget2(cols,
+							"capabilities"));
+		fprintf(debug_log, "\tusername     : %s\n", tcmapget2(cols,
 								"username"));
-		fprintf(debug_log, "\tname        : %s\n", tcmapget2(cols,
+		fprintf(debug_log, "\tname         : %s\n", tcmapget2(cols,
 								"name"));
-		fprintf(debug_log, "\tlogin_at    : %s\n", tcmapget2(cols,
+		fprintf(debug_log, "\tlogin_at     : %s\n", tcmapget2(cols,
 								"login_at"));
-		fprintf(debug_log, "\tlast_seen   : %s\n", tcmapget2(cols,
+		fprintf(debug_log, "\tlast_seen    : %s\n", tcmapget2(cols,
 								"last_seen"));
-		fprintf(debug_log, "\torigin_ip   : %s\n", tcmapget2(cols,
+		fprintf(debug_log, "\torigin_ip    : %s\n", tcmapget2(cols,
 								"origin_ip"));
-		fprintf(debug_log, "\tclient_id   : %s\n", tcmapget2(cols,
+		fprintf(debug_log, "\tclient_id    : %s\n", tcmapget2(cols,
 								"client_id"));
-		fprintf(debug_log, "\tsession_id  : %s\n", tcmapget2(cols,
+		fprintf(debug_log, "\tsession_id   : %s\n", tcmapget2(cols,
 								"session_id"));
-		fprintf(debug_log, "\trestrict_ip : %s\n\n", tcmapget2(cols,
+		fprintf(debug_log, "\trestrict_ip  : %s\n\n", tcmapget2(cols,
 							"restrict_ip"));
 		tcmapdel(cols);
 	}

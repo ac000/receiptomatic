@@ -61,7 +61,7 @@
  */
 struct session {
 	unsigned int uid;
-	unsigned char type;
+	unsigned char capabilities;
 	char *username;
 	char *name;
 	time_t login_at;

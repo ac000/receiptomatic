@@ -365,8 +365,8 @@ static void prefs_fmap(struct session *current_session)
 	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
 	snprintf(uid, 11, "%u", current_session->uid);
 	vl = TMPL_add_var(vl, "uid", uid, NULL);
-	if (current_session->type & APPROVER)
-		vl = TMPL_add_var(vl, "user_type", "approver", NULL);
+	if (current_session->capabilities & APPROVER)
+		vl = TMPL_add_var(vl, "user_caps", "approver", NULL);
 	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 
 	fields = field_names;
@@ -491,7 +491,7 @@ static void do_extract_data(struct session *current_session, char *query)
 	char temp_name[30] = "/tmp/receiptomatic-www-XXXXXX";
 	GHashTable *qvars = NULL;
 
-	if (!(current_session->type & APPROVER))
+	if (!(current_session->capabilities & APPROVER))
 		return;
 
 	fd = mkstemp(temp_name);
@@ -518,13 +518,13 @@ static void extract_data(struct session *current_session)
 	char uid[11];
 	TMPL_varlist *vl = NULL;
 
-	if (!(current_session->type & APPROVER))
+	if (!(current_session->capabilities & APPROVER))
 		return;
 
 	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
 	snprintf(uid, 11, "%u", current_session->uid);
 	vl = TMPL_add_var(vl, "uid", uid, NULL);
-	vl = TMPL_add_var(vl, "user_type", "approver", NULL);
+	vl = TMPL_add_var(vl, "user_caps", "approver", NULL);
 
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/extract_data.tmpl", NULL, NULL, vl, stdout,
@@ -548,7 +548,7 @@ static void process_receipt_approval(struct session *current_session)
 	MYSQL_RES *res;
 	GList *post_vars = NULL;
 
-	if (!(current_session->type & APPROVER))
+	if (!(current_session->capabilities & APPROVER))
 		return;
 
 	memset(buf, 0, sizeof(buf));
@@ -589,7 +589,7 @@ static void process_receipt_approval(struct session *current_session)
 							"reason")));
 
 		/* Can user approve their own receipts? */
-		if (!(current_session->type & APPROVER_SELF)) {
+		if (!(current_session->capabilities & APPROVER_SELF)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE "
 						"id = '%s' AND username = "
 						"'%s'", image_id, username);
@@ -600,7 +600,7 @@ static void process_receipt_approval(struct session *current_session)
 				action[0] = 's';
 		}
 		/* Can user approve card transactions? */
-		if (!(current_session->type & APPROVER_CARD)) {
+		if (!(current_session->capabilities & APPROVER_CARD)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
 						"id = '%s' AND payment_method "
 						"= 'card'", image_id);
@@ -611,7 +611,7 @@ static void process_receipt_approval(struct session *current_session)
 				action[0] = 's';
 		}
 		/* Can user approve cash transactions? */
-		if (!(current_session->type & APPROVER_CASH)) {
+		if (!(current_session->capabilities & APPROVER_CASH)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
 						"id = '%s' AND payment_method "
 						"= 'cash'", image_id);
@@ -622,7 +622,7 @@ static void process_receipt_approval(struct session *current_session)
 				action[0] = 's';
 		}
 		/* Can user approve cheque transactions? */
-		if (!(current_session->type & APPROVER_CHEQUE)) {
+		if (!(current_session->capabilities & APPROVER_CHEQUE)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
 						"id = '%s' AND payment_method "
 						"= 'cheque'", image_id);
@@ -719,7 +719,7 @@ static void approve_receipts(struct session *current_session, char *query)
 	TMPL_varlist *vl = NULL;
 	TMPL_loop *loop = NULL;
 
-	if (!(current_session->type & APPROVER))
+	if (!(current_session->capabilities & APPROVER))
 		return;
 
 	memset(pmsql, 0, sizeof(pmsql));
@@ -727,11 +727,11 @@ static void approve_receipts(struct session *current_session, char *query)
 	 * Prepare the payment_method sql clause depending on the users
 	 * approver capabilities.
 	 */
-	if (current_session->type & APPROVER_CASH) {
+	if (current_session->capabilities & APPROVER_CASH) {
 		strcat(pmsql, pm);
 		strcat(pmsql, cash);
 	}
-	if (current_session->type & APPROVER_CARD) {
+	if (current_session->capabilities & APPROVER_CARD) {
 		if (strlen(pmsql) > 0)
 			strcpy(join, " OR ");
 		else
@@ -740,7 +740,7 @@ static void approve_receipts(struct session *current_session, char *query)
 		strcat(pmsql, pm);
 		strcat(pmsql, card);
 	}
-	if (current_session->type & APPROVER_CHEQUE) {
+	if (current_session->capabilities & APPROVER_CHEQUE) {
 		if (strlen(pmsql) > 0)
 			strcpy(join, " OR ");
 		else
@@ -752,17 +752,17 @@ static void approve_receipts(struct session *current_session, char *query)
 	/*
 	 * If we get here but pmsql is empty then it means even though we
 	 * are an approver, we don't seem to have any actual approver
-	 * capabilities. This is likely due to an incorrect type entry in
-	 * the passwd table.
+	 * capabilities. This is likely due to an incorrect capabilities
+	 * entry in the passwd table.
 	 *
 	 * This shouldn't happen. If it does, just log the fact to the
 	 * error log and return (to avoid a segfault due to the subsequent
 	 * incomplete SQL query).
 	 */
 	if (strlen(pmsql) == 0) {
-		d_fprintf(error_log, "User %u seems to have an invalid type "
-					"setting in the passwd table.\n",
-					current_session->uid);
+		d_fprintf(error_log, "User %u seems to have an invalid "
+					"capability setting in the passwd "
+					"table.\n", current_session->uid);
 		return;
 	}
 
@@ -782,7 +782,7 @@ static void approve_receipts(struct session *current_session, char *query)
 					strlen(current_session->username));
 	memset(assql, 0, sizeof(assql));
 	/* If the user isn't APPROVER_SELF, don't show them their receipts */
-	if (!(current_session->type & APPROVER_SELF))
+	if (!(current_session->capabilities & APPROVER_SELF))
 		sprintf(assql, "AND images.username != '%s'", username);
 	else
 		assql[0] = '\0';
@@ -818,8 +818,8 @@ static void approve_receipts(struct session *current_session, char *query)
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
 	snprintf(uid, 11, "%u", current_session->uid);
 	ml = TMPL_add_var(ml, "uid", uid, NULL);
-	if (current_session->type & APPROVER)
-		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
+	if (current_session->capabilities & APPROVER)
+		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
 
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
@@ -1068,7 +1068,7 @@ static void reviewed_receipts(struct session *current_session, char *query)
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 
-	if (!(current_session->type & APPROVER))
+	if (!(current_session->capabilities & APPROVER))
 		return;
 
 	if (strlen(query) > 0) {
@@ -1083,8 +1083,8 @@ static void reviewed_receipts(struct session *current_session, char *query)
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
 	snprintf(uid, 11, "%u", current_session->uid);
 	ml = TMPL_add_var(ml, "uid", uid, NULL);
-	if (current_session->type & APPROVER)
-		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
+	if (current_session->capabilities & APPROVER)
+		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM approved "
@@ -1221,8 +1221,8 @@ static void receipt_info(struct session *current_session, char *query)
 	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
 	snprintf(uid, 11, "%u", current_session->uid);
 	vl = TMPL_add_var(vl, "uid", uid, NULL);
-	if (current_session->type & APPROVER)
-		vl = TMPL_add_var(vl, "user_type", "approver", NULL);
+	if (current_session->capabilities & APPROVER)
+		vl = TMPL_add_var(vl, "user_caps", "approver", NULL);
 
 	qvars = get_vars(query);
 	if (!tag_info_allowed(current_session, get_var(qvars, "image_id"))) {
@@ -1430,8 +1430,8 @@ static void tagged_receipts(struct session *current_session, char *query)
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
 	snprintf(uid, 11, "%u", current_session->uid);
 	ml = TMPL_add_var(ml, "uid", uid, NULL);
-	if (current_session->type & APPROVER)
-		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
+	if (current_session->capabilities & APPROVER)
+		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
 
 	conn = db_conn();
 	username = alloca(strlen(current_session->username) * 2 + 1);
@@ -1784,8 +1784,8 @@ static void receipts(struct session *current_session)
 	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
 	snprintf(uid, 11, "%u", current_session->uid);
 	ml = TMPL_add_var(ml, "uid", uid, NULL);
-	if (current_session->type & APPROVER)
-		ml = TMPL_add_var(ml, "user_type", "approver", NULL);
+	if (current_session->capabilities & APPROVER)
+		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
 	ml = TMPL_add_var(ml, "base_url", BASE_URL, NULL);
 
 	conn = db_conn();

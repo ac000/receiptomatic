@@ -225,7 +225,7 @@ int tag_info_allowed(struct session *current_session, char *image_id)
 	MYSQL_RES *res;
 
 	/* Approvers can see all tags */
-	if (current_session->type & APPROVER) {
+	if (current_session->capabilities & APPROVER) {
 		ret = 1;
 		goto out;
 	}
@@ -268,7 +268,7 @@ int image_access_allowed(struct session *current_session, char *path)
 	snprintf(uidir, sizeof(uidir), "/%d/", current_session->uid);
 
 	/* Approvers can see all images */
-	if (current_session->type & APPROVER)
+	if (current_session->capabilities & APPROVER)
 		ret = 1;
 	else if (strncmp(path + strlen(IMAGE_PATH), uidir, strlen(uidir)) == 0)
 		ret = 1;
@@ -295,7 +295,7 @@ void set_current_session(struct session *current_session, char *cookies,
 	char last_seen[21];
 	char uid[11];
 	char restrict_ip[2];
-	char type[3];
+	char capabilities[3];
 	const char *rbuf;
 
 	/*
@@ -330,7 +330,7 @@ void set_current_session(struct session *current_session, char *cookies,
 	current_session->client_id = strdup(tcmapget2(cols, "client_id"));
 	current_session->session_id = strdup(tcmapget2(cols, "session_id"));
 	current_session->restrict_ip = atoi(tcmapget2(cols, "restrict_ip"));
-	current_session->type = atoi(tcmapget2(cols, "type"));
+	current_session->capabilities = atoi(tcmapget2(cols, "capabilities"));
 
 	tcmapdel(cols);
 	tclistdel(res);
@@ -355,14 +355,15 @@ void set_current_session(struct session *current_session, char *cookies,
 	snprintf(last_seen, 21, "%ld", current_session->last_seen);
 	snprintf(uid, 11, "%u", current_session->uid);
 	snprintf(restrict_ip, 2, "%d", current_session->restrict_ip);
-	snprintf(type, 3, "%d", current_session->type);
+	snprintf(capabilities, 3, "%d", current_session->capabilities);
 	cols = tcmapnew3("uid", uid, "username", current_session->username,
 				"name", current_session->name, "login_at",
 				login_at, "last_seen", last_seen, "origin_ip",
 				current_session->origin_ip, "client_id",
 				current_session->client_id, "session_id",
 				current_session->session_id, "restrict_ip",
-				restrict_ip, "type", type, NULL);
+				restrict_ip, "capabilities", capabilities,
+				NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
 
 	tcmapdel(cols);
@@ -431,8 +432,9 @@ void create_session(GHashTable *credentials, char *http_user_agent,
 						credentials, "username"),
 						strlen(get_var(credentials,
 						"username")));
-	snprintf(sql, SQL_MAX, "SELECT uid, name, type FROM passwd WHERE "
-						"username = '%s'", username);
+	snprintf(sql, SQL_MAX, "SELECT uid, name, capabilities FROM passwd "
+						"WHERE username = '%s'",
+						username);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	db_row = get_dbrow(res);
@@ -457,7 +459,8 @@ void create_session(GHashTable *credentials, char *http_user_agent,
 					http_x_forwarded_for, "client_id",
 					http_user_agent, "session_id",
 					session_id, "restrict_ip", restrict_ip,
-					"type", get_var(db_row, "type"), NULL);
+					"capabilities", get_var(db_row,
+					"capabilities"), NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
 	tcmapdel(cols);
 	tctdbclose(tdb);
