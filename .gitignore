@@ -3,4 +3,5 @@
 *.o
 db/db_config.h
 receiver/receiptomatic
+tools/passcrypt
 www/receiptomatic-www
