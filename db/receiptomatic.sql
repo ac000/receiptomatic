@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: May 30, 2011 at 10:42 AM
+-- Generation Time: May 31, 2011 at 10:26 AM
 -- Server version: 5.0.77
 -- PHP Version: 5.1.6
 
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS `images` (
 CREATE TABLE IF NOT EXISTS `passwd` (
   `uid` int(10) unsigned NOT NULL,
   `username` varchar(255) NOT NULL,
-  `password` varchar(34) NOT NULL,
+  `password` varchar(106) NOT NULL,
   `name` varchar(255) NOT NULL,
   `u_email` varchar(255) NOT NULL,
   `capabilities` smallint(5) unsigned NOT NULL default '0',
