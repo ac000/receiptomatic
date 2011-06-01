@@ -237,7 +237,10 @@ GHashTable *get_vars(char *query)
 		key = subtoken;
 		token = NULL;
 		subtoken = strtok_r(token, "=", &saveptr2);
-		value = url_decode(subtoken);
+		if (subtoken == NULL)
+			*value = '\0';
+		else
+			value = url_decode(subtoken);
 
 		d_fprintf(debug_log, "Adding key: %s with value: %s to hash "
 							"table\n", key, value);
