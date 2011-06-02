@@ -641,15 +641,15 @@ void update_fmap(struct session *current_session, char *query)
 					get_var(qvars, "po_num")));
 
 	cost_codes = alloca(strlen(get_var(qvars, "cost_codes")) * 2 + 1);
-        mysql_real_escape_string(conn, cost_codes, get_var(
-                                        qvars, "cost_codes"), strlen(
-                                        get_var(qvars, "cost_codes")));
+	mysql_real_escape_string(conn, cost_codes, get_var(
+					qvars, "cost_codes"), strlen(
+					get_var(qvars, "cost_codes")));
 
-        account_codes = alloca(strlen(get_var(
+	account_codes = alloca(strlen(get_var(
 					qvars, "account_codes")) * 2 + 1);
-        mysql_real_escape_string(conn, account_codes, get_var(
-                                        qvars, "account_codes"), strlen(
-                                        get_var(qvars, "account_codes")));
+	mysql_real_escape_string(conn, account_codes, get_var(
+					qvars, "account_codes"), strlen(
+					get_var(qvars, "account_codes")));
 
 	supplier_name = alloca(strlen(get_var(
 					qvars, "supplier_name")) * 2 + 1);
