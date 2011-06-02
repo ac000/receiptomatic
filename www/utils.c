@@ -262,7 +262,7 @@ char *get_var(GHashTable *vars, char *key)
 
 	val = g_hash_table_lookup(vars, key);
 	if (!val) {
-		fprintf(error_log, "Unknown var: %s\n", key);
+		d_fprintf(debug_log, "Unknown var: %s\n", key);
 		return "\0";
 	}
 
