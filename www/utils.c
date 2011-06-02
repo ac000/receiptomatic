@@ -227,7 +227,7 @@ GHashTable *get_vars(char *query)
 	string = strdupa(query);
 	for (;;) {
 		char *key;
-		char *value;
+		char *value = "\0";
 
 		token = strtok_r(string, "&", &saveptr1);
 		if (token == NULL)
@@ -237,9 +237,7 @@ GHashTable *get_vars(char *query)
 		key = subtoken;
 		token = NULL;
 		subtoken = strtok_r(token, "=", &saveptr2);
-		if (subtoken == NULL)
-			*value = '\0';
-		else
+		if (subtoken != NULL)
 			value = url_decode(subtoken);
 
 		d_fprintf(debug_log, "Adding key: %s with value: %s to hash "
