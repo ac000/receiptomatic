@@ -1,0 +1,172 @@
+Overview
+========
+
+receiptomatic has been built and run under RHEL 5 (x86_64) and Fedora 14 (i386)
+
+It consists of two parts
+
+  1) receiver/receitptomatic
+
+     This program takes an email message and looks for image attachments
+     which it extracts and stores.
+
+  2) www/receiptomatic-www
+
+     This is the FastCGI web application.
+
+
+Requirements
+============
+
+To build you will need at least the following (older versions may work)
+
+For receiptomatic
+
+    glib2{-devel}-2.12.3
+    gmime{-devel}-2.2.26
+    GraphicsMagick{-devel}-1.3.7
+    mhash{-devel}-0.9.9
+    mysql{-devel}-5.0.77
+
+For receiptomatic-www
+
+     fcgi{-devel}-2.4.0
+     glib2{-devel}-2.12.3
+     mhash{-devel}-0.9.9
+     file-4.17-15
+     mysql{-devel}-5.0.77
+     tokyocabinet{-devel}-1.4.9
+
+and the otl branch of libctemplate from
+
+     git://github.com/opentechlabs/libctemplate.git
+
+
+Build
+=====
+
+Something like this
+
+    $ git clone git://github.com/opentechlabs/receiptomatic.git
+    $ git clone git://github.com/opentechlabs/libctemplate.git
+
+libctemplate
+
+    $ cd libctemplate
+    $ git checkout -b otl origin/otl
+    $ make
+    $ ln -s libctemplate.so.1.4.0 libctemplate.so
+    $ ln -s libctemplate.so.1.4.0 libctemplate.so.1
+
+database
+
+    cd ../receiptomatic/db
+
+    Using db_config.tmpl.h as a template copy it to db_config.h and edit it
+    with the required database details.
+
+    You'll do the actual database setup later.
+
+receiptomatic-www
+
+    $ cd www
+    $ make
+
+receiptomatic
+
+    $ cd ../receiver
+    $ make
+
+
+Install
+=======
+
+    Create a database (and user) as specified in db/db_config.h for
+    receiptomatic using the schema from db/receiptomatic.sql
+
+    $ mysql -u USER -p receiptomatic < db/receiptomatic.sql
+
+    You'll also need to create some users within this database by adding
+    them to the passwd table which is comprised of the following
+
+    uid          - Unique integer to identify users.
+    username     - Username that user uses to log into the system.
+    password     - The users password having been run through crypt().
+    name         - Full name of the user.
+    u_email      - The email address that the user uses to send receipts to the
+		   system.
+    capabilities - An integer representing the users capabilities. In the app
+		   this is represented as a bitmask with the following values
+
+	USER		 0 - A normal user.
+
+	APPROVER	 1 - The user is an APPROVER, this by itself doesn't
+			     really grant any capabiltities and needs at least
+			     one of the following as well.
+	APPROVER_SELF	 2 - The user can approve their own receipts.
+	APPROVER_CASH	 4 - The user can approve cash receipts.
+	APPROVER_CARD	 8 - The user can approve card receipts.
+	APPROVER_CHEQUE 16 - The user can approve cheque receipts.
+
+	So a plain user would just have a capability of 0. A user that can
+	approve cash and card receipts but not cheques or their own would
+	have a capability of 13 (APPROVER + APPROVER_CASH + APPROVER_CARD).
+
+
+    - Give each user a UID. I'd suggest to start at 500.
+    - Create a username (I use their email address) and then set a password.
+    - Create a password entry. You can use the tools/passcrypt utility to do
+      this, e.g
+
+	$ tools/passcrypt -l 256 mypassword
+
+      That will generate a crypt'd password using the SHA-256 algorithm.
+    - Set their name.
+    - Set their receipt upload email address.
+    - Set their capability.
+
+
+    Create a directory for serving this, e.g
+
+    $ mkdir -p /var/www/receiptomatic/{static/css,templates}
+
+    $ cp receiptomatic-www /var/www/receiptomatic/
+    $ cp static/css/main.css /var/www/receiptomatic/static/css/
+    $ cp templates/* /var/www/receiptomatic/templates/
+
+    Copy the email receiver into /etc/smrsh
+
+    $ cp receiver/receiptomatic /etc/smrsh/
+    $ chown mail:mail /etc/smrsh/receiptomatic
+    $ chmod 750 /etc/smrsh/receiptomatic
+
+    Create the directory for the receipt uploads as specified in
+    www/common.h::IMAGE_PATH
+
+    - receiver/receiptomatic will need to be able to create directories and
+      files in there.
+    - www/receiptomatic-www will need to be able to access the files in there.
+
+    Receipt images will be stored under UID/YYYY/MM/DD
+
+    Create some email aliases for this
+
+    $ echo -e "user1-ri:\t|/etc/smrsh/receiptomatic" >> /etc/aliases
+    $ echo -e "user2-ri:\t|/etc/smrsh/receiptomatic" >> /etc/aliases
+    $ newaliases
+
+    These are the email addresses that the users will use to send their receipt
+    images, as specified in passwd.u_email
+
+
+    I'm currently using Apache to handle the initial requests and to serve
+    static content. Requests to the application go via nginx. There are config
+    snippets for these in the docs/ directory.
+
+    The application itself is started with the spawn-fcgi command, something
+    like
+
+    $ export LD_LIBRARY_PATH=/path/to/libctemplate spawn-fcgi -a 127.0.0.1 -p 9191 -P /tmp/receiptomatic-www.pid -- /path/to/receiptomatic-www
+
+    The 9191 is the port that the application is listening on, the one that is
+    specified in nginx.conf
