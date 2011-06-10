@@ -5,7 +5,7 @@ receiptomatic has been built and run under RHEL 5 (x86_64) and Fedora 14 (i386)
 
 It consists of two parts
 
-  1) receiver/receitptomatic
+  1) receiver/receiptomatic
 
      This program takes an email message and looks for image attachments
      which it extracts and stores.
