@@ -12,11 +12,8 @@
 
 #include <sys/time.h>
 
+#include "site_local.h"
 #include "db.h"
-
-#define IMAGE_PATH	"/data/www/opentechlabs.net/receiptomatic/receipt_images"
-#define BASE_URL	"http://ri.opentechlabs.net"
-#define SESSION_DB	"/dev/shm/receiptomatic-www-sessions.tct"
 
 #define GRID_SIZE	9
 #define ROW_SIZE	3

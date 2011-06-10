@@ -25,12 +25,12 @@
 #include <glib.h>
 
 #include "receiptomatic.h"
+#include "../www/site_local.h"
 #include "../www/db.h"
 
 
 #define BUF_SIZE	4096
 #define SQL_MAX		8192
-#define BASE_PATH	"/data/www/opentechlabs.net/receiptomatic/receipt_images"
 
 #define IMG_MEDIUM	1
 #define IMG_SMALL	0
@@ -202,7 +202,7 @@ static void process_part(GMimeObject *part, gpointer user_data)
 
 	t = time(NULL);
 	strftime(ymd, sizeof(ymd), "%Y/%m/%d", localtime(&t));
-	bytes = snprintf(path, PATH_MAX, "%s/%s/%s", BASE_PATH, row[0], ymd);
+	bytes = snprintf(path, PATH_MAX, "%s/%s/%s", IMAGE_PATH, row[0], ymd);
 	if (bytes >= PATH_MAX)
 		goto out;
 	printf("Path: %s\n", path);
@@ -235,7 +235,7 @@ static void process_part(GMimeObject *part, gpointer user_data)
 
 	image_id = create_image_id(path, filename);
 
-	/* In the database we only store the path relative from BASE_PATH */
+	/* In the database we only store the path relative from IMAGE_PATH */
 	sprintf(path, "%s/%s", row[0], ymd);
 	snprintf(sql, SQL_MAX,
 		"INSERT INTO images VALUES ('%s', '%s', %ld, '%s', '%s', 0, 1)",
