@@ -171,6 +171,15 @@ static void dump_session_state(int signo)
 }
 
 /*
+ * Upon receiving the TERM signal, terminate all children and exit.
+ */
+static void terminate(int signo)
+{
+	kill(0, SIGTERM);
+	exit(EXIT_SUCCESS);
+}
+
+/*
  * Clear out old sessions that haven't been accessed (last_seen) since
  * SESSION_EXPIRY ago.
  */
@@ -261,6 +270,16 @@ int main(int argc, char **argv)
 	action.sa_handler = dump_session_state;
 	action.sa_flags = SA_RESTART;
 	sigaction(SIGUSR1, &action, NULL);
+
+	/*
+	 * Setup a signal handler for SIGTERM to terminate all the
+	 * child processes.
+	 */
+	memset(&action, 0, sizeof(&action));
+	sigemptyset(&action.sa_mask);
+	action.sa_handler = terminate;
+	action.sa_flags = SA_RESTART;
+	sigaction(SIGTERM, &action, NULL);
 
 	init_clear_session_timer();
 
