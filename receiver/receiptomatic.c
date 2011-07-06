@@ -24,7 +24,6 @@
 
 #include <glib.h>
 
-#include "receiptomatic.h"
 #include "../www/site_local.h"
 #include "../www/db.h"
 
