@@ -97,7 +97,7 @@ GHashTable *get_dbrow(MYSQL_RES *res)
 /*
  * Create a GList of GHashTables of name=value pairs.
  *
- * This is will most likely be used when needing to send POST
+ * This will most likely be used when needing to send POST
  * array values, e,g
  *
  * 	form0[name]
