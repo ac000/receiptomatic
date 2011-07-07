@@ -76,7 +76,7 @@ static char *create_image_id(char *path, char *filename)
 	return strdup(shash);
 }
 
-static void convert_image(char *path, char *filename, int size)
+static void resize_image(char *path, char *filename, int size)
 {
 	ExceptionInfo exception;
 	Image *image;
@@ -229,8 +229,8 @@ static void process_part(GMimeObject *part, gpointer user_data)
 
 	printf("Creating file: %s/%s\n", path, filename);
 	save_image(part, path, filename);
-	convert_image(path, filename, IMG_SMALL);
-	convert_image(path, filename, IMG_MEDIUM);
+	resize_image(path, filename, IMG_SMALL);
+	resize_image(path, filename, IMG_MEDIUM);
 
 	image_id = create_image_id(path, filename);
 
