@@ -93,6 +93,7 @@ static void login(char *http_user_agent, char *http_x_forwarded_for)
 	printf("Content-Type: text/html\r\n\r\n");
 	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 	TMPL_write("templates/login.tmpl", NULL, NULL, vl, stdout, error_log);
+	fflush(error_log);
 	TMPL_free_varlist(vl);
 }
 
@@ -135,6 +136,7 @@ static void logout(struct session *current_session)
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/logout.tmpl", NULL, NULL, NULL, stdout,
 								error_log);
+	fflush(error_log);
 }
 
 /*
@@ -233,6 +235,7 @@ static void delete_image(struct session *current_session)
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/delete_image.tmpl", NULL, NULL, vl, stdout,
 								error_log);
+	fflush(error_log);
 	headers_sent = 1;
 
 out1:
@@ -479,6 +482,7 @@ static void prefs_fmap(struct session *current_session)
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/prefs_fmap.tmpl", NULL, NULL, vl, stdout,
 								error_log);
+	fflush(error_log);
 	TMPL_free_varlist(vl);
 }
 
@@ -529,6 +533,7 @@ static void extract_data(struct session *current_session)
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/extract_data.tmpl", NULL, NULL, vl, stdout,
 								error_log);
+	fflush(error_log);
 	TMPL_free_varlist(vl);
 }
 
@@ -1036,6 +1041,7 @@ out:
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/approve_receipts.tmpl", NULL, NULL, ml, stdout,
 								error_log);
+	fflush(error_log);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
@@ -1191,6 +1197,7 @@ out:
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/reviewed_receipts.tmpl", NULL, NULL, ml, stdout,
 								error_log);
+	fflush(error_log);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
@@ -1389,6 +1396,7 @@ out:
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/receipt_info.tmpl", NULL, NULL, vl, stdout,
 								error_log);
+	fflush(error_log);
 	TMPL_free_varlist(vl);
 	free_vars(qvars);
 }
@@ -1549,6 +1557,7 @@ out:
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/tagged_receipts.tmpl", NULL, NULL, ml, stdout,
 								error_log);
+	fflush(error_log);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
@@ -1749,6 +1758,7 @@ static void process_receipt(struct session *current_session)
 		printf("Content-Type: text/html\r\n\r\n");
 		TMPL_write("templates/process_receipt.tmpl", NULL, NULL, vl,
 							stdout, error_log);
+		fflush(error_log);
 		TMPL_free_varlist(vl);
 	}
 
@@ -1908,6 +1918,7 @@ out:
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/receipts.tmpl", NULL, NULL, ml, stdout,
 								error_log);
+	fflush(error_log);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
