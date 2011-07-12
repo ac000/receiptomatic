@@ -1962,13 +1962,33 @@ void handle_request(void)
 	char *http_x_forwarded_for;
 	char *query_string;
 
-	request_uri = strdupa(getenv("REQUEST_URI"));
-	request_method = strdupa(getenv("REQUEST_METHOD"));
+	/*
+	 * The below variables are the least that we require. If we don't
+	 * get any of them (except for cookies as the client might not have
+	 * one yet), just return out.
+	 */
+	if (getenv("REQUEST_URI"))
+		request_uri = strdupa(getenv("REQUEST_URI"));
+	else
+		goto out2;
+	if (getenv("REQUEST_METHOD"))
+		request_method = strdupa(getenv("REQUEST_METHOD"));
+	else
+		goto out2;
 	if (getenv("HTTP_COOKIE"))
 		http_cookie = strdupa(getenv("HTTP_COOKIE"));
-	http_user_agent = strdupa(getenv("HTTP_USER_AGENT"));
-	http_x_forwarded_for = strdupa(getenv("HTTP_X_FORWARDED_FOR"));
-	query_string = strdupa(getenv("QUERY_STRING"));
+	if (getenv("HTTP_USER_AGENT"))
+		http_user_agent = strdupa(getenv("HTTP_USER_AGENT"));
+	else
+		goto out2;
+	if (getenv("HTTP_X_FORWARDED_FOR"))
+		http_x_forwarded_for = strdupa(getenv("HTTP_X_FORWARDED_FOR"));
+	else
+		goto out2;
+	if (getenv("QUERY_STRING"))
+		query_string = strdupa(getenv("QUERY_STRING"));
+	else
+		goto out2;
 
 	d_fprintf(access_log, "Got request from %s for %s (%s)\n",
 							http_x_forwarded_for,
@@ -2077,4 +2097,6 @@ out:
 	free(current_session.origin_ip);
 	free(current_session.client_id);
 	free(current_session.session_id);
+out2:
+	return;
 }
