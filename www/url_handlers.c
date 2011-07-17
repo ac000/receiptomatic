@@ -112,6 +112,7 @@ static void logout(struct session *current_session)
 	TCLIST *res;
 	int rsize;
 	const char *rbuf;
+	TMPL_varlist *vl = NULL;
 
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOWRITER);
@@ -134,8 +135,8 @@ static void logout(struct session *current_session)
 				"expires=Thu, 01-Jan-1970 00:00:01 GMT; "
 				"path=/; httponly\r\n");
 	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/logout.tmpl", NULL, NULL, NULL, stdout,
-								error_log);
+	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
+	TMPL_write("templates/logout.tmpl", NULL, NULL, vl, stdout, error_log);
 	fflush(error_log);
 }
 
