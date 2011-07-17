@@ -21,6 +21,7 @@
 #include <signal.h>
 
 #include "common.h"
+#include "get_config.h"
 #include "url_handlers.h"
 #include "receiptomatic-www.h"
 
@@ -80,6 +81,11 @@ static void set_proc_title(char *title)
 
 	argv_last = rargv[0] + strlen(rargv[0]) + 1;
 
+	for (i = 0; rargv[i]; i++) {
+		if (argv_last == rargv[i])
+			argv_last = rargv[i] + strlen(rargv[i]) + 1;
+	}
+
 	for (i = 0; environ[i]; i++) {
 		if (argv_last == environ[i]) {
 			size = strlen(environ[i]) + 1;
@@ -93,7 +99,7 @@ static void set_proc_title(char *title)
 	argv_last--;
 
 	rargv[1] = NULL;
-	p = strncpy(rargv[0], title, argv_last -rargv[0]);
+	p = strncpy(rargv[0], title, argv_last - rargv[0]);
 }
 
 /*
@@ -253,6 +259,7 @@ int main(int argc, char **argv)
 {
 	struct sigaction action;
 	int status;
+	int ret;
 
 	/* Used by set_proc_title() */
 	rargv = argv;
@@ -263,6 +270,12 @@ int main(int argc, char **argv)
 	error_log = fopen("/tmp/receiptomatic-www.error.log", "w");
 	sql_log = fopen("/tmp/receiptomatic-www.sql.log", "w");
 	debug_log = fopen("/tmp/receiptomatic-www.debug.log", "w");
+
+	ret = get_config(argv[1]);
+	if (!ret) {
+		d_fprintf(error_log, "config: could not open %s\n", argv[1]);
+		exit(EXIT_FAILURE);
+	}
 
 	/* Setup signal handler for USR1 to dump session state */
 	memset(&action, 0, sizeof(&action));

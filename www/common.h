@@ -12,7 +12,7 @@
 
 #include <sys/time.h>
 
-#include "site_local.h"
+#include "receiptomatic_config.h"
 #include "db.h"
 
 #define GRID_SIZE	9

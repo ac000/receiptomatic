@@ -24,7 +24,8 @@
 
 #include <glib.h>
 
-#include "../www/site_local.h"
+#include "../www/receiptomatic_config.h"
+#include "../www/get_config.h"
 #include "../www/db.h"
 
 
@@ -292,6 +293,13 @@ int main(int argc, char **argv)
 	ssize_t bytes_read = 1;
 	char buf[BUF_SIZE];
 	char temp_name[21] = "receiptomatic-XXXXXX";
+	int ret;
+
+	ret = get_config(argv[1]);
+	if (!ret) {
+		fprintf(stderr, "config: could not open %s\n", argv[1]);
+		exit(EXIT_FAILURE);
+	}
 
 	/* Be super restrictive for the tempfile creation */
 	umask(0077);
