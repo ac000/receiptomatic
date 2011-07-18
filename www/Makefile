@@ -18,10 +18,10 @@ data_extraction.o: common.h data_extraction.h data_extraction.c
 utils.o: common.h utils.h utils.c
 	gcc -Wall -c utils.c ${INCS}
 
-db.o: db.h db.c
+db.o: common.h db.h db.c
 	gcc -Wall -c db.c ${INCS}
 
-get_config.o: get_config.c
+get_config.o: common.h get_config.c
 	gcc -Wall -c get_config.c ${INCS}
 
 clean:

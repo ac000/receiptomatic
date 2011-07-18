@@ -10,6 +10,8 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#include <fcgi_stdio.h>
+
 #include <sys/time.h>
 
 #include "receiptomatic_config.h"
