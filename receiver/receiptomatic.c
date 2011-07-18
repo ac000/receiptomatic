@@ -36,6 +36,32 @@
 #define IMG_SMALL	0
 
 
+static int do_config(void)
+{
+	int ret;
+
+	ret = access("/usr/local/etc/receiptomatic.cfg", R_OK);
+	if (ret == 0) {
+		get_config("/usr/local/etc/receiptomatic.cfg");
+		goto out;
+	}
+
+	ret = access("/etc/receiptomatic.cfg", R_OK);
+	if (ret == 0) {
+		get_config("/etc/receiptomatic.cfg");
+		goto out;
+	}
+
+	ret = access("./receiptomatic.cfg", R_OK);
+	if (ret == 0) {
+		get_config("./receiptomatic.cfg");
+		goto out;
+	}
+
+out:
+	return ret;
+}
+
 /*
  * Generate a SHA-256 of a given image
  */
@@ -295,9 +321,9 @@ int main(int argc, char **argv)
 	char temp_name[21] = "receiptomatic-XXXXXX";
 	int ret;
 
-	ret = get_config(argv[1]);
-	if (!ret) {
-		fprintf(stderr, "config: could not open %s\n", argv[1]);
+	ret = do_config();
+	if (ret == -1) {
+		fprintf(stderr, "Could not open config file.\n");
 		exit(EXIT_FAILURE);
 	}
 
