@@ -272,7 +272,7 @@ int main(int argc, char **argv)
 	debug_log = fopen("/tmp/receiptomatic-www.debug.log", "w");
 
 	ret = get_config(argv[1]);
-	if (!ret) {
+	if (ret == -1) {
 		d_fprintf(error_log, "config: could not open %s\n", argv[1]);
 		exit(EXIT_FAILURE);
 	}

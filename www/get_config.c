@@ -21,13 +21,10 @@ int get_config(char *filename)
 	char *option;
 	char *value;
 	char *token;
-	int ret = 1;
 
 	fp = fopen(filename, "r");
-	if (!fp) {
-		ret = 0;
-		goto out;
-	}
+	if (!fp)
+		return -1;
 
 	while (fgets(buf, BUF_SIZE, fp)) {
 		token = strtok(buf, "=");
@@ -61,6 +58,5 @@ int get_config(char *filename)
 
 	fclose(fp);
 
-out:
-	return ret;
+	return 0;
 }
