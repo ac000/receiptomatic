@@ -58,15 +58,6 @@ libctemplate
     $ ln -s libctemplate.so.1.4.0 libctemplate.so
     $ ln -s libctemplate.so.1.4.0 libctemplate.so.1
 
-database
-
-    cd ../receiptomatic/db
-
-    Using db_config.tmpl.h as a template copy it to db_config.h and edit it
-    with the required database details.
-
-    You'll do the actual database setup later.
-
 receiptomatic-www
 
     $ cd www
@@ -81,8 +72,8 @@ receiptomatic
 Install
 =======
 
-    Create a database (and user) as specified in db/db_config.h for
-    receiptomatic using the schema from db/receiptomatic.sql
+    Create a database (and user) for receiptomatic using the schema from
+    db/receiptomatic.sql
 
     $ mysql -u USER -p receiptomatic < db/receiptomatic.sql
 
@@ -128,32 +119,34 @@ Install
 
     Create a directory for serving this, e.g
 
-    $ mkdir -p /var/www/receiptomatic/{static/css,templates}
+    # mkdir -p /var/www/receiptomatic/{static/css,templates}
 
-    $ cp receiptomatic-www /var/www/receiptomatic/
-    $ cp static/css/main.css /var/www/receiptomatic/static/css/
-    $ cp templates/* /var/www/receiptomatic/templates/
+    # cp receiptomatic-www /var/www/receiptomatic/
+    # cp static/css/main.css /var/www/receiptomatic/static/css/
+    # cp templates/* /var/www/receiptomatic/templates/
 
     Copy the email receiver into /etc/smrsh
 
-    $ cp receiver/receiptomatic /etc/smrsh/
-    $ chown mail:mail /etc/smrsh/receiptomatic
-    $ chmod 750 /etc/smrsh/receiptomatic
+    # cp receiver/receiptomatic /etc/smrsh/
+    # chown mail:mail /etc/smrsh/receiptomatic
+    # chmod 750 /etc/smrsh/receiptomatic
 
-    Create the directory for the receipt uploads as specified in
-    www/common.h::IMAGE_PATH
+    Create the directory for the receipt uploads, e.g
+
+    # mkdir -p /data/www/receiptomatic/receipt_images
 
     - receiver/receiptomatic will need to be able to create directories and
       files in there.
     - www/receiptomatic-www will need to be able to access the files in there.
 
-    Receipt images will be stored under UID/YYYY/MM/DD
+    Receipt images will be stored under UID/YYYY/MM/DD, under the directory
+    you created above.
 
     Create some email aliases for this
 
-    $ echo -e "user1-ri:\t|/etc/smrsh/receiptomatic" >> /etc/aliases
-    $ echo -e "user2-ri:\t|/etc/smrsh/receiptomatic" >> /etc/aliases
-    $ newaliases
+    # echo -e "user1-ri:\t|/etc/smrsh/receiptomatic" >> /etc/aliases
+    # echo -e "user2-ri:\t|/etc/smrsh/receiptomatic" >> /etc/aliases
+    # newaliases
 
     These are the email addresses that the users will use to send their receipt
     images, as specified in passwd.u_email
@@ -163,10 +156,41 @@ Install
     static content. Requests to the application go via nginx. There are config
     snippets for these in the docs/ directory.
 
+
+Configuration
+=============
+
+    The application (receiver/receiptomatic and www/receiptomatic-www) needs
+    some basic configuration.
+
+    There is an example configuration file in the config/ directory which
+    contains a minimal set of needed config options.
+
+    To see the full list of config options, look at the #define's in
+    www/receiptomatic_config.h
+
+
+    The recieptomatic.cfg file should then be placed into either /usr/local/etc
+    or /etc, these are where the email receiver looks for it.
+
+
+Run
+===
+
     The application itself is started with the spawn-fcgi command, something
     like
 
-    $ export LD_LIBRARY_PATH=/path/to/libctemplate spawn-fcgi -a 127.0.0.1 -p 9191 -P /tmp/receiptomatic-www.pid -- /path/to/receiptomatic-www
+    $ export LD_LIBRARY_PATH=/path/to/libctemplate spawn-fcgi -a 127.0.0.1 -p 9191 -P /tmp/receiptomatic-www.pid -- /path/to/receiptomatic-www /usr/local/etc/receiptomatic.cfg
 
     The 9191 is the port that the application is listening on, the one that is
     specified in nginx.conf
+
+    I use the runasuser utility (https://github.com/ac000/runasuser) to start
+    the app as a specific user with the following script.
+
+    #!/bin/sh
+    #
+
+    RUNASUSER_CHDIR=0 /usr/local/sbin/runasuser rmatic spawn-fcgi -a 127.0.0.1 -p 9191 -P /tmp/receiptomatic-www.pid -- /home/rmatic/receiptomatic-www /usr/local/etc/receiptomatic.cfg
+
+    And set the LD_LIBRARY_PATH in /usr/local/etc/runasuser.env.conf
