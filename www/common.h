@@ -23,11 +23,12 @@
 
 #define APPROVER_ROWS	3	/* No. of rows / page on /approve_receipts/ */
 
-#define APPROVER		(1 << 0)	/*  1 */
-#define APPROVER_SELF		(1 << 1)	/*  2 */
-#define APPROVER_CASH		(1 << 2)	/*  4 */
-#define APPROVER_CARD		(1 << 3)	/*  8 */
-#define APPROVER_CHEQUE 	(1 << 4)	/* 16 */
+#define APPROVER		(1 << 0)	/*   1 */
+#define APPROVER_SELF		(1 << 1)	/*   2 */
+#define APPROVER_CASH		(1 << 2)	/*   4 */
+#define APPROVER_CARD		(1 << 3)	/*   8 */
+#define APPROVER_CHEQUE 	(1 << 4)	/*  16 */
+#define ADMIN			(1 << 7)	/* 128 */
 
 #define BUF_SIZE	4096
 #define SQL_MAX		8192

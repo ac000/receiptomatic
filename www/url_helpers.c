@@ -295,7 +295,7 @@ void set_current_session(struct session *current_session, char *cookies,
 	char last_seen[21];
 	char uid[11];
 	char restrict_ip[2];
-	char capabilities[3];
+	char capabilities[4];
 	const char *rbuf;
 
 	/*
@@ -355,7 +355,7 @@ void set_current_session(struct session *current_session, char *cookies,
 	snprintf(last_seen, 21, "%ld", current_session->last_seen);
 	snprintf(uid, 11, "%u", current_session->uid);
 	snprintf(restrict_ip, 2, "%d", current_session->restrict_ip);
-	snprintf(capabilities, 3, "%d", current_session->capabilities);
+	snprintf(capabilities, 4, "%d", current_session->capabilities);
 	cols = tcmapnew3("uid", uid, "username", current_session->username,
 				"name", current_session->name, "login_at",
 				login_at, "last_seen", last_seen, "origin_ip",
