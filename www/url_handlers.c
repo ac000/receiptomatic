@@ -366,7 +366,7 @@ static void prefs_fmap(struct session *current_session)
 	}
 
 	if (current_session->capabilities & APPROVER)
-		vl = TMPL_add_var(vl, "user_caps", "approver", NULL);
+		vl = TMPL_add_var(vl, "approver", "yes", NULL);
 
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
@@ -524,7 +524,7 @@ static void extract_data(struct session *current_session)
 		return;
 
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
-	vl = TMPL_add_var(vl, "user_caps", "approver", NULL);
+	vl = TMPL_add_var(vl, "approver", "yes", NULL);
 
 	printf("Content-Type: text/html\r\n\r\n");
 	TMPL_write("templates/extract_data.tmpl", NULL, NULL, vl, stdout,
@@ -816,7 +816,7 @@ static void approve_receipts(struct session *current_session, char *query)
 	res = mysql_store_result(conn);
 
 	if (current_session->capabilities & APPROVER)
-		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
+		ml = TMPL_add_var(ml, "approver", "yes", NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
@@ -1080,7 +1080,7 @@ static void reviewed_receipts(struct session *current_session, char *query)
 	}
 
 	if (current_session->capabilities & APPROVER)
-		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
+		ml = TMPL_add_var(ml, "approver", "yes", NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
@@ -1217,7 +1217,7 @@ static void receipt_info(struct session *current_session, char *query)
 	TMPL_varlist *vl = NULL;
 
 	if (current_session->capabilities & APPROVER)
-		vl = TMPL_add_var(vl, "user_caps", "approver", NULL);
+		vl = TMPL_add_var(vl, "approver", "yes", NULL);
 
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 
@@ -1425,7 +1425,7 @@ static void tagged_receipts(struct session *current_session, char *query)
 	}
 
 	if (current_session->capabilities & APPROVER)
-		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
+		ml = TMPL_add_var(ml, "approver", "yes", NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
@@ -1779,7 +1779,7 @@ static void receipts(struct session *current_session)
 
 	/* Display the user's name and UID at the top of the page */
 	if (current_session->capabilities & APPROVER)
-		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
+		ml = TMPL_add_var(ml, "approver", "yes", NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 	ml = TMPL_add_var(ml, "base_url", BASE_URL, NULL);

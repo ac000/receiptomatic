@@ -5,7 +5,7 @@
 </head>
 <body>
 	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/fmap/">field mapping</a> |
-	<tmpl_if name = "user_caps" value = "approver">
+	<tmpl_if name = "approver">
 	&nbsp;<span class = t_red>|</span> approve receipts | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
 	</tmpl_if>
 	<p />
