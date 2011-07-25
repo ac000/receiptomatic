@@ -296,6 +296,7 @@ void set_current_session(struct session *current_session, char *cookies,
 	char uid[11];
 	char restrict_ip[2];
 	char capabilities[4];
+	char user_hdr[1024];
 	const char *rbuf;
 
 	/*
@@ -335,6 +336,27 @@ void set_current_session(struct session *current_session, char *cookies,
 	tcmapdel(cols);
 	tclistdel(res);
 	tctdbqrydel(qry);
+
+	/*
+	 * Set the user header banner, which displays the users name, uid and
+	 * whether they are an Approver and or Admin.
+	 */
+	snprintf(user_hdr, 1024, "<big><big> %s</big></big><small>"
+				"<span class = \"lighter\"> (%d) </span>"
+				"</small>", current_session->name,
+				current_session->uid);
+	if (current_session->capabilities & APPROVER &&
+					current_session->capabilities & ADMIN)
+		strncat(user_hdr, "<span class = \"t_red\">(Approver / Admin)"
+					"</span>", 1024 - strlen(user_hdr));
+	else if (current_session->capabilities & APPROVER)
+		strncat(user_hdr, "<span class = \"t_red\">(Approver)"
+					"</span>", 1024 - strlen(user_hdr));
+	else if (current_session->capabilities & ADMIN)
+		strncat(user_hdr, "<span class = \"t_red\">(Admin)"
+					"</span>", 1024 - strlen(user_hdr));
+	strncat(user_hdr, "&nbsp;", 1024 - strlen(user_hdr));
+	current_session->user_hdr = strdup(user_hdr);
 
 	/*
 	 * We want to update the last_seen timestamp in the users session.

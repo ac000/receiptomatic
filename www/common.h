@@ -70,6 +70,7 @@ struct session {
 	char *client_id;
 	char *session_id;
 	unsigned int restrict_ip;
+	char *user_hdr;
 };
 
 struct field_names {

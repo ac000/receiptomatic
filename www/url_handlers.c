@@ -1783,7 +1783,6 @@ static void receipts(struct session *current_session)
 	int nr_rows;
 	char sql[SQL_MAX];
 	char *username;
-	char uid[11];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
@@ -1792,11 +1791,10 @@ static void receipts(struct session *current_session)
 	TMPL_loop *loop = NULL;
 
 	/* Display the user's name and UID at the top of the page */
-	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
-	snprintf(uid, 11, "%u", current_session->uid);
-	ml = TMPL_add_var(ml, "uid", uid, NULL);
 	if (current_session->capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
+
+	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 	ml = TMPL_add_var(ml, "base_url", BASE_URL, NULL);
 
 	conn = db_conn();
@@ -2098,6 +2096,7 @@ out:
 	free(current_session.origin_ip);
 	free(current_session.client_id);
 	free(current_session.session_id);
+	free(current_session.user_hdr);
 out2:
 	return;
 }
