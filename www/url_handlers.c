@@ -354,7 +354,6 @@ static void full_image(struct session *current_session, char *image)
 static void prefs_fmap(struct session *current_session)
 {
 	char buf[SQL_MAX];
-	char uid[11];
 	struct field_names fields;
 	int updated = 0;
 	TMPL_varlist *vl = NULL;
@@ -366,11 +365,10 @@ static void prefs_fmap(struct session *current_session)
 		updated = 1;
 	}
 
-	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
-	snprintf(uid, 11, "%u", current_session->uid);
-	vl = TMPL_add_var(vl, "uid", uid, NULL);
 	if (current_session->capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "user_caps", "approver", NULL);
+
+	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 
 	fields = field_names;
@@ -520,15 +518,12 @@ static void do_extract_data(struct session *current_session, char *query)
  */
 static void extract_data(struct session *current_session)
 {
-	char uid[11];
 	TMPL_varlist *vl = NULL;
 
 	if (!(current_session->capabilities & APPROVER))
 		return;
 
-	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
-	snprintf(uid, 11, "%u", current_session->uid);
-	vl = TMPL_add_var(vl, "uid", uid, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 	vl = TMPL_add_var(vl, "user_caps", "approver", NULL);
 
 	printf("Content-Type: text/html\r\n\r\n");
@@ -705,7 +700,6 @@ static void approve_receipts(struct session *current_session, char *query)
 	char pmsql[128];
 	char assql[512];
 	char page[10];
-	char uid[11];
 	static const char *pm = "tags.payment_method = ";
 	static const char *cash = "'cash'";
 	static const char *card = "'card'";
@@ -821,11 +815,10 @@ static void approve_receipts(struct session *current_session, char *query)
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
 
-	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
-	snprintf(uid, 11, "%u", current_session->uid);
-	ml = TMPL_add_var(ml, "uid", uid, NULL);
 	if (current_session->capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
+
+	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
@@ -1066,7 +1059,6 @@ static void reviewed_receipts(struct session *current_session, char *query)
 	int pages;
 	char page[10];
 	char sql[SQL_MAX];
-	char uid[11];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *qvars = NULL;
@@ -1087,11 +1079,10 @@ static void reviewed_receipts(struct session *current_session, char *query)
 		from = page_no * GRID_SIZE - GRID_SIZE;
 	}
 
-	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
-	snprintf(uid, 11, "%u", current_session->uid);
-	ml = TMPL_add_var(ml, "uid", uid, NULL);
 	if (current_session->capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
+
+	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM approved "
@@ -1217,7 +1208,6 @@ static void receipt_info(struct session *current_session, char *query)
 	char sql[SQL_MAX];
 	char tbuf[60];
 	char *image_id;
-	char uid[11];
 	struct field_names fields;
 	time_t secs;
 	MYSQL *conn;
@@ -1226,11 +1216,10 @@ static void receipt_info(struct session *current_session, char *query)
 	GHashTable *db_row = NULL;
 	TMPL_varlist *vl = NULL;
 
-	vl = TMPL_add_var(vl, "name", current_session->name, NULL);
-	snprintf(uid, 11, "%u", current_session->uid);
-	vl = TMPL_add_var(vl, "uid", uid, NULL);
 	if (current_session->capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "user_caps", "approver", NULL);
+
+	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 
 	qvars = get_vars(query);
 	if (!tag_info_allowed(current_session, get_var(qvars, "image_id"))) {
@@ -1418,7 +1407,6 @@ static void tagged_receipts(struct session *current_session, char *query)
 	char page[10];
 	char sql[SQL_MAX];
 	char *username;
-	char uid[11];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *qvars = NULL;
@@ -1436,11 +1424,10 @@ static void tagged_receipts(struct session *current_session, char *query)
 		from = page_no * GRID_SIZE - GRID_SIZE;
 	}
 
-	ml = TMPL_add_var(ml, "name", current_session->name, NULL);
-	snprintf(uid, 11, "%u", current_session->uid);
-	ml = TMPL_add_var(ml, "uid", uid, NULL);
 	if (current_session->capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "user_caps", "approver", NULL);
+
+	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
 	conn = db_conn();
 	username = alloca(strlen(current_session->username) * 2 + 1);
