@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Jun 10, 2011 at 10:38 AM
+-- Generation Time: Jul 26, 2011 at 02:24 PM
 -- Server version: 5.0.77
 -- PHP Version: 5.1.6
 
@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS `passwd` (
   `name` varchar(255) NOT NULL,
   `u_email` varchar(255) NOT NULL,
   `capabilities` smallint(5) unsigned NOT NULL default '0',
+  `enabled` tinyint(1) NOT NULL default '0',
   UNIQUE KEY `uid` (`uid`),
   KEY `username` (`username`),
   KEY `u_email` (`u_email`)
