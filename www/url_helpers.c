@@ -155,8 +155,8 @@ int check_auth(GHashTable *credentials)
 						credentials, "username"),
 						strlen(get_var(credentials,
 						"username")));
-	snprintf(sql, SQL_MAX, "SELECT password FROM passwd WHERE username "
-							"= '%s'", username);
+	snprintf(sql, SQL_MAX, "SELECT password, enabled FROM passwd WHERE "
+						"username = '%s'", username);
 	mysql_real_query(conn, sql, strlen(sql));
 	d_fprintf(sql_log, "%s\n", sql);
 	res = mysql_store_result(conn);
@@ -165,6 +165,9 @@ int check_auth(GHashTable *credentials)
 		goto out;
 
 	row = mysql_fetch_row(res);
+
+	if (atoi(row[1]) == 0)
+		goto out;
 
 	enc_passwd = crypt(get_var(credentials, "password"), row[0]);
 	if (strcmp(enc_passwd, row[0]) == 0)
