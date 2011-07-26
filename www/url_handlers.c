@@ -848,120 +848,67 @@ static void approve_receipts(struct session *current_session, char *query)
 
 		vl = TMPL_add_var(NULL, "image_path", get_var(db_row, "path"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
 		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
 		name = username_to_name(get_var(db_row, "username"));
 		vl = TMPL_add_var(vl, "name", name, NULL);
-		loop = TMPL_add_varlist(loop, vl);
 		free(name);
 
 		secs = atol(get_var(db_row, "its"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
 		vl = TMPL_add_var(vl, "images_timestamp", tbuf, NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
 		secs = atol(get_var(db_row, "tts"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
 		vl = TMPL_add_var(vl, "tags_timestamp", tbuf, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.department", fields.department,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "department", get_var(db_row,
 							"department"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.employee_number",
 						fields.employee_number, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "employee_number", get_var(db_row,
 						"employee_number"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "cost_codes", get_var(db_row,
 							"cost_codes"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.account_codes",
 						fields.account_codes, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "account_codes", get_var(db_row,
 						"account_codes"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "po_num", get_var(db_row, "po_num"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.supplier_name",
 						fields.supplier_name, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "supplier_name", get_var(db_row,
 						"supplier_name"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.supplier_town",
 						fields.supplier_town, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "supplier_town", get_var(db_row,
 						"supplier_town"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.currency", fields.currency,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "currency", get_var(db_row, "currency"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.gross_amount",
 						fields.gross_amount, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "gross_amount", get_var(db_row,
 							"gross_amount"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "vat_amount", get_var(db_row,
 							"vat_amount"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "net_amount", get_var(db_row,
 							"net_amount"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "vat_rate", get_var(db_row, "vat_rate"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
 		/* Sanity check the amounts */
 		gross = strtod(get_var(db_row, "gross_amount"), NULL);
@@ -973,46 +920,30 @@ static void approve_receipts(struct session *current_session, char *query)
 			vl = TMPL_add_var(vl, "amnt_err", "yes", NULL);
 		else
 			vl = TMPL_add_var(vl, "amnt_err", "no", NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
 		vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "vat_number", get_var(db_row,
 							"vat_number"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.receipt_date",
 						fields.receipt_date, NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
 		secs = atol(get_var(db_row, "receipt_date"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
 		vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.payment_method",
 						fields.payment_method, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "payment_method", get_var(db_row,
 						"payment_method"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.reason", fields.reason, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "reason", get_var(db_row, "reason"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "id", get_var(db_row, "id"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
+
 		snprintf(item, 3, "%d", i);
 		vl = TMPL_add_var(vl, "item", item, NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
+		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
 
@@ -1029,7 +960,6 @@ static void approve_receipts(struct session *current_session, char *query)
 		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
-	TMPL_add_varlist(loop, vl);
 
 out:
 	printf("Content-Type: text/html\r\n\r\n");
@@ -1122,27 +1052,17 @@ static void reviewed_receipts(struct session *current_session, char *query)
 							(float)GRID_SIZE);
 
 		vl = TMPL_add_var(NULL, "id", get_var(db_row, "id"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "user", get_var(db_row, "user"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
 		vl = TMPL_add_var(vl, "uid", get_var(db_row, "uid"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
 		secs = atol(get_var(db_row, "ats"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
 		vl = TMPL_add_var(vl, "review_date", "Review Date", NULL);
-		loop = TMPL_add_varlist(loop, vl);
 		vl = TMPL_add_var(vl, "apdate", tbuf, NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
 		secs = atol(get_var(db_row, "its"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
@@ -1150,13 +1070,11 @@ static void reviewed_receipts(struct session *current_session, char *query)
 									NULL);
 		loop = TMPL_add_varlist(loop, vl);
 		vl = TMPL_add_var(vl, "rdate", tbuf, NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
 		if (atoi(get_var(db_row, "status")) == REJECTED)
 			vl = TMPL_add_var(vl, "status", "rejected", NULL);
 		else
 			vl = TMPL_add_var(vl, "status", "approved", NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
 		if (c == COL_SIZE && i < nr_rows) { /* Start a new row */
 			vl = TMPL_add_var(vl, "new_row", "yes", NULL);
@@ -1164,8 +1082,9 @@ static void reviewed_receipts(struct session *current_session, char *query)
 		} else {
 			vl = TMPL_add_var(vl, "new_row", "no", NULL);
 		}
-		loop = TMPL_add_varlist(loop, vl);
 		c++;
+
+		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
 
@@ -1181,7 +1100,6 @@ static void reviewed_receipts(struct session *current_session, char *query)
 	} else {
 		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
 	}
-	TMPL_add_varlist(loop, vl);
 	ml = TMPL_add_loop(ml, "table", loop);
 
 out:
@@ -1472,31 +1390,21 @@ static void tagged_receipts(struct session *current_session, char *query)
 							(float)GRID_SIZE);
 
 		vl = TMPL_add_var(NULL, "id", get_var(db_row, "id"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		secs = atol(get_var(db_row, "receipt_date"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
 		vl = TMPL_add_var(vl, "fields.receipt_date",
 						fields.receipt_date, NULL);
-                loop = TMPL_add_varlist(loop, vl);
 		vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
-                loop = TMPL_add_varlist(loop, vl);
-
 		/* If the receipt been reviewed, display its reviewed date */
 		if (strlen(get_var(db_row, "timestamp")) > 0) {
 			secs = atol(get_var(db_row, "timestamp"));
 			strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y",
 							localtime(&secs));
 			vl = TMPL_add_var(vl, "reviewed_date", tbuf, NULL);
-			loop = TMPL_add_varlist(loop, vl);
 		}
 
 		if (atoi(get_var(db_row, "approved")) == REJECTED)
@@ -1505,14 +1413,12 @@ static void tagged_receipts(struct session *current_session, char *query)
 			vl = TMPL_add_var(vl, "approved", "pending", NULL);
 		else
 			vl = TMPL_add_var(vl, "approved", "yes", NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
 		/* We want a 3 x 3 grid */
 		if (c == COL_SIZE) /* Close off row */
 			vl = TMPL_add_var(vl, "close_row", "yes", NULL);
 		else
 			vl = TMPL_add_var(vl, "close_row", "no", NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
 		if (c == COL_SIZE && i < nr_rows) { /* Start a new row */
 			vl = TMPL_add_var(vl, "new_row", "yes", NULL);
@@ -1520,8 +1426,9 @@ static void tagged_receipts(struct session *current_session, char *query)
 		} else {
 			vl = TMPL_add_var(vl, "new_row", "no", NULL);
 		}
-		loop = TMPL_add_varlist(loop, vl);
 		c++;
+
+		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
 
@@ -1537,7 +1444,6 @@ static void tagged_receipts(struct session *current_session, char *query)
 	} else {
 		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
 	}
-	TMPL_add_varlist(loop, vl);
 	ml = TMPL_add_loop(ml, "table", loop);
 
 out:
@@ -1816,87 +1722,48 @@ static void receipts(struct session *current_session)
 		 */
 		vl = TMPL_add_var(NULL, "image_path", get_var(db_row, "path"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		secs = atol(get_var(db_row, "timestamp"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z",
 							localtime(&secs));
 		vl = TMPL_add_var(vl, "timestamp", tbuf, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.department", fields.department,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.employee_number",
 						fields.employee_number, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.account_codes",
 						fields.account_codes, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.supplier_name",
 						fields.supplier_name, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.supplier_town",
 						fields.supplier_town, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.currency", fields.currency,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.gross_amount",
 						fields.gross_amount, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
 									NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.reason", fields.reason, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.receipt_date",
 						fields.receipt_date, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		vl = TMPL_add_var(vl, "fields.payment_method",
 						fields.payment_method, NULL);
-		loop = TMPL_add_varlist(loop, vl);
-
 		/* image_id for hidden input field */
 		vl = TMPL_add_var(vl, "id", get_var(db_row, "id"), NULL);
-		loop = TMPL_add_varlist(loop, vl);
 
+		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
-	TMPL_add_varlist(loop, vl);
 	ml = TMPL_add_loop(ml, "table", loop);
 
 out:
