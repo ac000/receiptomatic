@@ -507,7 +507,6 @@ void create_session(GHashTable *credentials, char *http_user_agent,
  *
  * Some will ceil the vat e.g a vat amount of 1.77450 will become 1.78
  * Others will floor the vat e.g a vat amount of 1.6660 will become 1.66
- *
  */
 int check_amounts(double gross, double net, double vat, double vr)
 {
