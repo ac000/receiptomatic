@@ -108,9 +108,10 @@ static void set_proc_title(char *title)
 static void create_server(int nr)
 {
 	int i;
-	pid_t pid;
 
 	for (i = 0; i < nr; i++) {
+		pid_t pid;
+
 		pid = fork();
 		if (pid == 0) {  /* child */
 			set_proc_title("receiptomatic-www: worker");
