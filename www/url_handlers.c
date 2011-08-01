@@ -83,7 +83,7 @@ static void login(char *http_user_agent, char *http_x_forwarded_for)
 			create_session(credentials, http_user_agent,
 					http_x_forwarded_for);
 
-			printf("Location: %s/receipts/\r\n\r\n", BASE_URL);
+			printf("Location: /receipts/\r\n\r\n");
 			free_vars(credentials);
 			return; /* Successful login */
 		}
@@ -93,7 +93,6 @@ static void login(char *http_user_agent, char *http_x_forwarded_for)
 		vl = TMPL_add_var(0, "logged_in", "no", NULL);
 
 	printf("Content-Type: text/html\r\n\r\n");
-	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 	TMPL_write("templates/login.tmpl", NULL, NULL, vl, stdout, error_log);
 	fflush(error_log);
 	TMPL_free_varlist(vl);
@@ -137,7 +136,6 @@ static void logout(struct session *current_session)
 				"expires=Thu, 01-Jan-1970 00:00:01 GMT; "
 				"path=/; httponly\r\n");
 	printf("Content-Type: text/html\r\n\r\n");
-	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 	TMPL_write("templates/logout.tmpl", NULL, NULL, vl, stdout, error_log);
 	fflush(error_log);
 }
@@ -196,7 +194,6 @@ static void delete_image(struct session *current_session)
 						get_var(db_row, "name"));
 	realpath(path, image_path);
 
-	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 	vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"), NULL);
 	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"), NULL);
 	vl = TMPL_add_var(vl, "image_id", get_var(qvars, "image_id"), NULL);
@@ -249,7 +246,7 @@ out1:
 	TMPL_free_varlist(vl);
 out2:
 	if (!headers_sent)
-		printf("Location: %s/receipts/\r\n\r\n", BASE_URL);
+		printf("Location: /receipts/\r\n\r\n");
 }
 
 /*
@@ -586,8 +583,7 @@ static void admin_add_user(struct session *current_session)
 			 */
 			vl = TMPL_add_var(vl, "dup_user", "yes", NULL);
 		} else {
-			printf("Location: %s/admin/add_user/\r\n\r\n",
-								BASE_URL);
+			printf("Location: /admin/add_user/\r\n\r\n");
 			goto out2;
 		}
 	}
@@ -817,7 +813,6 @@ static void prefs_fmap(struct session *current_session)
 		vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
-	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 
 	fields = field_names;
 	set_custom_field_names(current_session, &fields);
@@ -1134,7 +1129,7 @@ static void process_receipt_approval(struct session *current_session)
 	mysql_close(conn);
 	free_avars(post_vars);
 
-	printf("Location: %s/approve_receipts/\r\n\r\n", BASE_URL);
+	printf("Location: /approve_receipts/\r\n\r\n");
 }
 
 /*
@@ -1973,7 +1968,6 @@ static void process_receipt(struct session *current_session)
 	if (mysql_num_rows(res) == 0)
 		goto out;
 
-	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
 	vl = TMPL_add_var(vl, "image_id", get_var(qvars, "image_id"), NULL);
 	vl = TMPL_add_var(vl, "image_path", get_var(qvars, "image_path"),
 									NULL);
@@ -2098,11 +2092,10 @@ static void process_receipt(struct session *current_session)
 	if (!tag_error) {
 		tag_image(current_session, qvars);
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
-			printf("Location: %s/receipt_info/?image_id=%s"
-						"\r\n\r\n", BASE_URL,
+			printf("Location: /receipt_info/?image_id=%s\r\n\r\n",
 						get_var(qvars, "image_id"));
 		else
-			printf("Location: %s/receipts/\r\n\r\n", BASE_URL);
+			printf("Location: /receipts/\r\n\r\n");
 	} else {
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
 			vl = TMPL_add_var(vl, "from", "receipt_info");
@@ -2148,7 +2141,6 @@ static void receipts(struct session *current_session)
 		ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
-	ml = TMPL_add_var(ml, "base_url", BASE_URL, NULL);
 
 	conn = db_conn();
 	username = alloca(strlen(current_session->username) * 2 + 1);
@@ -2334,7 +2326,7 @@ void handle_request(void)
 							http_x_forwarded_for,
 							request_uri);
 	if (!logged_in) {
-		printf("Location: %s/login/\r\n\r\n", BASE_URL);
+		printf("Location: /login/\r\n\r\n");
 		goto out;
 	}
 	set_current_session(&current_session, http_cookie, request_uri);
@@ -2432,7 +2424,7 @@ void handle_request(void)
 	}
 
 	/* Default location */
-	printf("Location: %s/login/\r\n\r\n", BASE_URL);
+	printf("Location: /login/\r\n\r\n");
 
 out:
 	free(current_session.username);

@@ -18,7 +18,7 @@ Do you wish to continue with deletion?
 
 <div style = "width; 100%">
 <div style = "width: 50%; float: left;">
-<form action = "<tmpl_var name = 'base_url' />/delete_image/" method = "POST">
+<form action = "/delete_image/" method = "POST">
 <input type = "hidden" name = "image_id" value = "<tmpl_var name = 'image_id' />">
 <input type = "hidden" name = "confirm" value = "yes">
 <input type = "submit" value = "Yes" />
@@ -26,7 +26,7 @@ Do you wish to continue with deletion?
 </div>
 
 <div style = "width: 50%; float: right;">
-<form action = "<tmpl_var name = 'base_url' />/receipts/" method = "GET">
+<form action = "/receipts/" method = "GET">
 <input type = "submit" value = "No" />
 </form>
 </div>

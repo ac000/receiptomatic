@@ -26,7 +26,7 @@
 <tmpl_loop name = "table">
 	<tr>
 		<td rowspan = "16" width = "45%">
-		<form action = "<tmpl_var name = 'base_url' />/process_receipt/" method = "POST">
+		<form action = "/process_receipt/" method = "POST">
 		<a href = "/full_image/<tmpl_var name = 'image_path' />/<tmpl_var name = 'image_name' />"><img src = "/get_image/<tmpl_var name = 'image_path' />/medium/<tmpl_var name = 'image_name' />" width = "300" height = "300" /></a>
 		<p />
 		<span class = "lighter">Uploaded at:</span> <tmpl_var name = "timestamp" />
@@ -114,7 +114,7 @@
 		<input type = "hidden" name = "image_name" value = "<tmpl_var name = 'image_name' />" />
 		<input type = "submit" value = "Tag It" />
 		</form>
-		<form action = "<tmpl_var name = 'base_url' />/delete_image/" method = "POST">
+		<form action = "/delete_image/" method = "POST">
 		<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'id' />" />
 		<input type = "submit" value = "Delete" />
 		</form>
