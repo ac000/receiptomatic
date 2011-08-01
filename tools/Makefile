@@ -1,5 +1,5 @@
 passcrypt: passcrypt.c
-	gcc -Wall -o passcrypt passcrypt.c `pkg-config --cflags --libs glib-2.0` -lcrypt
+	gcc -Wall -o passcrypt passcrypt.c -lcrypt
 
 clean:
 	rm passcrypt

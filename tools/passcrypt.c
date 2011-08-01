@@ -7,14 +7,13 @@
  * See COPYING
  */
 
-#define _XOPEN_SOURCE
+#define _GNU_SOURCE
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-
-#include <glib.h>
+#include <sys/time.h>
 
 int main(int argc, char **argv)
 {
@@ -28,6 +27,8 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
+	memset(salt, 0, sizeof(salt));
+
 	if (strcmp(argv[2], "256") == 0) {
 		strcpy(salt, "$5$");
 	} else if (strcmp(argv[2], "512") == 0) {
@@ -37,10 +38,17 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	for (i = 3; i < 19; i++)
-		salt[i] = salt_chars[g_random_int_range(0, 64)];
+	for (i = 3; i < 19; i++) {
+		int r;
+		struct timeval tv;
 
+		gettimeofday(&tv, NULL);
+		srandom(tv.tv_sec * tv.tv_usec);
+		r = random() % 64; /* 0 - 63 */
+		salt[i] = salt_chars[r];
+	}
 	strcat(salt, "$");
+
 	printf("%s\n", crypt(argv[3], salt));
 
 	exit(EXIT_SUCCESS);
