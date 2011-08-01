@@ -14,6 +14,11 @@ char *rec_image_path;
 char *rec_base_url;
 char *rec_session_db;
 
+char *mail_cmd;
+char *mail_from;
+char *mail_reply_to;
+char *mail_subject;
+
 char *db_user;
 char *db_password;
 char *db_name;
@@ -26,6 +31,11 @@ extern unsigned int db_flags;
 #define IMAGE_PATH	rec_image_path
 #define BASE_URL	rec_base_url
 #define SESSION_DB	rec_session_db
+
+#define MAIL_CMD	mail_cmd
+#define MAIL_FROM	mail_from
+#define MAIL_REPLY_TO	mail_reply_to
+#define MAIL_SUBJECT	mail_subject
 
 #define DB_USER		db_user
 #define DB_PASS		db_password

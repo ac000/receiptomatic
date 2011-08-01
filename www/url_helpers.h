@@ -27,5 +27,7 @@ void set_custom_field_names(struct session *current_session,
 						struct field_names *fields);
 void update_fmap(struct session *current_session, char *query);
 void tag_image(struct session *current_session, GHashTable *qvars);
+int do_add_user(GHashTable *qvars, unsigned char capabilities);
+void do_activate_user(char *uid, char *key, char *password);
 
 #endif /* _URLHELPERS_H_ */

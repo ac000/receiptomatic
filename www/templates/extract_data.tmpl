@@ -8,6 +8,9 @@
 	<tmpl_if name = "approver">
 	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/">approve receipts</a> | <a href = "/reviewed_receipts/">reviewed receipts</a> | extract data <span class = t_red>|</span>
 	</tmpl_if>
+	<tmpl_if name = "admin">
+	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
+	</tmpl_if>
 	<p />
 	<tmpl_var name = "user_hdr" />
 	<big><big>| Extract Data</big></big>

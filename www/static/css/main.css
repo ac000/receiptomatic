@@ -10,6 +10,10 @@ body {
 	color: rgb(255, 0, 0);
 }
 
+.t_blue {
+        color: rgb(0, 0, 255);
+}
+
 .t_yellow {
 	color: rgb(230, 160, 70);
 }
@@ -20,6 +24,15 @@ body {
 
 .input_error {
 	background-color: rgb(240, 180, 175);
+}
+
+.list {
+	vertical_align: top;
+}
+
+.listzebra {
+	vertical_align: top;
+	background-color: rgb(245, 250, 255);
 }
 
 #cookie_note {

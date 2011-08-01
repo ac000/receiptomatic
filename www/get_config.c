@@ -54,6 +54,14 @@ int get_config(char *filename)
 			db_port_num = atoi(value);
 		else if (strcmp(option, "DB_FLAGS") == 0)
 			db_flags = atoi(value);
+		else if (strcmp(option, "MAIL_CMD") == 0)
+			mail_cmd = strdup(value);
+		else if (strcmp(option, "MAIL_FROM") == 0)
+			mail_from = strdup(value);
+		else if (strcmp(option, "MAIL_REPLY_TO") == 0)
+			mail_reply_to = strdup(value);
+		else if (strcmp(option, "MAIL_SUBJECT") == 0)
+			mail_subject = strdup(value);
 	}
 
 	fclose(fp);

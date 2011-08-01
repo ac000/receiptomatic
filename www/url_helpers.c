@@ -886,3 +886,107 @@ void tag_image(struct session *current_session, GHashTable *qvars)
 
 	mysql_close(conn);
 }
+
+/*
+ * Add a new user to the system.
+ */
+int do_add_user(GHashTable *qvars, unsigned char capabilities)
+{
+	char sql[SQL_MAX];
+	char *token;
+	char *key;
+	char *email_addr;
+	char *name;
+	char *upload_addr;
+	char *ua;
+	int ret = 0;
+	time_t tm;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
+
+	conn = db_conn();
+
+	/* Check if the user is already in the system. */
+	email_addr = alloca(strlen(get_var(qvars, "email1")) * 2 + 1);
+	mysql_real_escape_string(conn, email_addr, get_var(qvars, "email1"),
+					strlen(get_var(qvars, "email1")));
+	snprintf(sql, SQL_MAX, "SELECT username FROM passwd WHERE "
+					"username = '%s'", email_addr);
+	d_fprintf(sql_log, "%s\n", sql);
+        mysql_real_query(conn, sql, strlen(sql));
+	res = mysql_store_result(conn);
+	if (mysql_num_rows(res) > 0) {
+		ret = -10;
+		goto out;
+	}
+
+	/* Create the users upload email address */
+	token = strtok(strdupa(email_addr), "@");
+	ua = alloca(strlen(token) + 21);
+	sprintf(ua, "%s@ri.opentechlabs.net", token);
+
+	key = generate_activation_key(email_addr);
+
+	name = alloca(strlen(get_var(qvars, "name")) * 2 + 1);
+	mysql_real_escape_string(conn, name, get_var(qvars, "name"),
+					strlen(get_var(qvars, "name")));
+
+	upload_addr = alloca(strlen(ua) * 2 + 1);
+	mysql_real_escape_string(conn, upload_addr, ua, strlen(ua));
+
+	mysql_query(conn, "SELECT MAX(uid) FROM passwd");
+	res = mysql_store_result(conn);
+	row = mysql_fetch_row(res);
+
+	snprintf(sql, SQL_MAX, "INSERT INTO passwd VALUES (%d, '%s', '!!', "
+						"'%s', '%s', %d, 0, 0)",
+						atoi(row[0]) + 1, email_addr,
+						name, upload_addr,
+						capabilities);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+
+	tm = time(NULL);
+	snprintf(sql, SQL_MAX, "INSERT INTO activations VALUES ('%s', '%s', "
+						"%ld)", email_addr, key,
+						tm + 86400);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+
+	send_activation_mail(name, email_addr, key);
+	free(key);
+
+out:
+	mysql_free_result(res);
+	mysql_close(conn);
+
+	return ret;
+}
+
+/*
+ * Activate a users account in the system.
+ */
+void do_activate_user(char *uid, char *key, char *password)
+{
+	char sql[SQL_MAX];
+	char *hash;
+	MYSQL *conn;
+
+	hash = generate_password_hash(SHA512, password);
+
+	conn = db_conn();
+	snprintf(sql, SQL_MAX, "UPDATE passwd SET password = '%s', "
+				"activated = 1, enabled = 1 WHERE uid = %s",
+				hash, uid);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_query(conn, sql);
+
+	snprintf(sql, SQL_MAX, "DELETE FROM activations WHERE akey = '%s'",
+									key);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+
+	mysql_close(conn);
+	free(hash);
+}

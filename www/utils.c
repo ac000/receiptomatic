@@ -7,15 +7,21 @@
  * See COPYING
  */
 
+#define _XOPEN_SOURCE
+
 /* FastCGI stdio wrappers */
 #include <fcgi_stdio.h>
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <string.h>
 #include <ctype.h>
+#include <sys/time.h>
 
 #include <glib.h>
+
+#include <mhash.h>
 
 #include "common.h"
 #include "utils.h"
@@ -274,4 +280,91 @@ void free_vars(GHashTable *vars)
 {
 	if (vars != NULL)
 		g_hash_table_destroy(vars);
+}
+
+/*
+ * Generate a somewhat hard to guess string to hash for the users
+ * activation key. We use the following:
+ *
+ *	email_addr|getpid()-tv_sec.tv_usec
+ */
+char *generate_activation_key(char *email_addr)
+{
+	unsigned char *hash;
+	char hash_src[384];
+	char shash[65];
+	char ht[3];
+	int hbs;
+	int i;
+	struct timeval tv;
+	MHASH td;
+
+	td = mhash_init(MHASH_SHA256);
+	gettimeofday(&tv, NULL);
+	snprintf(hash_src, sizeof(hash_src), "%s|%d-%ld.%ld", email_addr,
+							getpid(), tv.tv_sec,
+							tv.tv_usec);
+	mhash(td, hash_src, strlen(hash_src));
+	hash = mhash_end(td);
+	memset(shash, 0, sizeof(shash));
+	hbs = mhash_get_block_size(MHASH_SHA256);
+	for (i = 0; i < hbs; i++) {
+		sprintf(ht, "%.2x", hash[i]);
+		strncat(shash, ht, 2);
+	}
+	free(hash);
+
+	return strdup(shash);
+}
+
+/*
+ * Send an account activation email to the required user.
+ */
+void send_activation_mail(char *name, char *address, char *key)
+{
+	FILE *fp = popen(MAIL_CMD, "w");
+
+	fprintf(fp, "Reply-to: %s\n", MAIL_REPLY_TO);
+	fprintf(fp, "From: %s\n", MAIL_FROM);
+	fprintf(fp, "Subject: %s\n", MAIL_SUBJECT);
+	fprintf(fp, "To: %s <%s>\n", name, address);
+	fputs("Content-type: text/plain\n\n", fp);
+	fputs("Your account has been created and awaits activation.\n\n", fp);
+	fputs("Please follow the below url to complete your account setup.\n",
+									fp);
+	fputs("Note that this activation key is valid for 24 hours.\n\n", fp);
+	fprintf(fp, "%s/activate_user/?key=%s\n", BASE_URL, key);
+
+	pclose(fp);
+}
+
+/*
+ * Hash a given password using either the SHA256 or SHA512 alogorithm.
+ */
+char *generate_password_hash(int hash_type, char *password)
+{
+	static const char salt_chars[64] =
+	"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+	char salt[21];
+	int i;
+
+	memset(salt, 0, sizeof(salt));
+
+	if (hash_type == SHA256)
+		strcpy(salt, "$5$");
+	else
+		strcpy(salt, "$6$");
+
+	for (i = 3; i < 19; i++) {
+		int r;
+		struct timeval tv;
+
+		gettimeofday(&tv, NULL);
+		srandom(tv.tv_sec * tv.tv_usec);
+		r = random() % 64; /* 0 - 63 */
+		salt[i] = salt_chars[r];
+	}
+	strcat(salt, "$");
+
+	return crypt(password, salt);
 }

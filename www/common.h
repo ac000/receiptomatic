@@ -37,6 +37,9 @@
 #define PENDING 	1
 #define APPROVED	2
 
+#define SHA256 		 5
+#define SHA512 		10
+
 /*
  * Wrapper around fprintf(). It will prepend the text passed it with
  * seconds.microseconds pid function:

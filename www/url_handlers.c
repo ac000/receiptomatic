@@ -23,6 +23,8 @@
 #include <time.h>
 #include <alloca.h>
 
+#include <mhash.h>
+
 /* File magic library */
 #include <magic.h>
 
@@ -345,6 +347,450 @@ static void full_image(struct session *current_session, char *image)
 }
 
 /*
+ * /admin/
+ *
+ * HTML is in templates/admin.tmpl
+ *
+ * Admin index page.
+ */
+static void admin(struct session *current_session)
+{
+	TMPL_varlist *vl = NULL;
+
+	if (!(current_session->capabilities & ADMIN))
+		return;
+
+	vl = TMPL_add_var(vl, "admin", "yes", NULL);
+
+	if (current_session->capabilities & APPROVER)
+		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+
+	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/admin.tmpl", NULL, NULL, vl, stdout, error_log);
+	fflush(error_log);
+	TMPL_free_varlist(vl);
+}
+
+/*
+ * /admin/list_users/
+ *
+ * HTML is in templates/admin_list_users.tmpl
+ *
+ * List users in the system.
+ */
+static void admin_list_users(struct session *current_session, char *query)
+{
+	char sql[SQL_MAX];
+	char page[10];
+	int rpp = 15;	/* Rows Per Page to display */
+	int nr_rows;
+	int i;
+	int pages;
+	int page_no = 1;
+	int from = 0;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	GHashTable *qvars = NULL;
+	TMPL_varlist *vl = NULL;
+	TMPL_varlist *ml = NULL;
+	TMPL_loop *loop = NULL;
+
+	if (!(current_session->capabilities & ADMIN))
+		return;
+
+	ml = TMPL_add_var(ml, "admin", "yes", NULL);
+
+	if (current_session->capabilities & APPROVER)
+		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+
+	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
+
+	if (strlen(query) > 0) {
+		qvars = get_vars(query);
+		page_no = atoi(get_var(qvars, "page_no"));
+		if (page_no < 1)
+			page_no = 1;
+		/* Determine the LIMIT offset to start from in the SQL */
+		from = page_no * rpp;
+	}
+
+	conn = db_conn();
+	snprintf(sql, SQL_MAX, "SELECT uid, username, name, u_email, "
+					"capabilities, enabled, activated "
+					"FROM passwd LIMIT %d, %d", from, rpp);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_query(conn, sql);
+	res = mysql_store_result(conn);
+
+	nr_rows = mysql_num_rows(res);
+	for (i = 0; i < nr_rows; i++) {
+		char caps[33] = "\0";
+		GHashTable *db_row = NULL;
+
+		db_row = get_dbrow(res);
+		pages = ceilf((float)nr_rows / (float)rpp);
+
+		if (!(i % 2))
+			vl = TMPL_add_var(NULL, "zebra", "yes", NULL);
+		else
+			vl = TMPL_add_var(NULL, "zebra", "no", NULL);
+
+		vl = TMPL_add_var(vl, "uid", get_var(db_row, "uid"), NULL);
+		vl = TMPL_add_var(vl, "username", get_var(db_row,
+							"username"), NULL);
+		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
+		vl = TMPL_add_var(vl, "u_email", get_var(db_row, "u_email"),
+									NULL);
+
+		/* Pretty print the set of capabilities */
+		if (atoi(get_var(db_row, "capabilities")) & APPROVER)
+			strcat(caps, "Approver -");
+		if (atoi(get_var(db_row, "capabilities")) & APPROVER_CARD)
+			strcat(caps, " Card");
+		if (atoi(get_var(db_row, "capabilities")) & APPROVER_CASH)
+			strcat(caps, " Cash");
+		if (atoi(get_var(db_row, "capabilities")) & APPROVER_CHEQUE)
+			strcat(caps, " Cheque");
+		if (atoi(get_var(db_row, "capabilities")) & APPROVER_SELF)
+			strcat(caps, " Self");
+		vl = TMPL_add_var(vl, "capabilities", caps, NULL);
+
+		if (atoi(get_var(db_row, "capabilities")) & ADMIN)
+			vl = TMPL_add_var(vl, "admin", "yes", NULL);
+		else
+			vl = TMPL_add_var(vl, "admin", "no", NULL);
+
+		if (atoi(get_var(db_row, "enabled")) == 1)
+			vl = TMPL_add_var(vl, "enabled", "yes", NULL);
+		else
+			vl = TMPL_add_var(vl, "enabled", "no", NULL);
+
+		if (atoi(get_var(db_row, "activated")) == 1)
+			vl = TMPL_add_var(vl, "activated", "yes", NULL);
+		else
+			vl = TMPL_add_var(vl, "activated", "no", NULL);
+
+		loop = TMPL_add_varlist(loop, vl);
+		free_vars(db_row);
+	}
+
+	if (pages > 1) {
+		if (page_no - 1 > 0) {
+			snprintf(page, 10, "%d", page_no - 1);
+			ml = TMPL_add_var(ml, "prev_page", page, NULL);
+		}
+		if (page_no + 1 <= pages) {
+			snprintf(page, 10, "%d", page_no + 1);
+			ml = TMPL_add_var(ml, "next_page", page, NULL);
+		}
+	} else {
+		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
+	}
+	ml = TMPL_add_loop(ml, "table", loop);
+
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/admin_list_users.tmpl", NULL, NULL, ml, stdout,
+								error_log);
+	fflush(error_log);
+	TMPL_free_varlist(ml);
+	mysql_free_result(res);
+	mysql_close(conn);
+	free_vars(qvars);
+}
+
+/*
+ * /admin/add_user/
+ *
+ * HTML is in templates/admin_add_user.tmpl
+ *
+ * Add a user to the system.
+ */
+static void admin_add_user(struct session *current_session)
+{
+	char buf[BUF_SIZE];
+	unsigned char capabilities = 0;
+	int form_err = 0;
+	GHashTable *qvars = NULL;
+	TMPL_varlist *vl = NULL;
+
+	if (!(current_session->capabilities & ADMIN))
+		return;
+
+	vl = TMPL_add_var(vl, "admin", "yes", NULL);
+
+	if (current_session->capabilities & APPROVER)
+		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+
+	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+
+	memset(buf, 0, sizeof(buf));
+	fread(buf, sizeof(buf) - 1, 1, stdin);
+	if (!strstr(buf, "=") && !strstr(buf, "&"))
+		goto out;
+
+	qvars = get_vars(buf);
+
+	if (strlen(get_var(qvars, "name")) == 0) {
+		form_err = 1;
+		vl = TMPL_add_var(vl, "name_error", "yes", NULL);
+	}
+	vl = TMPL_add_var(vl, "name", get_var(qvars, "name"), NULL);
+
+	if ((strlen(get_var(qvars, "email1")) == 0 &&
+				strlen(get_var(qvars, "email2")) == 0) ||
+				(strcmp(get_var(qvars, "email1"),
+				get_var(qvars, "email2")) != 0)) {
+		form_err = 1;
+		vl = TMPL_add_var(vl, "email_error", "yes", NULL);
+	}
+	vl = TMPL_add_var(vl, "email1", get_var(qvars, "email1"),  NULL);
+	vl = TMPL_add_var(vl, "email2", get_var(qvars, "email2"), NULL);
+
+	if (strlen(get_var(qvars, "ap_card")) > 0 ||
+				strlen(get_var(qvars, "ap_cash")) > 0 ||
+				strlen(get_var(qvars, "ap_cheque")) > 0 ||
+				strlen(get_var(qvars, "ap_self")) > 0) {
+		capabilities |= APPROVER;
+		if (strlen(get_var(qvars, "ap_card")) > 0) {
+			capabilities |= APPROVER_CARD;
+			vl = TMPL_add_var(vl, "ap_card", "yes", NULL);
+		}
+		if (strlen(get_var(qvars, "ap_cash")) > 0) {
+			capabilities |= APPROVER_CASH;
+			vl = TMPL_add_var(vl, "ap_cash", "yes", NULL);
+		}
+		if (strlen(get_var(qvars, "ap_cheque")) > 0) {
+			capabilities |= APPROVER_CHEQUE;
+			vl = TMPL_add_var(vl, "ap_cheque", "yes", NULL);
+		}
+		if (strlen(get_var(qvars, "ap_self")) > 0) {
+			capabilities |= APPROVER_SELF;
+			vl = TMPL_add_var(vl, "ap_self", "yes", NULL);
+		}
+	}
+	if (strlen(get_var(qvars, "is_admin")) > 0) {
+		capabilities |= ADMIN;
+		vl = TMPL_add_var(vl, "is_admin", "yes", NULL);
+	}
+
+	if (!form_err) {
+		int ret;
+
+		ret = do_add_user(qvars, capabilities);
+		if (ret == -10) {
+			/*
+			 * Tried to add an already existing user.
+			 * Tell the admin.
+			 */
+			vl = TMPL_add_var(vl, "dup_user", "yes", NULL);
+		} else {
+			printf("Location: %s/admin/add_user/\r\n\r\n",
+								BASE_URL);
+			goto out2;
+		}
+	}
+
+out:
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/admin_add_user.tmpl", NULL, NULL, vl, stdout,
+								error_log);
+	fflush(error_log);
+
+out2:
+	TMPL_free_varlist(vl);
+	free_vars(qvars);
+}
+
+/*
+ * /activate_user/
+ *
+ * HTML is in templates/activate_user.tmpl
+ *
+ * Activate a users account.
+ */
+static void activate_user(char *request_method, char *query)
+{
+	char buf[BUF_SIZE];
+	char sql[SQL_MAX];
+	char *key;
+	time_t tm;
+	int err = 0;
+	int post = 0;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	GHashTable *qvars = NULL;
+	GHashTable *db_row = NULL;
+	TMPL_varlist *vl = NULL;
+
+	/*
+	 * Determine the REQUEST_METHOD
+	 *
+	 * GET means we have an activation key to proceed with the
+	 * account activation.
+	 *
+	 * POST means the user has attempted to set a password.
+	 */
+	if (strcmp(request_method, "GET") == 0 && strlen(query) == 0) {
+		err = 1;
+	} else if (strcmp(request_method, "GET") == 0) {
+		qvars = get_vars(query);
+	} else if (strcmp(request_method, "POST") == 0) {
+		memset(buf, 0, sizeof(buf));
+		fread(buf, sizeof(buf) - 1, 1, stdin);
+		if (!strstr(buf, "=") && !strstr(buf, "&")) {
+			err = 1;
+		} else {
+			qvars = get_vars(buf);
+			post = 1;
+		}
+	} else {
+		err = 1;
+	}
+
+	if (err) {
+		vl = TMPL_add_var(vl, "key_error", "yes", NULL);
+		goto out2;
+	}
+
+	conn = db_conn();
+
+	key = alloca(strlen(get_var(qvars, "key")) * 2 + 1);
+	mysql_real_escape_string(conn, key, get_var(qvars, "key"),
+					strlen(get_var(qvars, "key")));
+
+	snprintf(sql, SQL_MAX, "SELECT uid, name, user, expires FROM passwd "
+					"INNER JOIN activations ON "
+					"(passwd.username = "
+					"activations.user) WHERE "
+					"activations.akey = '%s'", key);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+	res = mysql_store_result(conn);
+	if (mysql_num_rows(res) == 0) {
+		vl = TMPL_add_var(vl, "key_error", "yes", NULL);
+		goto out;
+	}
+
+	db_row = get_dbrow(res);
+	vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
+
+	/* Check if the activation key has expired. */
+	tm = time(NULL);
+	if (tm - atol(get_var(db_row, "expires")) > 86400) {
+		vl = TMPL_add_var(vl, "expired", "yes", NULL);
+		vl = TMPL_add_var(vl, "email", get_var(db_row, "user"), NULL);
+		goto out;
+	}
+	vl = TMPL_add_var(vl, "key", get_var(qvars, "key"), NULL);
+
+	/*
+	 * The user is trying to set a password, do some sanity
+	 * checking on it,
+	 *
+	 * The user needs to enter the password twice, make sure they match.
+	 * Also make sure that the password is at least 8 characters long.
+	 */
+	if (post) {
+		if (strlen(get_var(qvars, "pass1")) > 7 &&
+					strlen(get_var(qvars, "pass2")) > 7) {
+			if (strcmp(get_var(qvars, "pass1"),
+					get_var(qvars, "pass2")) == 0) {
+				do_activate_user(get_var(db_row, "uid"),
+						get_var(qvars, "key"),
+						get_var(qvars, "pass1"));
+				vl = TMPL_add_var(vl, "activated", "yes",
+									NULL);
+			} else {
+				vl = TMPL_add_var(vl, "password_error",
+							"mismatch", NULL);
+			}
+		} else {
+			vl = TMPL_add_var(vl, "password_error", "length",
+									NULL);
+		}
+	}
+
+out:
+	free_vars(qvars);
+	free_vars(db_row);
+	mysql_free_result(res);
+	mysql_close(conn);
+
+out2:
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/activate_user.tmpl", NULL, NULL, vl, stdout,
+								error_log);
+	fflush(error_log);
+	TMPL_free_varlist(vl);
+}
+
+/*
+ * /generate_new_key/
+ *
+ * HTML is in templates/generate_new_key.tmpl
+ *
+ * Generate a new activation key and send it to the user.
+ */
+static void generate_new_key(char *query)
+{
+	char sql[SQL_MAX];
+	char *email_addr;
+	char *key;
+	time_t tm;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	GHashTable *qvars = NULL;
+	TMPL_varlist *vl = NULL;
+
+	if (strlen(query) == 0)
+		return;
+
+	qvars = get_vars(query);
+
+	conn = db_conn();
+
+	email_addr = alloca(strlen(get_var(qvars, "email")) * 2 + 1);
+	mysql_real_escape_string(conn, email_addr, get_var(qvars, "email"),
+					strlen(get_var(qvars, "email")));
+
+	snprintf(sql, SQL_MAX, "SELECT user FROM activations WHERE user = "
+							"'%s'", email_addr);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+
+	res = mysql_store_result(conn);
+	if (mysql_num_rows(res) == 0)
+		goto out;
+
+	key = generate_activation_key(email_addr);
+
+	tm = time(NULL);
+	snprintf(sql, SQL_MAX, "REPLACE INTO activations VALUES ('%s', '%s', "
+							"%ld)", email_addr,
+							key, tm + 86400);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+
+	send_activation_mail(get_var(qvars, "name"), email_addr, key);
+	free(key);
+
+	vl = TMPL_add_var(vl, "email", email_addr, NULL);
+
+out:
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/generate_new_key.tmpl", NULL, NULL, vl, stdout,
+								error_log);
+	fflush(error_log);
+	TMPL_free_varlist(vl);
+
+	mysql_free_result(res);
+	mysql_close(conn);
+	free_vars(qvars);
+}
+
+/*
  * /prefs/fmap/
  *
  * HTML is in templates/prefs_fmap.tmpl
@@ -367,6 +813,8 @@ static void prefs_fmap(struct session *current_session)
 
 	if (current_session->capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+	if (current_session->capabilities & ADMIN)
+		vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 	vl = TMPL_add_var(vl, "base_url", BASE_URL, NULL);
@@ -522,6 +970,8 @@ static void extract_data(struct session *current_session)
 
 	if (!(current_session->capabilities & APPROVER))
 		return;
+	if (current_session->capabilities & ADMIN)
+		vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 	vl = TMPL_add_var(vl, "approver", "yes", NULL);
@@ -817,6 +1267,8 @@ static void approve_receipts(struct session *current_session, char *query)
 
 	if (current_session->capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+	if (current_session->capabilities & ADMIN)
+		ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
@@ -1011,6 +1463,8 @@ static void reviewed_receipts(struct session *current_session, char *query)
 
 	if (current_session->capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+	if (current_session->capabilities & ADMIN)
+		ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
@@ -1136,6 +1590,8 @@ static void receipt_info(struct session *current_session, char *query)
 
 	if (current_session->capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+	if (current_session->capabilities & ADMIN)
+		vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 
@@ -1344,6 +1800,8 @@ static void tagged_receipts(struct session *current_session, char *query)
 
 	if (current_session->capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+	if (current_session->capabilities & ADMIN)
+		ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
@@ -1686,6 +2144,8 @@ static void receipts(struct session *current_session)
 	/* Display the user's name and UID at the top of the page */
 	if (current_session->capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+	if (current_session->capabilities & ADMIN)
+		ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 	ml = TMPL_add_var(ml, "base_url", BASE_URL, NULL);
@@ -1849,8 +2309,23 @@ void handle_request(void)
 							request_method);
 	d_fprintf(debug_log, "Cookies: %s\n", http_cookie);
 
+	/*
+	 * The /activate_user/ and /generate_new_key/ routes need to come
+	 * before the login / session stuff as they can't be logged in
+	 * and have no session.
+	 */
+	if (strncmp(request_uri, "/activate_user/", 15) == 0) {
+		activate_user(request_method, query_string);
+		goto out2;
+	}
+
+	if (strncmp(request_uri, "/generate_new_key/", 18) == 0) {
+		generate_new_key(query_string);
+		goto out2;
+	}
+
 	memset(&current_session, 0, sizeof(current_session));
-	if (strstr(request_uri, "/login/")) {
+	if (strncmp(request_uri, "/login/", 7) == 0) {
 		login(http_user_agent, http_x_forwarded_for);
 		goto out;
 	}
@@ -1866,77 +2341,92 @@ void handle_request(void)
 
 	/* Add new url handlers after here */
 
-	if (strstr(request_uri, "/receipts/")) {
+	if (strncmp(request_uri, "/receipts/", 10) == 0) {
 		receipts(&current_session);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/process_receipt/")) {
+	if (strncmp(request_uri, "/process_receipt/", 17) == 0) {
 		process_receipt(&current_session);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/tagged_receipts/")) {
+	if (strncmp(request_uri, "/tagged_receipts/", 16) == 0) {
 		tagged_receipts(&current_session, query_string);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/receipt_info/")) {
+	if (strncmp(request_uri, "/receipt_info/", 14) == 0) {
 		receipt_info(&current_session, query_string);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/approve_receipts/")) {
+	if (strncmp(request_uri, "/approve_receipts/", 18) == 0) {
 		approve_receipts(&current_session, query_string);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/process_receipt_approval/")) {
+	if (strncmp(request_uri, "/process_receipt_approval/", 26) == 0) {
 		process_receipt_approval(&current_session);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/reviewed_receipts/")) {
+	if (strncmp(request_uri, "/reviewed_receipts/", 19) == 0) {
 		reviewed_receipts(&current_session, query_string);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/extract_data/")) {
+	if (strncmp(request_uri, "/extract_data/", 14) == 0) {
 		extract_data(&current_session);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/do_extract_data/")) {
+	if (strncmp(request_uri, "/do_extract_data/", 17) == 0) {
 		do_extract_data(&current_session, query_string);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/get_image/")) {
+	if (strncmp(request_uri, "/get_image/", 11) == 0) {
 		get_image(&current_session, request_uri);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/full_image/")) {
+	if (strncmp(request_uri, "/full_image/", 12) == 0) {
 		full_image(&current_session, request_uri);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/delete_image/")) {
+	if (strncmp(request_uri, "/delete_image/", 14) == 0) {
 		delete_image(&current_session);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/env/")) {
+	if (strncmp(request_uri, "/env/", 5) == 0) {
 		env();
 		goto out;
 	}
 
-	if (strstr(request_uri, "/prefs/fmap/")) {
+	if (strncmp(request_uri, "/prefs/fmap/", 11) == 0) {
 		prefs_fmap(&current_session);
 		goto out;
 	}
 
-	if (strstr(request_uri, "/logout/")) {
+	if (strncmp(request_uri, "/admin/list_users/", 18) == 0) {
+		admin_list_users(&current_session, query_string);
+		goto out;
+	}
+
+	if (strncmp(request_uri, "/admin/add_user/", 16) == 0) {
+		admin_add_user(&current_session);
+		goto out;
+	}
+
+	if (strncmp(request_uri, "/admin/", 7) == 0) {
+		admin(&current_session);
+		goto out;
+	}
+
+	if (strncmp(request_uri, "/logout/", 8) == 0) {
 		logout(&current_session);
 		goto out;
 	}
@@ -1951,6 +2441,7 @@ out:
 	free(current_session.client_id);
 	free(current_session.session_id);
 	free(current_session.user_hdr);
+
 out2:
 	return;
 }

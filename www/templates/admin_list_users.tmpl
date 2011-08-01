@@ -1,0 +1,75 @@
+<html>
+<head>
+	<title>admin / user list</title>
+	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
+</head>
+<body>
+	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/fmap/">field mapping</a> |
+	<tmpl_if name = "approver">
+	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/">approve receipts</a> | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
+	</tmpl_if>
+	<tmpl_if name = "admin">
+	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
+	</tmpl_if>
+	<p />
+	<tmpl_var name = "user_hdr" />
+	<big><big>| Admin / User List</big></big>
+	<hr />
+
+	<table cellpadding = "4">
+	<tbody>
+	<tr>
+		<td><strong>UID</strong></td>
+		<td><strong>Username</strong></td>
+		<td><strong>Name</strong></td>
+		<td><strong>Upload Address</strong></td>
+		<td><strong>Capabilities</strong></td>
+	</tr>
+<tmpl_loop name = "table">
+<tmpl_if name = "zebra" value = "yes">
+	<tr class = "listzebra">
+<tmpl_else>
+	<tr>
+</tmpl_if>
+		<td><tmpl_var name = "uid" /></td>
+		<td><tmpl_var name = "username" /></td>
+		<td><tmpl_var name = "name" /></td>
+		<td><tmpl_var name = "u_email" /></td>
+		<td><tmpl_var name = "capabilities" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+	<tmpl_if name = "activated" value = "yes">
+		<td>&nbsp;&nbsp;</td>
+	<tmpl_else>
+		<td style = "background-color: rgb(0, 0, 0);">&nbsp;&nbsp;</td>
+	</tmpl_if>
+	<tmpl_if name = "enabled" value = "yes">
+		<td style = "background-color: rgb(0, 200, 0);">&nbsp;&nbsp;</td>
+	<tmpl_else>
+		<td style = "background-color: rgb(200, 0, 0);">&nbsp;&nbsp;</td>
+	</tmpl_if>
+	<tmpl_if name = "admin" value = "yes">
+		<td style = "background-color: rgb(0, 0, 200);">&nbsp;&nbsp;</td>
+	<tmpl_else>
+		<td>&nbsp;&nbsp;</td>
+	</tmpl_if>
+	</tr>
+</tmpl_loop>
+	</tbody>
+	</table>
+
+<tmpl_if name = "no_pages">
+<tmpl_else>
+	<tmpl_if name = "prev_page">
+		<a href = "/admin/user_list/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
+	<tmpl_else>
+		<span class = "lighter">Prev Page</span>
+	</tmpl_if>
+	&nbsp;::&nbsp;
+	<tmpl_if name = "next_page">
+		<a href = "/admin/user_list/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
+	<tmpl_else>
+		<span class = "lighter">Next Page</span>
+	</tmpl_if>
+</tmpl_if>
+
+</body>
+</html>

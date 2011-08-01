@@ -17,5 +17,8 @@ void free_avars(GList *avars);
 GHashTable *get_vars(char *query);
 char *get_var(GHashTable *vars, char *key);
 void free_vars(GHashTable *vars);
+char *generate_activation_key(char *email_addr);
+void send_activation_mail(char *name, char *address, char *key);
+char *generate_password_hash(int hash_type, char *password);
 
 #endif /* _UTILS_H_ */

@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Jul 26, 2011 at 02:24 PM
+-- Generation Time: Jul 31, 2011 at 03:44 PM
 -- Server version: 5.0.77
 -- PHP Version: 5.1.6
 
@@ -18,6 +18,20 @@ SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 --
 -- Database: `receiptomatic`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `activations`
+--
+
+CREATE TABLE IF NOT EXISTS `activations` (
+  `user` varchar(255) NOT NULL,
+  `akey` varchar(64) NOT NULL,
+  `expires` int(11) NOT NULL,
+  UNIQUE KEY `user` (`user`),
+  KEY `akey` (`akey`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -96,8 +110,9 @@ CREATE TABLE IF NOT EXISTS `passwd` (
   `u_email` varchar(255) NOT NULL,
   `capabilities` smallint(5) unsigned NOT NULL default '0',
   `enabled` tinyint(1) NOT NULL default '0',
+  `activated` tinyint(1) NOT NULL default '0',
   UNIQUE KEY `uid` (`uid`),
-  KEY `username` (`username`),
+  UNIQUE KEY `username` (`username`),
   KEY `u_email` (`u_email`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
