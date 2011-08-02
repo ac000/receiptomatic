@@ -321,10 +321,14 @@ int main(int argc, char **argv)
 	char temp_name[21] = "receiptomatic-XXXXXX";
 	int ret;
 
-	ret = do_config();
-	if (ret == -1) {
-		fprintf(stderr, "Could not open config file.\n");
-		exit(EXIT_FAILURE);
+	if (argc == 2) {
+		get_config(argv[1]);
+	} else {
+		ret = do_config();
+		if (ret == -1) {
+			fprintf(stderr, "Could not open config file.\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 
 	/* Be super restrictive for the tempfile creation */
