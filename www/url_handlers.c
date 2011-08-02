@@ -2264,6 +2264,10 @@ void handle_request(void)
 	char *http_user_agent;
 	char *http_x_forwarded_for;
 	char *query_string;
+	struct timeval stv;
+	struct timeval etv;
+
+	gettimeofday(&stv, NULL);
 
 	/*
 	 * The below variables are the least that we require. If we don't
@@ -2293,10 +2297,6 @@ void handle_request(void)
 	else
 		goto out2;
 
-	d_fprintf(access_log, "Got request from %s for %s (%s)\n",
-							http_x_forwarded_for,
-							request_uri,
-							request_method);
 	d_fprintf(debug_log, "Cookies: %s\n", http_cookie);
 
 	/*
@@ -2433,5 +2433,15 @@ out:
 	free(current_session.user_hdr);
 
 out2:
+	gettimeofday(&etv, NULL);
+	d_fprintf(access_log, "Got request from %s for %s (%s), %f secs\n",
+				http_x_forwarded_for,
+				request_uri,
+				request_method,
+				((double)etv.tv_sec +
+				(double)etv.tv_usec / 1000000.0) -
+				((double)stv.tv_sec + (double)stv.tv_usec
+				/ 1000000.0));
+
 	return;
 }
