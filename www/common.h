@@ -10,7 +10,9 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
+#ifdef _RECEIPTOMATIC_WWW_
 #include <fcgi_stdio.h>
+#endif
 
 #include <sys/time.h>
 

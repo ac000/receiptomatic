@@ -30,9 +30,10 @@ MYSQL *db_conn(void)
 	ret = mysql_real_connect(conn, DB_HOST, DB_USER, DB_PASS, DB_NAME,
 					DB_PORT_NUM, DB_SOCKET_NAME,
 					DB_FLAGS);
+#ifdef _RECEIPTOMATIC_WWW_
 	if (!ret)
 		d_fprintf(error_log, "Failed to connect to database. Error: "
 						"%s\n", mysql_error(conn));
-
+#endif
 	return conn;
 }
