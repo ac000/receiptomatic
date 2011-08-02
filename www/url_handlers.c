@@ -414,9 +414,9 @@ static void admin_list_users(struct session *current_session, char *query)
 	}
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT uid, username, name, u_email, "
-					"capabilities, enabled, activated "
-					"FROM passwd LIMIT %d, %d", from, rpp);
+	snprintf(sql, SQL_MAX, "SELECT uid, username, name, capabilities, "
+					"enabled, activated FROM passwd LIMIT "
+					"%d, %d", from, rpp);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
@@ -438,8 +438,6 @@ static void admin_list_users(struct session *current_session, char *query)
 		vl = TMPL_add_var(vl, "username", get_var(db_row,
 							"username"), NULL);
 		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
-		vl = TMPL_add_var(vl, "u_email", get_var(db_row, "u_email"),
-									NULL);
 
 		/* Pretty print the set of capabilities */
 		if (atoi(get_var(db_row, "capabilities")) & APPROVER)

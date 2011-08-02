@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Jul 31, 2011 at 03:44 PM
+-- Generation Time: Aug 02, 2011 at 10:58 AM
 -- Server version: 5.0.77
 -- PHP Version: 5.1.6
 
@@ -107,13 +107,11 @@ CREATE TABLE IF NOT EXISTS `passwd` (
   `username` varchar(255) NOT NULL,
   `password` varchar(106) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `u_email` varchar(255) NOT NULL,
   `capabilities` smallint(5) unsigned NOT NULL default '0',
   `enabled` tinyint(1) NOT NULL default '0',
   `activated` tinyint(1) NOT NULL default '0',
   UNIQUE KEY `uid` (`uid`),
-  UNIQUE KEY `username` (`username`),
-  KEY `u_email` (`u_email`)
+  UNIQUE KEY `username` (`username`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------

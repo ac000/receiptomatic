@@ -893,12 +893,9 @@ void tag_image(struct session *current_session, GHashTable *qvars)
 int do_add_user(GHashTable *qvars, unsigned char capabilities)
 {
 	char sql[SQL_MAX];
-	char *token;
 	char *key;
 	char *email_addr;
 	char *name;
-	char *upload_addr;
-	char *ua;
 	int ret = 0;
 	time_t tm;
 	MYSQL *conn;
@@ -921,29 +918,20 @@ int do_add_user(GHashTable *qvars, unsigned char capabilities)
 		goto out;
 	}
 
-	/* Create the users upload email address */
-	token = strtok(strdupa(email_addr), "@");
-	ua = alloca(strlen(token) + 21);
-	sprintf(ua, "%s@ri.opentechlabs.net", token);
-
 	key = generate_activation_key(email_addr);
 
 	name = alloca(strlen(get_var(qvars, "name")) * 2 + 1);
 	mysql_real_escape_string(conn, name, get_var(qvars, "name"),
 					strlen(get_var(qvars, "name")));
 
-	upload_addr = alloca(strlen(ua) * 2 + 1);
-	mysql_real_escape_string(conn, upload_addr, ua, strlen(ua));
-
 	mysql_query(conn, "SELECT MAX(uid) FROM passwd");
 	res = mysql_store_result(conn);
 	row = mysql_fetch_row(res);
 
 	snprintf(sql, SQL_MAX, "INSERT INTO passwd VALUES (%d, '%s', '!!', "
-						"'%s', '%s', %d, 0, 0)",
+						"'%s', %d, 0, 0)",
 						atoi(row[0]) + 1, email_addr,
-						name, upload_addr,
-						capabilities);
+						name, capabilities);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 

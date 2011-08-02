@@ -63,6 +63,35 @@ out:
 }
 
 /*
+ * Given an email address in the form:
+ *
+ * 	John Doe <john.doe@example.com>
+ *
+ * return
+ *
+ * 	john.doe@example.com
+ */
+static char *get_from_addr(char *addr)
+{
+	char *token;
+	char *string;
+	char *from;
+
+	string = strdupa(addr);
+
+	token = strtok(string, "<");
+	token = NULL;
+	token = strtok(token, "<");
+
+	token[strlen(token) - 1] = '\0';
+
+	from = malloc(strlen(addr));
+	strcpy(from, token);
+
+	return from;
+}
+
+/*
  * Generate a SHA-256 of a given image
  */
 static char *create_image_id(char *path, char *filename)
@@ -183,7 +212,7 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	char ext[5];
 	char path[PATH_MAX];
 	char sql[1024];
-	char *to;
+	char *user;
 	char *image_id;
 	int bytes;
 	time_t t;
@@ -212,13 +241,10 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	 *
 	 *	UID/YYYY/MM/DD
 	 */
-	to = alloca(strlen(internet_address_get_addr(user_data)) * 2 +1);
-	mysql_real_escape_string(conn, to, internet_address_get_addr(
-						user_data), strlen(
-						internet_address_get_addr(
-						user_data)));
-	snprintf(sql, sizeof(sql), "SELECT uid, username FROM passwd WHERE "
-							"u_email = '%s'", to);
+	user = alloca(strlen(user_data) * 2 + 1);
+	mysql_real_escape_string(conn, user, user_data, strlen(user_data));
+	snprintf(sql, sizeof(sql), "SELECT uid FROM passwd WHERE username = "
+								"'%s'", user);
 	printf("SQL: %s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -265,7 +291,7 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	sprintf(path, "%s/%s", row[0], ymd);
 	snprintf(sql, SQL_MAX,
 		"INSERT INTO images VALUES ('%s', '%s', %ld, '%s', '%s', 0, 1)",
-						image_id, row[1], t, path,
+						image_id, user, t, path,
 						filename);
 	printf("SQL: %s\n", sql);
 	mysql_query(conn, sql);
@@ -288,6 +314,7 @@ static void process_message(int dirfd, char *filename)
 	const InternetAddressList *recips;
 	InternetAddress *addr;
 	int fd;
+	char *from;
 
 	g_mime_init(0);
 
@@ -302,9 +329,13 @@ static void process_message(int dirfd, char *filename)
 	printf("To: %s\n", internet_address_to_string(addr, FALSE));
 	printf("Subject: %s\n", (char *)g_mime_message_get_subject(message));
 
-	g_mime_message_foreach_part(message, (GMimePartFunc)process_part,
-								(void *)addr);
+	from = get_from_addr((char *)g_mime_message_get_sender(message));
+	printf("Using <%s> for image destination.\n", from);
 
+	g_mime_message_foreach_part(message, (GMimePartFunc)process_part,
+								(void *)from);
+
+	free(from);
 	g_object_unref(stream);
 	g_object_unref(parser);
 	g_object_unref(message);
