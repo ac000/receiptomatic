@@ -267,6 +267,7 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	} else {
 		struct dirent *entry;
 		int ne = 0;
+
 		while ((entry = readdir(dir)) != NULL) {
 			/* skip . .. medium & small entries */
 			if (entry->d_name[0] == '.' ||
