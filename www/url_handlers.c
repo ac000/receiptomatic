@@ -66,25 +66,18 @@ static const struct field_names field_names = {
  *
  * Display the login screen.
  */
-static void login(char *http_user_agent, char *http_x_forwarded_for)
+static void login(char *http_user_agent, char *http_x_forwarded_for,
+							GHashTable *qvars)
 {
 	int ret = 1;
-	char buf[80] = "\0";
 	TMPL_varlist *vl = NULL;
 
-	memset(buf, 0, sizeof(buf));
-	fread(buf, sizeof(buf) - 1, 1, stdin);
-	if (strstr(buf, "=") && strstr(buf, "&")) {
-		GHashTable *credentials;
-
-		credentials = get_vars(buf);
-		ret = check_auth(credentials);
+	if (qvars) {
+		ret = check_auth(qvars);
 		if (ret == 0) {
-			create_session(credentials, http_user_agent,
-					http_x_forwarded_for);
-
+			create_session(qvars, http_user_agent,
+							http_x_forwarded_for);
 			printf("Location: /receipts/\r\n\r\n");
-			free_vars(credentials);
 			return; /* Successful login */
 		}
 	}
@@ -150,10 +143,9 @@ static void logout(struct session *current_session)
  *
  * It will only delete images that are un-tagged.
  */
-static void delete_image(struct session *current_session)
+static void delete_image(struct session *current_session, GHashTable *qvars)
 {
 	char sql[SQL_MAX];
-	char buf[SQL_MAX];
 	char path[PATH_MAX];
 	char image_path[PATH_MAX];
 	char uidir[PATH_MAX];
@@ -162,15 +154,10 @@ static void delete_image(struct session *current_session)
 	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
-	GHashTable *qvars = NULL;
 	TMPL_varlist *vl = NULL;
 
-	memset(buf, 0, sizeof(buf));
-	fread(buf, sizeof(buf) - 1, 1, stdin);
-	if (!strstr(buf, "=") && !strstr(buf, "&"))
+	if (!qvars)
 		goto out2;
-
-	qvars = get_vars(buf);
 
 	conn = db_conn();
 
@@ -242,7 +229,6 @@ out1:
 	mysql_close(conn);
 	mysql_free_result(res);
 	free_vars(db_row);
-	free_vars(qvars);
 	TMPL_free_varlist(vl);
 out2:
 	if (!headers_sent)
@@ -377,7 +363,7 @@ static void admin(struct session *current_session)
  *
  * List users in the system.
  */
-static void admin_list_users(struct session *current_session, char *query)
+static void admin_list_users(struct session *current_session, GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char page[10];
@@ -389,7 +375,6 @@ static void admin_list_users(struct session *current_session, char *query)
 	int from = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	GHashTable *qvars = NULL;
 	TMPL_varlist *vl = NULL;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
@@ -404,8 +389,7 @@ static void admin_list_users(struct session *current_session, char *query)
 
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
-	if (strlen(query) > 0) {
-		qvars = get_vars(query);
+	if (qvars) {
 		page_no = atoi(get_var(qvars, "page_no"));
 		if (page_no < 1)
 			page_no = 1;
@@ -492,7 +476,6 @@ static void admin_list_users(struct session *current_session, char *query)
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
-	free_vars(qvars);
 }
 
 /*
@@ -502,12 +485,10 @@ static void admin_list_users(struct session *current_session, char *query)
  *
  * Add a user to the system.
  */
-static void admin_add_user(struct session *current_session)
+static void admin_add_user(struct session *current_session, GHashTable *qvars)
 {
-	char buf[BUF_SIZE];
 	unsigned char capabilities = 0;
 	int form_err = 0;
-	GHashTable *qvars = NULL;
 	TMPL_varlist *vl = NULL;
 
 	if (!(current_session->capabilities & ADMIN))
@@ -520,12 +501,8 @@ static void admin_add_user(struct session *current_session)
 
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 
-	memset(buf, 0, sizeof(buf));
-	fread(buf, sizeof(buf) - 1, 1, stdin);
-	if (!strstr(buf, "=") && !strstr(buf, "&"))
+	if (!qvars)
 		goto out;
-
-	qvars = get_vars(buf);
 
 	if (strlen(get_var(qvars, "name")) == 0) {
 		form_err = 1;
@@ -594,7 +571,6 @@ out:
 
 out2:
 	TMPL_free_varlist(vl);
-	free_vars(qvars);
 }
 
 /*
@@ -604,49 +580,31 @@ out2:
  *
  * Activate a users account.
  */
-static void activate_user(char *request_method, char *query)
+static void activate_user(char *request_method, GHashTable *qvars)
 {
-	char buf[BUF_SIZE];
 	char sql[SQL_MAX];
 	char *key;
 	time_t tm;
-	int err = 0;
 	int post = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	GHashTable *qvars = NULL;
 	GHashTable *db_row = NULL;
 	TMPL_varlist *vl = NULL;
 
-	/*
-	 * Determine the REQUEST_METHOD
-	 *
-	 * GET means we have an activation key to proceed with the
-	 * account activation.
-	 *
-	 * POST means the user has attempted to set a password.
-	 */
-	if (strcmp(request_method, "GET") == 0 && strlen(query) == 0) {
-		err = 1;
-	} else if (strcmp(request_method, "GET") == 0) {
-		qvars = get_vars(query);
-	} else if (strcmp(request_method, "POST") == 0) {
-		memset(buf, 0, sizeof(buf));
-		fread(buf, sizeof(buf) - 1, 1, stdin);
-		if (!strstr(buf, "=") && !strstr(buf, "&")) {
-			err = 1;
-		} else {
-			qvars = get_vars(buf);
-			post = 1;
-		}
-	} else {
-		err = 1;
-	}
-
-	if (err) {
+	if (!qvars) {
 		vl = TMPL_add_var(vl, "key_error", "yes", NULL);
 		goto out2;
 	}
+
+	/*
+	 * If we got a POST request, that means the user has attempted
+	 * to set a password.
+	 *
+	 * Otherwise we should have an activation key to proceed with
+	 * the account activation.
+	 */
+	if (strcmp(request_method, "POST") == 0)
+		post = 1;
 
 	conn = db_conn();
 
@@ -707,7 +665,6 @@ static void activate_user(char *request_method, char *query)
 	}
 
 out:
-	free_vars(qvars);
 	free_vars(db_row);
 	mysql_free_result(res);
 	mysql_close(conn);
@@ -727,7 +684,7 @@ out2:
  *
  * Generate a new activation key and send it to the user.
  */
-static void generate_new_key(char *query)
+static void generate_new_key(GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char *email_addr;
@@ -735,13 +692,10 @@ static void generate_new_key(char *query)
 	time_t tm;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	GHashTable *qvars = NULL;
 	TMPL_varlist *vl = NULL;
 
-	if (strlen(query) == 0)
+	if (!qvars)
 		return;
-
-	qvars = get_vars(query);
 
 	conn = db_conn();
 
@@ -781,7 +735,6 @@ out:
 
 	mysql_free_result(res);
 	mysql_close(conn);
-	free_vars(qvars);
 }
 
 /*
@@ -791,17 +744,14 @@ out:
  *
  * Change the image tag field names.
  */
-static void prefs_fmap(struct session *current_session)
+static void prefs_fmap(struct session *current_session, GHashTable *qvars)
 {
-	char buf[SQL_MAX];
 	struct field_names fields;
 	int updated = 0;
 	TMPL_varlist *vl = NULL;
 
-	memset(buf, 0, sizeof(buf));
-	fread(buf, sizeof(buf) - 1, 1, stdin);
-	if (strstr(buf, "=") && strstr(buf, "&")) {
-		update_fmap(current_session, buf);
+	if (qvars) {
+		update_fmap(current_session, qvars);
 		updated = 1;
 	}
 
@@ -929,18 +879,16 @@ static void prefs_fmap(struct session *current_session)
 /*
  * /do_extract_data/
  */
-static void do_extract_data(struct session *current_session, char *query)
+static void do_extract_data(struct session *current_session, GHashTable *qvars)
 {
 	int fd;
 	char temp_name[30] = "/tmp/receiptomatic-www-XXXXXX";
-	GHashTable *qvars = NULL;
 
 	if (!(current_session->capabilities & APPROVER))
 		return;
 
 	fd = mkstemp(temp_name);
 
-	qvars = get_vars(query);
 	if (strcmp(get_var(qvars, "whence"), "now") == 0)
 		extract_data_now(current_session, fd);
 
@@ -1137,7 +1085,7 @@ static void process_receipt_approval(struct session *current_session)
  *
  * Allows an approver to approve or reject receipts.
  */
-static void approve_receipts(struct session *current_session, char *query)
+static void approve_receipts(struct session *current_session, GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char pmsql[128];
@@ -1157,7 +1105,6 @@ static void approve_receipts(struct session *current_session, char *query)
 	int page_no = 1;
 	int pages;
 	struct field_names fields;
-	GHashTable *qvars = NULL;
 	TMPL_varlist *ml = NULL;
 	TMPL_varlist *vl = NULL;
 	TMPL_loop *loop = NULL;
@@ -1209,8 +1156,7 @@ static void approve_receipts(struct session *current_session, char *query)
 		return;
 	}
 
-	if (strlen(query) > 0) {
-		qvars = get_vars(query);
+	if (qvars) {
 		page_no = atoi(get_var(qvars, "page_no"));
 		if (page_no < 1)
 			page_no = 1;
@@ -1414,7 +1360,6 @@ out:
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
-	free_vars(qvars);
 }
 
 /*
@@ -1424,7 +1369,8 @@ out:
  *
  * Displays previously reviewed receipts.
  */
-static void reviewed_receipts(struct session *current_session, char *query)
+static void reviewed_receipts(struct session *current_session,
+							GHashTable *qvars)
 {
 	int i;
 	int c = 1;		/* column number */
@@ -1436,7 +1382,6 @@ static void reviewed_receipts(struct session *current_session, char *query)
 	char sql[SQL_MAX];
 	MYSQL *conn;
 	MYSQL_RES *res;
-	GHashTable *qvars = NULL;
 	struct field_names fields;
 	TMPL_varlist *vl = NULL;
 	TMPL_varlist *ml = NULL;
@@ -1445,8 +1390,7 @@ static void reviewed_receipts(struct session *current_session, char *query)
 	if (!(current_session->capabilities & APPROVER))
 		return;
 
-	if (strlen(query) > 0) {
-		qvars = get_vars(query);
+	if (qvars) {
 		page_no = atoi(get_var(qvars, "page_no"));
 		if (page_no < 1)
 			page_no = 1;
@@ -1558,7 +1502,6 @@ out:
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
-	free_vars(qvars);
 }
 
 /*
@@ -1568,7 +1511,7 @@ out:
  *
  * Displays the logged information for a given receipt.
  */
-static void receipt_info(struct session *current_session, char *query)
+static void receipt_info(struct session *current_session, GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char tbuf[60];
@@ -1577,7 +1520,6 @@ static void receipt_info(struct session *current_session, char *query)
 	time_t secs;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	GHashTable *qvars = NULL;
 	GHashTable *db_row = NULL;
 	TMPL_varlist *vl = NULL;
 
@@ -1588,7 +1530,6 @@ static void receipt_info(struct session *current_session, char *query)
 
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 
-	qvars = get_vars(query);
 	if (!tag_info_allowed(current_session, get_var(qvars, "image_id"))) {
 		vl = TMPL_add_var(vl, "show_info", "no", NULL);
 		goto out;
@@ -1755,7 +1696,6 @@ out:
 								error_log);
 	fflush(error_log);
 	TMPL_free_varlist(vl);
-	free_vars(qvars);
 }
 
 /*
@@ -1763,7 +1703,7 @@ out:
  *
  * Displays a gallery of previously tagged receipts.
  */
-static void tagged_receipts(struct session *current_session, char *query)
+static void tagged_receipts(struct session *current_session, GHashTable *qvars)
 {
 	int i;
 	int c = 1;		/* column number */
@@ -1776,14 +1716,12 @@ static void tagged_receipts(struct session *current_session, char *query)
 	char *username;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	GHashTable *qvars = NULL;
 	struct field_names fields;
 	TMPL_varlist *vl = NULL;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 
-	if (strlen(query) > 0) {
-		qvars = get_vars(query);
+	if (qvars) {
 		page_no = atoi(get_var(qvars, "page_no"));
 		if (page_no < 1)
 			page_no = 1;
@@ -1906,7 +1844,6 @@ out:
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
-	free_vars(qvars);
 }
 
 /*
@@ -1920,9 +1857,8 @@ out:
  * Users can only tag/edit their own receipts and only receipts that
  * are PENDING.
  */
-static void process_receipt(struct session *current_session)
+static void process_receipt(struct session *current_session, GHashTable *qvars)
 {
-	char buf[SQL_MAX];
 	char sql[SQL_MAX];
 	char secs[11];
 	char *image_id;
@@ -1934,17 +1870,12 @@ static void process_receipt(struct session *current_session)
 	double vat;
 	double vr;
 	struct field_names fields;
-	GHashTable *qvars = NULL;
 	TMPL_varlist *vl = NULL;
 	MYSQL *conn;
 	MYSQL_RES *res;
 
-	memset(buf, 0, sizeof(buf));
-	fread(buf, sizeof(buf) - 1, 1, stdin);
-	if (!strstr(buf, "=") && !strstr(buf, "&"))
+	if (!qvars)
 		return;
-
-	qvars = get_vars(buf);
 
 	/* Prevent users from tagging other users receipts */
 	if (!is_users_receipt(current_session, get_var(qvars, "image_id")))
@@ -2108,7 +2039,6 @@ static void process_receipt(struct session *current_session)
 out:
 	mysql_free_result(res);
 	mysql_close(conn);
-	free_vars(qvars);
 }
 
 /*
@@ -2266,6 +2196,7 @@ void handle_request(void)
 	char *query_string;
 	struct timeval stv;
 	struct timeval etv;
+	GHashTable *qvars = NULL;
 
 	gettimeofday(&stv, NULL);
 
@@ -2300,23 +2231,34 @@ void handle_request(void)
 	d_fprintf(debug_log, "Cookies: %s\n", http_cookie);
 
 	/*
+	 * Get the query values from a GET or POST and put them in
+	 * a GHashTable.
+	 *
+	 * However, don't do this for /process_receipt_approval/ due to
+	 * that currently needing the data in a different form, a GList
+	 * of GHashTables.
+	 */
+	if (strncmp(request_uri, "/process_receipt_approval/", 26) != 0)
+		qvars = set_vars(request_method, query_string);
+
+	/*
 	 * The /activate_user/ and /generate_new_key/ routes need to come
 	 * before the login / session stuff as they can't be logged in
 	 * and have no session.
 	 */
 	if (strncmp(request_uri, "/activate_user/", 15) == 0) {
-		activate_user(request_method, query_string);
+		activate_user(request_method, qvars);
 		goto out2;
 	}
 
 	if (strncmp(request_uri, "/generate_new_key/", 18) == 0) {
-		generate_new_key(query_string);
+		generate_new_key(qvars);
 		goto out2;
 	}
 
 	memset(&current_session, 0, sizeof(current_session));
 	if (strncmp(request_uri, "/login/", 7) == 0) {
-		login(http_user_agent, http_x_forwarded_for);
+		login(http_user_agent, http_x_forwarded_for, qvars);
 		goto out;
 	}
 
@@ -2337,22 +2279,22 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/process_receipt/", 17) == 0) {
-		process_receipt(&current_session);
+		process_receipt(&current_session, qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/tagged_receipts/", 16) == 0) {
-		tagged_receipts(&current_session, query_string);
+		tagged_receipts(&current_session, qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/receipt_info/", 14) == 0) {
-		receipt_info(&current_session, query_string);
+		receipt_info(&current_session, qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/approve_receipts/", 18) == 0) {
-		approve_receipts(&current_session, query_string);
+		approve_receipts(&current_session, qvars);
 		goto out;
 	}
 
@@ -2362,7 +2304,7 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/reviewed_receipts/", 19) == 0) {
-		reviewed_receipts(&current_session, query_string);
+		reviewed_receipts(&current_session, qvars);
 		goto out;
 	}
 
@@ -2372,7 +2314,7 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/do_extract_data/", 17) == 0) {
-		do_extract_data(&current_session, query_string);
+		do_extract_data(&current_session, qvars);
 		goto out;
 	}
 
@@ -2387,7 +2329,7 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/delete_image/", 14) == 0) {
-		delete_image(&current_session);
+		delete_image(&current_session, qvars);
 		goto out;
 	}
 
@@ -2397,17 +2339,17 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/prefs/fmap/", 11) == 0) {
-		prefs_fmap(&current_session);
+		prefs_fmap(&current_session, qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/admin/list_users/", 18) == 0) {
-		admin_list_users(&current_session, query_string);
+		admin_list_users(&current_session, qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/admin/add_user/", 16) == 0) {
-		admin_add_user(&current_session);
+		admin_add_user(&current_session, qvars);
 		goto out;
 	}
 
@@ -2433,6 +2375,7 @@ out:
 	free(current_session.user_hdr);
 
 out2:
+	free_vars(qvars);
 	gettimeofday(&etv, NULL);
 	d_fprintf(access_log, "Got request from %s for %s (%s), %f secs\n",
 				http_x_forwarded_for,

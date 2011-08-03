@@ -16,6 +16,7 @@ char *get_avar(GList *avars, int index, char *key);
 void free_avars(GList *avars);
 GHashTable *get_vars(char *query);
 char *get_var(GHashTable *vars, char *key);
+GHashTable *set_vars(char *request_method, char *query);
 void free_vars(GHashTable *vars);
 char *generate_activation_key(char *email_addr);
 void send_activation_mail(char *name, char *address, char *key);

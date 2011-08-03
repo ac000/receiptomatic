@@ -215,6 +215,30 @@ void free_avars(GList *avars)
 }
 
 /*
+ * Sets the GET / POST variable list.
+ */
+GHashTable *set_vars(char *request_method, char *query)
+{
+	char buf[BUF_SIZE];
+
+	memset(buf, 0, sizeof(buf));
+
+	if (strcmp(request_method, "GET") == 0 && strlen(query) > 0) {
+		strncpy(buf, query, BUF_SIZE);
+	} else if (strcmp(request_method, "POST") == 0) {
+		fread(buf, sizeof(buf) - 1, 1, stdin);
+		if (!strstr(buf, "=") && !strstr(buf, "&"))
+			goto out2;
+	} else {
+		goto out2;
+	}
+
+	return get_vars(buf);
+out2:
+	return NULL;
+}
+
+/*
  * Create a hash table of name=value pairs, generated from GET and POST
  * data.
  */

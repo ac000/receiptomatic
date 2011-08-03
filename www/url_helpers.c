@@ -607,7 +607,7 @@ out:
 /*
  * Stores custom image tag field names for a user in the database.
  */
-void update_fmap(struct session *current_session, char *query)
+void update_fmap(struct session *current_session, GHashTable *qvars)
 {
 	MYSQL *conn;
 	char sql[SQL_MAX];
@@ -628,9 +628,6 @@ void update_fmap(struct session *current_session, char *query)
 	char *vat_rate;
 	char *currency;
 	char *payment_method;
-	GHashTable *qvars;
-
-	qvars = get_vars(query);
 
 	conn = db_conn();
 
@@ -736,8 +733,6 @@ void update_fmap(struct session *current_session, char *query)
 					payment_method);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
-
-	free_vars(qvars);
 	mysql_close(conn);
 }
 
