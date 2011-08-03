@@ -77,34 +77,38 @@ Install
 
     $ mysql -u USER -p receiptomatic < db/receiptomatic.sql
 
-    You'll also need to create some users within this database by adding
-    them to the passwd table which is comprised of the following
+    You'll also need to create at least one user (with ADMIN capabilities)
+    within this database by adding them to the passwd table which is comprised
+    of the following
 
     uid          - Unique integer to identify users.
     username     - Username that user uses to log into the system.
     password     - The users password having been run through crypt().
     name         - Full name of the user.
-    u_email      - The email address that the user uses to send receipts to the
-		   system.
     capabilities - An integer representing the users capabilities. In the app
 		   this is represented as a bitmask with the following values
 
-	USER		 0 - A normal user.
+	USER		  0 - A normal user.
 
-	APPROVER	 1 - The user is an APPROVER, this by itself doesn't
-			     really grant any capabiltities and needs at least
-			     one of the following as well.
-	APPROVER_SELF	 2 - The user can approve their own receipts.
-	APPROVER_CASH	 4 - The user can approve cash receipts.
-	APPROVER_CARD	 8 - The user can approve card receipts.
-	APPROVER_CHEQUE 16 - The user can approve cheque receipts.
+	APPROVER	  1 - The user is an APPROVER, this by itself doesn't
+			      really grant any capabiltities and needs at least
+			      one of the following as well.
+	APPROVER_SELF	  2 - The user can approve their own receipts.
+	APPROVER_CASH	  4 - The user can approve cash receipts.
+	APPROVER_CARD	  8 - The user can approve card receipts.
+	APPROVER_CHEQUE  16 - The user can approve cheque receipts.
+	ADMIN		128 - The user is an administrator for the site.
 
 	So a plain user would just have a capability of 0. A user that can
 	approve cash and card receipts but not cheques or their own would
 	have a capability of 13 (APPROVER + APPROVER_CASH + APPROVER_CARD).
 
+	A user with full capabilities would have a value of 159.
 
-    - Give each user a UID. I'd suggest to start at 500.
+    enabled	- A flag to indicate if the account is enabled. 0 no, 1 yes.
+    activated	- A flag to indicate if the account if activated. 0 no, 1 yes.
+
+    - Give each user a UID. I'd suggest to start at 1000.
     - Create a username (I use their email address) and then set a password.
     - Create a password entry. You can use the tools/passcrypt utility to do
       this, e.g
@@ -113,8 +117,8 @@ Install
 
       That will generate a crypt'd password using the SHA-256 algorithm.
     - Set their name.
-    - Set their receipt upload email address.
     - Set their capability.
+    - Set the enabled and activated fields to 1.
 
 
     Create a directory for serving this, e.g
@@ -142,15 +146,11 @@ Install
     Receipt images will be stored under UID/YYYY/MM/DD, under the directory
     you created above.
 
-    Create some email aliases for this
+    Create an email alias for this, this is the email address that users will
+    send thier images to.
 
-    # echo -e "user1-ri:\t|/etc/smrsh/receiptomatic" >> /etc/aliases
-    # echo -e "user2-ri:\t|/etc/smrsh/receiptomatic" >> /etc/aliases
+    # echo -e "rmatic:\t|/etc/smrsh/receiptomatic" >> /etc/aliases
     # newaliases
-
-    These are the email addresses that the users will use to send their receipt
-    images, as specified in passwd.u_email
-
 
     I'm currently using Apache to handle the initial requests and to serve
     static content. Requests to the application go via nginx. There are config
