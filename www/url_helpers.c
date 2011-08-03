@@ -919,6 +919,8 @@ int do_add_user(GHashTable *qvars, unsigned char capabilities)
 	mysql_real_escape_string(conn, name, get_var(qvars, "name"),
 					strlen(get_var(qvars, "name")));
 
+	/* We need to be sure a new uid isn't inserted here */
+	mysql_query(conn, "LOCK TABLES passwd WRITE");
 	mysql_query(conn, "SELECT MAX(uid) FROM passwd");
 	res = mysql_store_result(conn);
 	row = mysql_fetch_row(res);
@@ -929,6 +931,7 @@ int do_add_user(GHashTable *qvars, unsigned char capabilities)
 						name, capabilities);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
+	mysql_query(conn, "UNLOCK TABLES");
 
 	tm = time(NULL);
 	snprintf(sql, SQL_MAX, "INSERT INTO activations VALUES ('%s', '%s', "
