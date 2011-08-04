@@ -649,8 +649,7 @@ static void activate_user(char *request_method, GHashTable *qvars)
 					strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
 					get_var(qvars, "pass2")) == 0) {
-				do_activate_user(get_var(db_row, "uid"),
-						get_var(qvars, "key"),
+				do_activate_user(get_var(db_row, "uid"), key,
 						get_var(qvars, "pass1"));
 				vl = TMPL_add_var(vl, "activated", "yes",
 									NULL);
