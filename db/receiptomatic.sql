@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 02, 2011 at 10:58 AM
+-- Generation Time: Aug 04, 2011 at 05:17 PM
 -- Server version: 5.0.77
 -- PHP Version: 5.1.6
 
@@ -41,12 +41,14 @@ CREATE TABLE IF NOT EXISTS `activations` (
 
 CREATE TABLE IF NOT EXISTS `approved` (
   `id` varchar(64) NOT NULL,
+  `uid` int(10) unsigned NOT NULL,
   `username` varchar(255) NOT NULL,
   `timestamp` int(10) unsigned NOT NULL,
   `status` smallint(5) unsigned NOT NULL,
   `reason` varchar(255) NOT NULL,
   UNIQUE KEY `id` (`id`),
-  KEY `timestamp` (`timestamp`)
+  KEY `timestamp` (`timestamp`),
+  KEY `uid` (`uid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -56,6 +58,7 @@ CREATE TABLE IF NOT EXISTS `approved` (
 --
 
 CREATE TABLE IF NOT EXISTS `field_names` (
+  `uid` int(10) unsigned NOT NULL,
   `username` varchar(255) NOT NULL,
   `receipt_date` varchar(255) NOT NULL,
   `department` varchar(255) NOT NULL,
@@ -73,7 +76,8 @@ CREATE TABLE IF NOT EXISTS `field_names` (
   `vat_rate` varchar(255) NOT NULL,
   `currency` varchar(255) NOT NULL,
   `payment_method` varchar(255) NOT NULL,
-  UNIQUE KEY `username` (`username`)
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `uid` (`uid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -84,6 +88,7 @@ CREATE TABLE IF NOT EXISTS `field_names` (
 
 CREATE TABLE IF NOT EXISTS `images` (
   `id` varchar(64) NOT NULL,
+  `uid` int(10) unsigned NOT NULL,
   `username` varchar(255) NOT NULL,
   `timestamp` int(10) unsigned NOT NULL,
   `path` varchar(255) NOT NULL,
@@ -93,7 +98,8 @@ CREATE TABLE IF NOT EXISTS `images` (
   UNIQUE KEY `id` (`id`),
   KEY `processed` (`processed`),
   KEY `who` (`username`),
-  KEY `approved` (`approved`)
+  KEY `approved` (`approved`),
+  KEY `uid` (`uid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -110,6 +116,7 @@ CREATE TABLE IF NOT EXISTS `passwd` (
   `capabilities` smallint(5) unsigned NOT NULL default '0',
   `enabled` tinyint(1) NOT NULL default '0',
   `activated` tinyint(1) NOT NULL default '0',
+  `d_reason` varchar(255) NOT NULL,
   UNIQUE KEY `uid` (`uid`),
   UNIQUE KEY `username` (`username`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
@@ -122,6 +129,7 @@ CREATE TABLE IF NOT EXISTS `passwd` (
 
 CREATE TABLE IF NOT EXISTS `tags` (
   `id` varchar(64) NOT NULL,
+  `uid` int(10) unsigned NOT NULL,
   `username` varchar(255) NOT NULL,
   `timestamp` int(10) unsigned NOT NULL,
   `employee_number` varchar(255) NOT NULL,
@@ -142,5 +150,6 @@ CREATE TABLE IF NOT EXISTS `tags` (
   `payment_method` varchar(6) NOT NULL,
   UNIQUE KEY `id` (`id`),
   KEY `timestamp` (`timestamp`),
-  KEY `payment_method` (`payment_method`)
+  KEY `payment_method` (`payment_method`),
+  KEY `uid` (`uid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;

@@ -23,6 +23,7 @@ char *create_session_id(void);
 void create_session(GHashTable *credentials, char *http_user_agent,
 						char *http_x_forwarded_for);
 int check_amounts(double gross, double net, double vat, double vr);
+void set_default_field_names(struct field_names *fields);
 void set_custom_field_names(struct session *current_session,
 						struct field_names *fields);
 void update_fmap(struct session *current_session, GHashTable *qvars);

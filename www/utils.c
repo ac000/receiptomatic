@@ -307,6 +307,29 @@ void free_vars(GHashTable *vars)
 }
 
 /*
+ * Free's the custom fields list.
+ */
+void free_fields(struct field_names *fields)
+{
+	free(fields->receipt_date);
+	free(fields->department);
+	free(fields->employee_number);
+	free(fields->reason);
+	free(fields->po_num);
+	free(fields->cost_codes);
+	free(fields->account_codes);
+	free(fields->supplier_name);
+	free(fields->supplier_town);
+	free(fields->vat_number);
+	free(fields->gross_amount);
+	free(fields->net_amount);
+	free(fields->vat_amount);
+	free(fields->vat_rate);
+	free(fields->currency);
+	free(fields->payment_method);
+}
+
+/*
  * Generate a somewhat hard to guess string to hash for the users
  * activation key. We use the following:
  *

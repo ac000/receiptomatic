@@ -95,7 +95,25 @@ struct field_names {
 	char *vat_rate;
 	char *currency;
 	char *payment_method;
-};
+} field_names;
+
+/* Default Field Names */
+#define DFN_RECEIPT_DATE	"Receipt Date"
+#define DFN_DEPARTMENT		"Department"
+#define DFN_EMPLOYEE_NUMBER	"Employee Number"
+#define DFN_REASON		"Reason"
+#define DFN_PO_NUM		"PO Num"
+#define DFN_COST_CODES		"Cost Code(s)"
+#define DFN_ACCOUNT_CODES	"Account Code(s)"
+#define DFN_SUPPLIER_NAME	"Supplier Name"
+#define DFN_SUPPLIER_TOWN	"Supplier Town"
+#define DFN_VAT_NUMBER		"VAT Number"
+#define DFN_GROSS_AMOUNT	"Gross Amount"
+#define DFN_NET_AMOUNT		"Net Amount"
+#define DFN_VAT_AMOUNT		"VAT Amount"
+#define DFN_VAT_RATE		"VAT Rate"
+#define DFN_CURRENCY		"Currency"
+#define DFN_PAYMENT_METHOD	"Payment Method"
 
 extern FILE *access_log;
 extern FILE *sql_log;

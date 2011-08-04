@@ -39,26 +39,6 @@
 #include "url_helpers.h"
 #include "url_handlers.h"
 
-/* Initialise the default receipt tag field names */
-static const struct field_names field_names = {
-	"Receipt Date",
-	"Department",
-	"Employee Number",
-	"Reason",
-	"PO Num",
-	"Cost Code(s)",
-	"Account Code(s)",
-	"Supplier Name",
-	"Supplier Town",
-	"VAT Number",
-	"Gross Amount",
-	"Net Amount",
-	"VAT Amount",
-	"VAT Rate",
-	"Currency",
-	"Payment Method"
-};
-
 /*
  * /login/
  *
@@ -767,104 +747,84 @@ static void prefs_fmap(struct session *current_session, GHashTable *qvars)
 	if (updated)
 		vl = TMPL_add_var(vl, "fields_updated", "yes", NULL);
 
-	vl = TMPL_add_var(vl, "receipt_date", field_names.receipt_date, NULL);
-	vl = TMPL_add_var(vl, "alt_receipt_date",
-					!strcmp(field_names.receipt_date,
+	vl = TMPL_add_var(vl, "receipt_date", DFN_RECEIPT_DATE,NULL);
+	vl = TMPL_add_var(vl, "alt_receipt_date", !strcmp(DFN_RECEIPT_DATE,
 					fields.receipt_date) ? "":
 					fields.receipt_date, NULL);
 
-	vl = TMPL_add_var(vl, "department", field_names.department, NULL);
-	vl = TMPL_add_var(vl, "alt_department",
-					!strcmp(field_names.department,
+	vl = TMPL_add_var(vl, "department", DFN_DEPARTMENT, NULL);
+	vl = TMPL_add_var(vl, "alt_department",!strcmp(DFN_DEPARTMENT,
 					fields.department) ? "" :
 					fields.department, NULL);
 
-	vl = TMPL_add_var(vl, "employee_number", field_names.employee_number,
-									NULL);
+	vl = TMPL_add_var(vl, "employee_number", DFN_EMPLOYEE_NUMBER, NULL);
 	vl = TMPL_add_var(vl, "alt_employee_number",
-					!strcmp(field_names.employee_number,
+					!strcmp(DFN_EMPLOYEE_NUMBER,
 					fields.employee_number) ? "" :
 					fields.employee_number, NULL);
 
-	vl = TMPL_add_var(vl, "reason", field_names.reason, NULL);
-	vl = TMPL_add_var(vl, "alt_reason",
-					!strcmp(field_names.reason,
+	vl = TMPL_add_var(vl, "reason", DFN_REASON, NULL);
+	vl = TMPL_add_var(vl, "alt_reason",!strcmp(DFN_REASON,
 					fields.reason) ? "" :
 					fields.reason, NULL);
 
-	vl = TMPL_add_var(vl, "po_num", field_names.po_num, NULL);
-	vl = TMPL_add_var(vl, "alt_po_num",
-					!strcmp(field_names.po_num,
+	vl = TMPL_add_var(vl, "po_num", DFN_PO_NUM, NULL);
+	vl = TMPL_add_var(vl, "alt_po_num", !strcmp(DFN_PO_NUM,
 					fields.po_num) ? "" :
 					fields.po_num, NULL);
 
-	vl = TMPL_add_var(vl, "cost_codes", field_names.cost_codes, NULL);
-	vl = TMPL_add_var(vl, "alt_cost_codes",
-					!strcmp(field_names.cost_codes,
+	vl = TMPL_add_var(vl, "cost_codes", DFN_COST_CODES, NULL);
+	vl = TMPL_add_var(vl, "alt_cost_codes", !strcmp(DFN_COST_CODES,
 					fields.cost_codes) ? "" :
 					fields.cost_codes, NULL);
 
-	vl = TMPL_add_var(vl, "account_codes", field_names.account_codes,
-								NULL);
-	vl = TMPL_add_var(vl, "alt_account_codes",
-					!strcmp(field_names.account_codes,
+	vl = TMPL_add_var(vl, "account_codes", DFN_ACCOUNT_CODES, NULL);
+	vl = TMPL_add_var(vl, "alt_account_codes", !strcmp(DFN_ACCOUNT_CODES,
 					fields.account_codes) ? "" :
 					fields.account_codes, NULL);
 
-	vl = TMPL_add_var(vl, "supplier_name", field_names.supplier_name,
-								NULL);
-	vl = TMPL_add_var(vl, "alt_supplier_name",
-					!strcmp(field_names.supplier_name,
+	vl = TMPL_add_var(vl, "supplier_name", DFN_SUPPLIER_NAME, NULL);
+	vl = TMPL_add_var(vl, "alt_supplier_name", !strcmp(DFN_SUPPLIER_NAME,
 					fields.supplier_name) ? "" :
 					fields.supplier_name, NULL);
 
-	vl = TMPL_add_var(vl, "supplier_town", field_names.supplier_town,
-									NULL);
-	vl = TMPL_add_var(vl, "alt_supplier_town",
-					!strcmp(field_names.supplier_town,
+	vl = TMPL_add_var(vl, "supplier_town", DFN_SUPPLIER_TOWN, NULL);
+	vl = TMPL_add_var(vl, "alt_supplier_town", !strcmp(DFN_SUPPLIER_TOWN,
 					fields.supplier_town) ? "" :
 					fields.supplier_town, NULL);
 
-	vl = TMPL_add_var(vl, "vat_number", field_names.vat_number, NULL);
-	vl = TMPL_add_var(vl, "alt_vat_number",
-					!strcmp(field_names.vat_number,
+	vl = TMPL_add_var(vl, "vat_number", DFN_VAT_NUMBER, NULL);
+	vl = TMPL_add_var(vl, "alt_vat_number", !strcmp(DFN_VAT_NUMBER,
 					fields.vat_number) ? "" :
 					fields.vat_number, NULL);
 
-	vl = TMPL_add_var(vl, "gross_amount", field_names.gross_amount, NULL);
-	vl = TMPL_add_var(vl, "alt_gross_amount",
-					!strcmp(field_names.gross_amount,
+	vl = TMPL_add_var(vl, "gross_amount", DFN_GROSS_AMOUNT, NULL);
+	vl = TMPL_add_var(vl, "alt_gross_amount", !strcmp(DFN_GROSS_AMOUNT,
 					fields.gross_amount) ? "" :
 					fields.gross_amount, NULL);
 
-	vl = TMPL_add_var(vl, "net_amount", field_names.net_amount, NULL);
-	vl = TMPL_add_var(vl, "alt_net_amount",
-					!strcmp(field_names.net_amount,
+	vl = TMPL_add_var(vl, "net_amount", DFN_NET_AMOUNT, NULL);
+	vl = TMPL_add_var(vl, "alt_net_amount", !strcmp(DFN_NET_AMOUNT,
 					fields.net_amount) ? "" :
 					fields.net_amount, NULL);
 
-	vl = TMPL_add_var(vl, "vat_amount", field_names.vat_amount, NULL);
-	vl = TMPL_add_var(vl, "alt_vat_amount",
-					!strcmp(field_names.vat_amount,
+	vl = TMPL_add_var(vl, "vat_amount", DFN_VAT_AMOUNT, NULL);
+	vl = TMPL_add_var(vl, "alt_vat_amount", !strcmp(DFN_VAT_AMOUNT,
 					fields.vat_amount) ? "" :
 					fields.vat_amount, NULL);
 
-	vl = TMPL_add_var(vl, "vat_rate", field_names.vat_rate, NULL);
-	vl = TMPL_add_var(vl, "alt_vat_rate",
-					!strcmp(field_names.vat_rate,
+	vl = TMPL_add_var(vl, "vat_rate", DFN_VAT_RATE, NULL);
+	vl = TMPL_add_var(vl, "alt_vat_rate", !strcmp(DFN_VAT_RATE,
 					fields.vat_rate) ? "" :
 					fields.vat_rate, NULL);
 
-	vl = TMPL_add_var(vl, "currency", field_names.currency, NULL);
-	vl = TMPL_add_var(vl, "alt_currency",
-					!strcmp(field_names.currency,
+	vl = TMPL_add_var(vl, "currency", DFN_CURRENCY, NULL);
+	vl = TMPL_add_var(vl, "alt_currency", !strcmp(DFN_CURRENCY,
 					fields.currency) ? "" :
 					fields.currency, NULL);
 
-	vl = TMPL_add_var(vl, "payment_method", field_names.payment_method,
-									NULL);
-	vl = TMPL_add_var(vl, "alt_payment_method",
-					!strcmp(field_names.payment_method,
+	vl = TMPL_add_var(vl, "payment_method", DFN_PAYMENT_METHOD, NULL);
+	vl = TMPL_add_var(vl, "alt_payment_method", !strcmp(DFN_PAYMENT_METHOD,
 					fields.payment_method) ? "" :
 					fields.payment_method, NULL);
 
@@ -873,6 +833,7 @@ static void prefs_fmap(struct session *current_session, GHashTable *qvars)
 								error_log);
 	fflush(error_log);
 	TMPL_free_varlist(vl);
+	free_fields(&fields);
 }
 
 /*
@@ -1336,6 +1297,7 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
+	free_fields(&fields);
 
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
@@ -1429,6 +1391,7 @@ static void reviewed_receipts(struct session *current_session,
 
 	fields = field_names;
 	set_custom_field_names(current_session, &fields);
+
 	ml = TMPL_add_var(ml, "receipts", "yes", NULL);
 	/* Draw gallery grid */
 	for (i = 0; i < nr_rows; i++) {
@@ -1477,6 +1440,7 @@ static void reviewed_receipts(struct session *current_session,
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
+	free_fields(&fields);
 
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
@@ -1683,8 +1647,8 @@ static void receipt_info(struct session *current_session, GHashTable *qvars)
 			vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
 		}
 	}
-
 	free_vars(db_row);
+	free_fields(&fields);
 	mysql_free_result(res);
 	mysql_close(conn);
 
@@ -1819,6 +1783,7 @@ static void tagged_receipts(struct session *current_session, GHashTable *qvars)
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
+	free_fields(&fields);
 
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
@@ -2034,6 +1999,7 @@ static void process_receipt(struct session *current_session, GHashTable *qvars)
 		fflush(error_log);
 		TMPL_free_varlist(vl);
 	}
+	free_fields(&fields);
 
 out:
 	mysql_free_result(res);
@@ -2144,6 +2110,7 @@ static void receipts(struct session *current_session)
 		free_vars(db_row);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
+	free_fields(&fields);
 
 out:
 	printf("Cache-Control: private\r\n");

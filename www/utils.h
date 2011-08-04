@@ -14,6 +14,7 @@ GHashTable *get_dbrow(MYSQL_RES *res);
 GList *get_avars(char *query);
 char *get_avar(GList *avars, int index, char *key);
 void free_avars(GList *avars);
+void free_fields(struct field_names *fields);
 GHashTable *get_vars(char *query);
 char *get_var(GHashTable *vars, char *key);
 GHashTable *set_vars(char *request_method, char *query);
