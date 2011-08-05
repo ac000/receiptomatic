@@ -215,6 +215,7 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	char *user;
 	char *image_id;
 	int bytes;
+	unsigned int uid;
 	time_t t;
 	DIR *dir;
 	MYSQL *conn;
@@ -251,10 +252,11 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	if (mysql_num_rows(res) == 0)
 		goto out;
 	row = mysql_fetch_row(res);
+	uid = atoi(row[0]);
 
 	t = time(NULL);
 	strftime(ymd, sizeof(ymd), "%Y/%m/%d", localtime(&t));
-	bytes = snprintf(path, PATH_MAX, "%s/%s/%s", IMAGE_PATH, row[0], ymd);
+	bytes = snprintf(path, PATH_MAX, "%s/%u/%s", IMAGE_PATH, uid, ymd);
 	if (bytes >= PATH_MAX)
 		goto out;
 	printf("Path: %s\n", path);
@@ -291,8 +293,9 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	/* In the database we only store the path relative from IMAGE_PATH */
 	sprintf(path, "%s/%s", row[0], ymd);
 	snprintf(sql, SQL_MAX,
-		"INSERT INTO images VALUES ('%s', '%s', %ld, '%s', '%s', 0, 1)",
-						image_id, user, t, path,
+		"INSERT INTO images VALUES ('%s', %u, '%s', %ld, '%s', '%s', "
+						"0, 1)",
+						image_id, uid, user, t, path,
 						filename);
 	printf("SQL: %s\n", sql);
 	mysql_query(conn, sql);

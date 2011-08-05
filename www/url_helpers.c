@@ -187,7 +187,6 @@ int is_users_receipt(struct session *current_session, char *id)
 {
 	char sql[SQL_MAX];
 	char *s_id;
-	char *username;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	int ret = 0;
@@ -197,12 +196,9 @@ int is_users_receipt(struct session *current_session, char *id)
 	s_id = alloca(strlen(id) * 2 + 1);
 	mysql_real_escape_string(conn, s_id, id, strlen(id));
 
-	username = alloca(strlen(current_session->username) * 2 + 1);
-	mysql_real_escape_string(conn, username, current_session->username,
-					strlen(current_session->username));
-
 	snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE id = '%s' AND "
-					"username = '%s'", s_id, username);
+							"uid = %u", s_id,
+							current_session->uid);
 
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -222,7 +218,6 @@ int tag_info_allowed(struct session *current_session, char *image_id)
 {
 	char sql[SQL_MAX];
 	char *s_image_id;
-	char *username;
 	int ret = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -238,13 +233,9 @@ int tag_info_allowed(struct session *current_session, char *image_id)
 	s_image_id = alloca(strlen(image_id) * 2 + 1);
 	mysql_real_escape_string(conn, s_image_id, image_id, strlen(image_id));
 
-	username = alloca(strlen(current_session->username) * 2 + 1);
-	mysql_real_escape_string(conn, username, current_session->username,
-					strlen(current_session->username));
-
 	snprintf(sql, SQL_MAX, "SELECT path FROM images WHERE id = '%s' AND "
-						"username = '%s'", s_image_id,
-						username);
+							"uid = %u", s_image_id,
+							current_session->uid);
 
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -765,7 +756,7 @@ void update_fmap(struct session *current_session, GHashTable *qvars)
 					qvars, "payment_method"), strlen(
 					get_var(qvars, "payment_method")));
 
-	snprintf(sql, SQL_MAX, "REPLACE INTO field_names VALUES ('%u', '%s', "
+	snprintf(sql, SQL_MAX, "REPLACE INTO field_names VALUES (%u, '%s', "
 					"'%s', '%s', '%s', '%s', '%s', '%s', "
 					"'%s', '%s', '%s', '%s', '%s', "
 					"'%s', '%s', '%s', '%s', '%s')",
@@ -903,14 +894,14 @@ void tag_image(struct session *current_session, GHashTable *qvars)
 					qvars, "payment_method"), strlen(
 					get_var(qvars, "payment_method")));
 
-	snprintf(sql, SQL_MAX, "REPLACE INTO tags VALUES ('%s', '%s', %ld, "
-				"'%s', '%s', '%s', '%s', '%s', '%s', '%s', "
-				"'%s', %.2f, %.2f, %.2f, %.2f, '%s', %ld, "
-				"'%s', '%s')",
-				image_id, username, time(NULL),
-				employee_number, department, po_num,
-				cost_codes, account_codes, supplier_town,
-				supplier_name, currency,
+	snprintf(sql, SQL_MAX, "REPLACE INTO tags VALUES ('%s', %u, '%s', "
+				"%ld, '%s', '%s', '%s', '%s', '%s', '%s', "
+				"'%s', '%s', %.2f, %.2f, %.2f, %.2f, '%s', "
+				"%ld, '%s', '%s')",
+				image_id, current_session->uid, username,
+				time(NULL), employee_number, department,
+				po_num, cost_codes, account_codes,
+				supplier_town, supplier_name, currency,
 				strtof(gross_amount, NULL),
 				strtof(vat_amount, NULL),
 				strtof(net_amount, NULL),

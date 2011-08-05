@@ -46,7 +46,6 @@ void send_receipt_data(int fd)
 void extract_data_now(struct session *current_session, int fd)
 {
 	char sql[SQL_MAX];
-	char *username;
 	char line[BUF_SIZE];
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -54,10 +53,6 @@ void extract_data_now(struct session *current_session, int fd)
 	int i;
 
 	conn = db_conn();
-
-	username = alloca(strlen(current_session->username) * 2 + 1);
-	mysql_real_escape_string(conn, username, current_session->username,
-					strlen(current_session->username));
 
 	snprintf(sql, SQL_MAX, "SELECT tags.employee_number, tags.department, "
 					"tags.po_num, tags.cost_codes, "
@@ -70,12 +65,13 @@ void extract_data_now(struct session *current_session, int fd)
 					"tags.reason, tags.payment_method "
 					"FROM tags INNER JOIN approved ON "
 					"(tags.id = approved.id) WHERE "
-					"approved.username = '%s' AND "
+					"approved.uid = %u AND "
 					"approved.timestamp > %ld AND "
-					"approved.status = %d", username,
+					"approved.status = %d",
+					current_session->uid,
 					current_session->login_at, APPROVED);
 	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
+	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
 	nr_rows = mysql_num_rows(res);
 

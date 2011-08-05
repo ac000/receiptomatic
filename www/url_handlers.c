@@ -943,8 +943,9 @@ static void process_receipt_approval(struct session *current_session)
 		/* Can user approve their own receipts? */
 		if (!(current_session->capabilities & APPROVER_SELF)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE "
-						"id = '%s' AND username = "
-						"'%s'", image_id, username);
+						"id = '%s' AND uid = %u",
+						image_id,
+						current_session->uid);
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_real_query(conn, sql, strlen(sql));
 			res = mysql_store_result(conn);
@@ -1005,9 +1006,11 @@ static void process_receipt_approval(struct session *current_session)
 
 		if (action[0] == 'a') { /* approved */
 			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
-						"'%s', '%s', %ld, %d, '%s')",
-						image_id, username, time(NULL),
-						APPROVED, reason);
+						"'%s', %u, '%s', %ld, %d, "
+						"'%s')",
+						image_id, current_session->uid,
+						username, time(NULL), APPROVED,
+						reason);
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_real_query(conn, sql, strlen(sql));
 			snprintf(sql, SQL_MAX, "UPDATE images SET approved = "
@@ -1017,9 +1020,11 @@ static void process_receipt_approval(struct session *current_session)
 			mysql_query(conn, sql);
 		} else if (action[0] == 'r') { /* rejected */
 			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
-						"'%s', '%s', %ld, %d, '%s')",
-						image_id, username, time(NULL),
-						REJECTED, reason);
+						"'%s', %u, '%s', %ld, %d, "
+						"'%s')",
+						image_id, current_session->uid,
+						username, time(NULL), REJECTED,
+						reason);
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_real_query(conn, sql, strlen(sql));
 			snprintf(sql, SQL_MAX, "UPDATE images SET approved = "
@@ -1056,7 +1061,6 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 	static const char *card = "'card'";
 	static const char *cheque = "'cheque'";
 	char join[5];
-	char *username;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	int i;
@@ -1126,13 +1130,10 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 
 	conn = db_conn();
 
-	username = alloca(strlen(current_session->username) * 2 + 1);
-	mysql_real_escape_string(conn, username, current_session->username,
-					strlen(current_session->username));
 	memset(assql, 0, sizeof(assql));
 	/* If the user isn't APPROVER_SELF, don't show them their receipts */
 	if (!(current_session->capabilities & APPROVER_SELF))
-		sprintf(assql, "AND images.username != '%s'", username);
+		sprintf(assql, "AND images.uid != %u", current_session->uid);
 	else
 		assql[0] = '\0';
 
@@ -1376,9 +1377,8 @@ static void reviewed_receipts(struct session *current_session,
 				"user, passwd.uid FROM approved INNER JOIN "
 				"images ON (approved.id = images.id) "
 				"INNER JOIN passwd ON "
-				"(images.username = passwd.username) "
-				"ORDER BY approved.timestamp DESC LIMIT "
-				"%d, %d",
+				"(images.uid = passwd.uid) ORDER BY "
+				"approved.timestamp DESC LIMIT %d, %d",
 				from, GRID_SIZE);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
@@ -1518,7 +1518,7 @@ static void receipt_info(struct session *current_session, GHashTable *qvars)
 				"user, passwd.uid FROM images INNER JOIN tags "
 				"ON (images.id = tags.id) LEFT JOIN approved "
 				"ON (approved.id = tags.id) INNER JOIN passwd "
-				"ON (images.username = passwd.username) WHERE "
+				"ON (images.uid = passwd.uid) WHERE "
 				"images.id = '%s' LIMIT 1", image_id);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
@@ -1676,7 +1676,6 @@ static void tagged_receipts(struct session *current_session, GHashTable *qvars)
 	int pages;
 	char page[10];
 	char sql[SQL_MAX];
-	char *username;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
@@ -1700,25 +1699,23 @@ static void tagged_receipts(struct session *current_session, GHashTable *qvars)
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
 	conn = db_conn();
-	username = alloca(strlen(current_session->username) * 2 + 1);
-	mysql_real_escape_string(conn, username, current_session->username,
-					strlen(current_session->username));
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM tags "
 				"INNER JOIN images ON "
 				"(tags.id = images.id) WHERE "
-				"images.processed = 1 AND images.username = "
-				"'%s') AS nrows, tags.receipt_date, "
+				"images.processed = 1 AND images.uid = "
+				"%u) AS nrows, tags.receipt_date, "
 				"images.id, images.path, images.name, "
 				"images.approved, approved.timestamp FROM "
 				"tags INNER JOIN images ON "
 				"(tags.id = images.id) LEFT JOIN approved ON "
 				"(tags.id = approved.id) WHERE "
-				"images.processed = 1 AND images.username = "
-				"'%s' ORDER BY tags.timestamp DESC LIMIT "
+				"images.processed = 1 AND images.uid = "
+				"%u ORDER BY tags.timestamp DESC LIMIT "
 				"%d, %d",
-				username, username, from, GRID_SIZE);
+				current_session->uid, current_session->uid,
+				from, GRID_SIZE);
 	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
+	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
 
 	nr_rows = mysql_num_rows(res);
@@ -2019,7 +2016,6 @@ static void receipts(struct session *current_session)
 	int i;
 	int nr_rows;
 	char sql[SQL_MAX];
-	char *username;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
@@ -2036,15 +2032,13 @@ static void receipts(struct session *current_session)
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
 	conn = db_conn();
-	username = alloca(strlen(current_session->username) * 2 + 1);
-	mysql_real_escape_string(conn, username, current_session->username,
-					strlen(current_session->username));
 	snprintf(sql, SQL_MAX, "SELECT id, timestamp, path, name FROM images "
 						"WHERE processed = 0 AND "
-						"username = '%s'", username);
+						"uid = %u",
+						current_session->uid);
 	d_fprintf(sql_log, "%s\n", sql);
 
-	mysql_real_query(conn, sql, strlen(sql));
+	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
 
 	nr_rows = mysql_num_rows(res);
