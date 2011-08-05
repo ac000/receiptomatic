@@ -107,19 +107,28 @@ Install
 
     enabled	- A flag to indicate if the account is enabled. 0 no, 1 yes.
     activated	- A flag to indicate if the account if activated. 0 no, 1 yes.
+    d_reason	- A reason why the account has been disabled.
 
     - Give each user a UID. I'd suggest to start at 1000.
-    - Create a username (I use their email address) and then set a password.
+    - Create a username, this should be their email address. This is what the
+      email receiver will use to identify them.
     - Create a password entry. You can use the tools/passcrypt utility to do
       this, e.g
 
 	$ tools/passcrypt -l 256 mypassword
 
       That will generate a crypt'd password using the SHA-256 algorithm.
-    - Set their name.
-    - Set their capability.
-    - Set the enabled and activated fields to 1.
 
+    - Set their name.
+    - Set their capability, e.g 128 for an admin only, 159 for everything.
+    - Set the enabled and activated fields to 1.
+    - Leave the d_reason field empty.
+
+    You need only do this for one admin user. Then the admin can use the
+    admin/add user interface to add more users at appropriate levels.
+
+    Users will receive an email containing a link they need to follow in
+    order to complete their account set up, by setting a password.
 
     Create a directory for serving this, e.g
 
