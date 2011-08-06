@@ -63,30 +63,46 @@ out:
 }
 
 /*
- * Given an email address in the form:
+ * Given an email address in any of the following forms:
  *
- * 	John Doe <john.doe@example.com>
+ * 	John Doe <j.doe@example.com>
+ * 	<j.doe@example.com>
+ * 	j.doe@example.com
  *
  * return
  *
- * 	john.doe@example.com
+ * 	j.doe@example.com
  */
 static char *get_from_addr(char *addr)
 {
-	char *token;
-	char *string;
 	char *from;
 
-	string = strdupa(addr);
+	if (!strstr(addr, " ")) {
+		if (strstr(addr, "<") && strstr(addr, ">")) {
+			/* Handle: <j.doe@example.com> */
+			from = malloc(strlen(addr));
+			strncpy(from, addr + 1, strlen(addr) - 2);
+		} else {
+			/* Handle: j.doe@example.com */
+			from = malloc(strlen(addr) + 1);
+			strcpy(from, addr);
+		}
+	} else {
+		/* Handle: John Doe <j.doe@example.com> */
+		char *string;
+		char *token;
 
-	token = strtok(string, "<");
-	token = NULL;
-	token = strtok(token, "<");
+		string = strdupa(addr);
 
-	token[strlen(token) - 1] = '\0';
+		token = strtok(string, "<");
+		token = NULL;
+		token = strtok(token, "<");
 
-	from = malloc(strlen(addr));
-	strcpy(from, token);
+		token[strlen(token) - 1] = '\0';
+
+		from = malloc(strlen(addr));
+		strcpy(from, token);
+	}
 
 	return from;
 }
