@@ -115,9 +115,9 @@ Install
     - Create a password entry. You can use the tools/passcrypt utility to do
       this, e.g
 
-	$ tools/passcrypt -l 256 mypassword
+	$ tools/passcrypt -l 512 mypassword
 
-      That will generate a crypt'd password using the SHA-256 algorithm.
+      That will generate a crypt'd password using the SHA-512 algorithm.
 
     - Set their name.
     - Set their capability, e.g 128 for an admin only, 159 for everything.
