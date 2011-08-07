@@ -23,6 +23,7 @@
 		<td><strong>Username</strong></td>
 		<td><strong>Name</strong></td>
 		<td><strong>Capabilities</strong></td>
+		<td></td>
 	</tr>
 <tmpl_loop name = "table">
 <tmpl_if name = "zebra" value = "yes">
@@ -33,7 +34,7 @@
 		<td><tmpl_var name = "uid" /></td>
 		<td><tmpl_var name = "username" /></td>
 		<td><tmpl_var name = "name" /></td>
-		<td><tmpl_var name = "capabilities" />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+		<td><tmpl_var name = "capabilities" /></td>
 	<tmpl_if name = "activated" value = "yes">
 		<td>&nbsp;&nbsp;</td>
 	<tmpl_else>
@@ -49,6 +50,8 @@
 	<tmpl_else>
 		<td>&nbsp;&nbsp;</td>
 	</tmpl_if>
+	<td>&nbsp;&nbsp;</td>
+	<td><a href ="/admin/edit_user/?uid=<tmpl_var name = 'uid' />">edit</a></td>
 	</tr>
 </tmpl_loop>
 	</tbody>

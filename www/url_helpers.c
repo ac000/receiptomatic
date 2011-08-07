@@ -988,6 +988,90 @@ out:
 }
 
 /*
+ * Update a users settings.
+ */
+void do_update_user(GHashTable *qvars)
+{
+	char sql[SQL_MAX];
+	char *hash;
+	char *username;
+	char *name;
+	char *d_reason;
+	unsigned char capabilities;
+	unsigned int uid;
+	int enabled = 0;
+	int activated = 0;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
+
+	conn = db_conn();
+	uid = atoi(get_var(qvars, "uid"));
+
+	if (strlen(get_var(qvars, "pass1")) > 0) {
+		hash = generate_password_hash(SHA512, get_var(qvars, "pass1"));
+	} else {
+		snprintf(sql, SQL_MAX, "SELECT password FROM passwd WHERE "
+							"uid = %u", uid);
+		d_fprintf(sql_log, "%s\n", sql);
+		mysql_query(conn, sql);
+		res = mysql_store_result(conn);
+		row = mysql_fetch_row(res);
+		hash = malloc(strlen(row[0]) + 1);
+		strcpy(hash, row[0]);
+		mysql_free_result(res);
+	}
+
+	username = alloca(strlen(get_var(qvars, "email1")) * 2 + 1);
+	mysql_real_escape_string(conn, username, get_var(qvars, "email1"),
+					strlen(get_var(qvars, "email1")));
+	name = alloca(strlen(get_var(qvars, "name")) * 2 + 1);
+	mysql_real_escape_string(conn, name, get_var(qvars, "name"),
+					strlen(get_var(qvars, "name")));
+	d_reason = alloca(strlen(get_var(qvars, "d_reason")) * 2 + 1);
+	mysql_real_escape_string(conn, d_reason, get_var(qvars, "d_reason"),
+					strlen(get_var(qvars, "d_reason")));
+
+	if (strlen(get_var(qvars, "ap_card")) > 0 ||
+				strlen(get_var(qvars, "ap_cash")) > 0 ||
+				strlen(get_var(qvars, "ap_cheque")) > 0 ||
+				strlen(get_var(qvars, "ap_self")) > 0) {
+		capabilities |= APPROVER;
+		if (strlen(get_var(qvars, "ap_card")) > 0) {
+			capabilities |= APPROVER_CARD;
+		}
+		if (strlen(get_var(qvars, "ap_cash")) > 0) {
+			capabilities |= APPROVER_CASH;
+		}
+		if (strlen(get_var(qvars, "ap_cheque")) > 0) {
+			capabilities |= APPROVER_CHEQUE;
+		}
+		if (strlen(get_var(qvars, "ap_self")) > 0) {
+			capabilities |= APPROVER_SELF;
+		}
+	}
+	if (strlen(get_var(qvars, "is_admin")) > 0) {
+		capabilities |= ADMIN;
+	}
+
+	if (atoi(get_var(qvars, "enabled")) == 1)
+		enabled = 1;
+	if (atoi(get_var(qvars, "activated")) == 1)
+		activated = 1;
+
+	snprintf(sql, SQL_MAX, "REPLACE INTO passwd VALUES (%d, '%s', '%s', "
+						"'%s', %d, %d, %d, '%s')",
+						uid, username, hash, name,
+						capabilities, enabled,
+						activated, d_reason);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+
+	mysql_close(conn);
+	free(hash);
+}
+
+/*
  * Activate a users account in the system.
  */
 void do_activate_user(char *uid, char *key, char *password)
