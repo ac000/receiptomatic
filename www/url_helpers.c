@@ -166,8 +166,10 @@ int check_auth(GHashTable *credentials)
 
 	row = mysql_fetch_row(res);
 
-	if (atoi(row[1]) == 0)
+	if (atoi(row[1]) == 0) {
+		ret = -2;
 		goto out;
+	}
 
 	enc_passwd = crypt(get_var(credentials, "password"), row[0]);
 	if (strcmp(enc_passwd, row[0]) == 0)

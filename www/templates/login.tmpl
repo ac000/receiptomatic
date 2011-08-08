@@ -7,6 +7,8 @@
 	<center>
 <tmpl_if name = "logged_in" value = "no">
 	<big><span class = "input_error">Login Failure. Please try again</span></big><p />
+<tmpl_elsif name = "enabled" value = "no">
+	<big><span class = "input_error">Account has been disabled</span></big><p />
 </tmpl_if>
 	<big><i>Welcome to</i> <big>receiptomatic</big></big><p />
 	<form action = "/login/" method = "POST">
