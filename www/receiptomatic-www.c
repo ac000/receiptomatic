@@ -278,6 +278,9 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
+	/* Ignore SIGHUP for now */
+	signal(SIGHUP, SIG_IGN);
+
 	/* Setup signal handler for USR1 to dump session state */
 	memset(&action, 0, sizeof(&action));
 	sigemptyset(&action.sa_mask);
