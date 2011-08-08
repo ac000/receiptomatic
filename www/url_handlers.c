@@ -880,6 +880,69 @@ out:
 }
 
 /*
+ * /forgotten_password/
+ *
+ * HTML is in templates/forgotten_password.tmpl
+ *
+ * Allow a user to set a new password, if they have forgotten it.
+ */
+static void forgotten_password(GHashTable *qvars)
+{
+	char sql[SQL_MAX];
+	char *email_addr;
+	char *key;
+	time_t tm;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	TMPL_varlist *vl = NULL;
+
+	if (!qvars)
+		goto out;
+
+	conn = db_conn();
+
+	vl = TMPL_add_var(vl, "email", get_var(qvars, "email"), NULL);
+
+	email_addr = alloca(strlen(get_var(qvars, "email")) * 2 + 1);
+	mysql_real_escape_string(conn, email_addr, get_var(qvars, "email"),
+					strlen(get_var(qvars, "email")));
+
+	snprintf(sql, SQL_MAX, "SELECT username FROM passwd WHERE username = "
+							"'%s'", email_addr);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+	res = mysql_store_result(conn);
+	if (mysql_num_rows(res) == 0) {
+		vl = TMPL_add_var(vl, "user_error", "yes", NULL);
+		goto mysql_cleanup;
+	}
+
+	key = generate_activation_key(email_addr);
+
+	tm = time(NULL);
+	snprintf(sql, SQL_MAX, "INSERT INTO activations VALUES ('%s', '%s', "
+							"%ld)", email_addr,
+							key, tm + 86400);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+
+	send_activation_mail(get_var(qvars, "name"), email_addr, key);
+	free(key);
+	vl = TMPL_add_var(vl, "sent", "yes", NULL);
+
+mysql_cleanup:
+	mysql_free_result(res);
+	mysql_close(conn);
+
+out:
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/forgotten_password.tmpl", NULL, NULL, vl, stdout,
+								error_log);
+	fflush(error_log);
+	TMPL_free_varlist(vl);
+}
+
+/*
  * /prefs/
  *
  * HTML is in templates/prefs.tmpl
@@ -2502,9 +2565,8 @@ void handle_request(void)
 		qvars = set_vars(request_method, query_string);
 
 	/*
-	 * The /activate_user/ and /generate_new_key/ routes need to come
-	 * before the login / session stuff as they can't be logged in
-	 * and have no session.
+	 * Some routes need to come before the login / session stuff as
+	 * they can't be logged in and have no session.
 	 */
 	if (strncmp(request_uri, "/activate_user/", 15) == 0) {
 		activate_user(request_method, qvars);
@@ -2513,6 +2575,11 @@ void handle_request(void)
 
 	if (strncmp(request_uri, "/generate_new_key/", 18) == 0) {
 		generate_new_key(qvars);
+		goto out2;
+	}
+
+	if (strncmp(request_uri, "/forgotten_password/", 20) == 0) {
+		forgotten_password(qvars);
 		goto out2;
 	}
 
