@@ -1072,6 +1072,109 @@ void do_update_user(GHashTable *qvars)
 }
 
 /*
+ * Update a users settings, by a user.
+ */
+void do_edit_user(struct session *current_session, GHashTable *qvars)
+{
+	TCTDB *tdb;
+	TDBQRY *qry;
+	TCLIST *res;
+	TCMAP *cols;
+	int rsize;
+	int primary_key_size;
+	char pkbuf[256];
+	const char *rbuf;
+	char sql[SQL_MAX];
+	char login_at[21];
+	char last_seen[21];
+	char uid[11];
+	char restrict_ip[2];
+	char capabilities[4];
+	char *hash;
+	char *username;
+	char *name;
+	MYSQL *conn;
+
+	conn = db_conn();
+
+	if (strlen(get_var(qvars, "pass1")) > 0) {
+		hash = generate_password_hash(SHA512, get_var(qvars, "pass1"));
+	} else {
+		MYSQL_RES *res;
+		MYSQL_ROW row;
+
+		snprintf(sql, SQL_MAX, "SELECT password FROM passwd WHERE "
+							"uid = %u",
+							current_session->uid);
+		d_fprintf(sql_log, "%s\n", sql);
+		mysql_query(conn, sql);
+		res = mysql_store_result(conn);
+		row = mysql_fetch_row(res);
+		hash = malloc(strlen(row[0]) + 1);
+		strcpy(hash, row[0]);
+		mysql_free_result(res);
+	}
+
+	username = alloca(strlen(get_var(qvars, "email1")) * 2 + 1);
+	mysql_real_escape_string(conn, username, get_var(qvars, "email1"),
+					strlen(get_var(qvars, "email1")));
+	name = alloca(strlen(get_var(qvars, "name")) * 2 + 1);
+	mysql_real_escape_string(conn, name, get_var(qvars, "name"),
+					strlen(get_var(qvars, "name")));
+
+	snprintf(sql, SQL_MAX, "REPLACE INTO passwd VALUES (%d, '%s', '%s', "
+						"'%s', %d, 1, 1, '')",
+						current_session->uid, username,
+						hash, name,
+						current_session->capabilities);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+
+	mysql_close(conn);
+	free(hash);
+
+	/*
+	 * We want to update the users session.entry. This entails removing
+	 * the old session first then storing the updated session.
+	 */
+	tdb = tctdbnew();
+	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
+
+	snprintf(uid, 11, "%u", current_session->uid);
+	qry = tctdbqrynew(tdb);
+	tctdbqryaddcond(qry, "uid", TDBQCNUMEQ, uid);
+	res = tctdbqrysearch(qry);
+	rbuf = tclistval(res, 0, &rsize);
+	tctdbout(tdb, rbuf, strlen(rbuf));
+
+	tclistdel(res);
+	tctdbqrydel(qry);
+
+	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
+	snprintf(login_at, 21, "%ld", current_session->login_at);
+	snprintf(last_seen, 21, "%ld", time(NULL));
+	snprintf(restrict_ip, 2, "%d", current_session->restrict_ip);
+	snprintf(capabilities, 4, "%d", current_session->capabilities);
+	name = alloca(strlen(get_var(qvars, "name")) + 1);
+	sprintf(name, "%s", get_var(qvars, "name"));
+	username = alloca(strlen(get_var(qvars, "email1")) + 1);
+	sprintf(username, "%s", get_var(qvars, "email1"));
+	cols = tcmapnew3("uid", uid, "username", username, "name", name,
+				"login_at", login_at, "last_seen", last_seen,
+				"origin_ip", current_session->origin_ip,
+				"client_id", current_session->client_id,
+				"session_id", current_session->session_id,
+				"restrict_ip", restrict_ip,
+				"capabilities", capabilities, NULL);
+	tctdbput(tdb, pkbuf, primary_key_size, cols);
+
+	tcmapdel(cols);
+
+	tctdbclose(tdb);
+	tctdbdel(tdb);
+}
+
+/*
  * Activate a users account in the system.
  */
 void do_activate_user(char *uid, char *key, char *password)

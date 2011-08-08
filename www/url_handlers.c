@@ -878,6 +878,28 @@ out:
 }
 
 /*
+ * /prefs/
+ *
+ * HTML is in templates/prefs.tmpl
+ */
+static void prefs(struct session *current_session)
+{
+	TMPL_varlist *vl = NULL;
+
+	if (current_session->capabilities & ADMIN)
+		vl = TMPL_add_var(vl, "admin", "yes", NULL);
+	if (current_session->capabilities & APPROVER)
+		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+
+	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/prefs.tmpl", NULL, NULL, vl, stdout, error_log);
+	fflush(error_log);
+	TMPL_free_varlist(vl);
+}
+
+/*
  * /prefs/fmap/
  *
  * HTML is in templates/prefs_fmap.tmpl
@@ -995,6 +1017,121 @@ static void prefs_fmap(struct session *current_session, GHashTable *qvars)
 	fflush(error_log);
 	TMPL_free_varlist(vl);
 	free_fields(&fields);
+}
+
+/*
+ * /prefs/edit_user/
+ *
+ * HTML is in templates/prefs_edit_user.tmpl
+ *
+ * Allow users to change their details.
+ */
+static void prefs_edit_user(char *request_method,
+					struct session *current_session,
+					GHashTable *qvars)
+{
+	int form_err = 0;
+	TMPL_varlist *vl = NULL;
+
+	/*
+	 * If we got POST data, update the users settings before
+	 * showing them.
+	 */
+	if (strcmp(request_method, "POST") == 0) {
+		if ((strlen(get_var(qvars, "email1")) == 0 &&
+				strlen(get_var(qvars, "email2")) == 0) ||
+				(strcmp(get_var(qvars, "email1"),
+				get_var(qvars, "email2")) != 0)) {
+			vl = TMPL_add_var(vl, "email_error", "yes", NULL);
+			form_err = 1;
+		}
+		if (strlen(get_var(qvars, "pass1")) > 7 &&
+					strlen(get_var(qvars, "pass2")) > 7) {
+			if (strcmp(get_var(qvars, "pass1"),
+					get_var(qvars, "pass2")) != 0) {
+				vl = TMPL_add_var(vl, "pass_error",
+							"mismatch", NULL);
+				form_err = 1;
+			}
+		/*
+		 * If the password fields are > 0 in length, then we tried
+		 * to update it.
+		 */
+		} else if (strlen(get_var(qvars, "pass1")) != 0 &&
+					strlen(get_var(qvars, "pass2")) != 0) {
+			vl = TMPL_add_var(vl, "pass_error", "length", NULL);
+			form_err = 1;
+		}
+
+		if (!form_err) {
+			do_edit_user(current_session, qvars);
+			/* After the update we want to re-GET */
+			printf("Location: /prefs/edit_user/?updated=yes"
+								"\r\n\r\n");
+			return;
+		}
+	} else {
+		if (strlen(get_var(qvars, "updated")) > 0)
+			vl = TMPL_add_var(vl, "updated", "yes", NULL);
+	}
+
+	/*
+	 * If form_err is still 0, then either we got a GET and just want
+	 * to show the users settings from the database. Or we got a POST
+	 * and successfully updated the users settings and want to show them.
+	 *
+	 * Else we tried to update the users settings but made some mistake
+	 * and need to re-edit them in which case we need show the values
+	 * from the POST'd form.
+	 */
+	if (!form_err) {
+		char sql[SQL_MAX];
+		MYSQL *conn;
+		MYSQL_RES *res;
+		GHashTable *db_row = NULL;
+
+		conn = db_conn();
+		snprintf(sql, SQL_MAX, "SELECT username, name FROM passwd "
+							"WHERE uid = %u",
+							current_session->uid);
+		d_fprintf(sql_log, "%s\n", sql);
+		mysql_query(conn, sql);
+		res = mysql_store_result(conn);
+		db_row = get_dbrow(res);
+
+		vl = TMPL_add_var(vl, "username", get_var(db_row, "username"),
+									NULL);
+		vl = TMPL_add_var(vl, "email1", get_var(db_row, "username"),
+									NULL);
+		vl = TMPL_add_var(vl, "email2", get_var(db_row, "username"),
+									NULL);
+		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
+
+		free_vars(db_row);
+		mysql_free_result(res);
+		mysql_close(conn);
+	} else {
+		vl = TMPL_add_var(vl, "username", get_var(qvars, "email1"),
+									NULL);
+		vl = TMPL_add_var(vl, "email1", get_var(qvars, "email1"),
+									NULL);
+		vl = TMPL_add_var(vl, "email2", get_var(qvars, "email2"),
+									NULL);
+		vl = TMPL_add_var(vl, "name", get_var(qvars, "name"), NULL);
+	}
+
+	if (current_session->capabilities & ADMIN)
+		vl = TMPL_add_var(vl, "admin", "yes", NULL);
+	if (current_session->capabilities & APPROVER)
+		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+
+	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write("templates/prefs_edit_user.tmpl", NULL, NULL, vl, stdout,
+								error_log);
+	fflush(error_log);
+	TMPL_free_varlist(vl);
 }
 
 /*
@@ -2461,6 +2598,16 @@ void handle_request(void)
 
 	if (strncmp(request_uri, "/prefs/fmap/", 11) == 0) {
 		prefs_fmap(&current_session, qvars);
+		goto out;
+	}
+
+	if (strncmp(request_uri, "/prefs/edit_user/", 17) == 0) {
+		prefs_edit_user(request_method, &current_session, qvars);
+		goto out;
+	}
+
+	if (strncmp(request_uri, "/prefs/", 7) == 0) {
+		prefs(&current_session);
 		goto out;
 	}
 
