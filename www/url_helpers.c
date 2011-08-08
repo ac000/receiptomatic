@@ -1069,6 +1069,9 @@ void do_update_user(GHashTable *qvars)
 
 	mysql_close(conn);
 	free(hash);
+
+	if (!enabled)
+		delete_user_session(uid);
 }
 
 /*

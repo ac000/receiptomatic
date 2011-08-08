@@ -22,5 +22,6 @@ void free_vars(GHashTable *vars);
 char *generate_activation_key(char *email_addr);
 void send_activation_mail(char *name, char *address, char *key);
 char *generate_password_hash(int hash_type, char *password);
+void delete_user_session(unsigned int uid);
 
 #endif /* _UTILS_H_ */

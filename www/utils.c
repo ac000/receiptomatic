@@ -415,3 +415,35 @@ char *generate_password_hash(int hash_type, char *password)
 
 	return crypt(password, salt);
 }
+
+/*
+ * Given a user ID, delete their session(s) from the tokyo cabinet
+ * session file.
+ */
+void delete_user_session(unsigned int uid)
+{
+	char suid[11];
+	const char *rbuf;
+	int i;
+	int rsize;
+	TCTDB *tdb;
+	TDBQRY *qry;
+	TCLIST *res;
+
+	tdb = tctdbnew();
+	tctdbopen(tdb, SESSION_DB, TDBOWRITER);
+
+	snprintf(suid, 11, "%u", uid);
+	qry = tctdbqrynew(tdb);
+	tctdbqryaddcond(qry, "uid", TDBQCNUMEQ, suid);
+	res = tctdbqrysearch(qry);
+	for (i = 0; i < tclistnum(res); i++) {
+		rbuf = tclistval(res, i, &rsize);
+		tctdbout(tdb, rbuf, strlen(rbuf));
+	}
+
+	tclistdel(res);
+	tctdbqrydel(qry);
+	tctdbclose(tdb);
+	tctdbdel(tdb);
+}
