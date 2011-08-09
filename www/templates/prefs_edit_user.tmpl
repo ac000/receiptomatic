@@ -29,8 +29,11 @@
 		" />
 	<p />
 <tmpl_if name = "email_error">
-	<span class = "t_red">Usernames do not match</span><br />
+	<big><span class = "t_red">Usernames do not match</span></big><br />
+<tmpl_elsif name = "user_exists">
+	<big><span class = "t_red">Username already exists</span></big><br />
 </tmpl_if>
+	<big><span class = "lighter">Username should be your email address</span></big><br/ >
 	Username: <input type = "text" name = "email1" value = "<tmpl_var name = 'email1' />" size = "40" maxlength = "255" class = "
 		<tmpl_if name = 'email_error'>
 			input_error

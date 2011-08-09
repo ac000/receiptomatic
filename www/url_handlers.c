@@ -1109,6 +1109,13 @@ static void prefs_edit_user(char *request_method,
 				get_var(qvars, "email2")) != 0)) {
 			vl = TMPL_add_var(vl, "email_error", "yes", NULL);
 			form_err = 1;
+		} else if (strcmp(current_session->username,
+					get_var(qvars,"email1")) != 0) {
+			if (user_already_exists(get_var(qvars,"email1"))) {
+				vl = TMPL_add_var(vl, "user_exists", "yes",
+									NULL);
+				form_err = 1;
+			}
 		}
 		if (strlen(get_var(qvars, "pass1")) > 7 &&
 					strlen(get_var(qvars, "pass2")) > 7) {
