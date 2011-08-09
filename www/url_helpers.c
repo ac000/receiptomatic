@@ -936,27 +936,22 @@ int do_add_user(GHashTable *qvars, unsigned char capabilities)
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 
-	conn = db_conn();
-
 	/* Check if the user is already in the system. */
-	email_addr = alloca(strlen(get_var(qvars, "email1")) * 2 + 1);
-	mysql_real_escape_string(conn, email_addr, get_var(qvars, "email1"),
-					strlen(get_var(qvars, "email1")));
-	snprintf(sql, SQL_MAX, "SELECT username FROM passwd WHERE "
-					"username = '%s'", email_addr);
-	d_fprintf(sql_log, "%s\n", sql);
-        mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
-	if (mysql_num_rows(res) > 0) {
+	if (user_already_exists(get_var(qvars, "email1"))) {
 		ret = -10;
 		goto out;
 	}
 
-	key = generate_activation_key(email_addr);
+	conn = db_conn();
 
+	email_addr = alloca(strlen(get_var(qvars, "email1")) * 2 + 1);
+	mysql_real_escape_string(conn, email_addr, get_var(qvars, "email1"),
+					strlen(get_var(qvars, "email1")));
 	name = alloca(strlen(get_var(qvars, "name")) * 2 + 1);
 	mysql_real_escape_string(conn, name, get_var(qvars, "name"),
 					strlen(get_var(qvars, "name")));
+
+	key = generate_activation_key(email_addr);
 
 	/* We need to be sure a new uid isn't inserted here */
 	mysql_query(conn, "LOCK TABLES passwd WRITE");
@@ -980,12 +975,12 @@ int do_add_user(GHashTable *qvars, unsigned char capabilities)
 	mysql_real_query(conn, sql, strlen(sql));
 
 	send_activation_mail(name, email_addr, key);
-	free(key);
 
-out:
+	free(key);
 	mysql_free_result(res);
 	mysql_close(conn);
 
+out:
 	return ret;
 }
 

@@ -447,3 +447,35 @@ void delete_user_session(unsigned int uid)
 	tctdbclose(tdb);
 	tctdbdel(tdb);
 }
+
+/*
+ * Given a username, check if an account for it already exists.
+ *
+ * 0 - not exists
+ * 1 - exists
+ */
+int user_already_exists(char *username)
+{
+	char sql[SQL_MAX];
+	char *user;
+	int ret = 0;
+	MYSQL *conn;
+	MYSQL_RES *res;
+
+	conn = db_conn();
+
+	user = alloca(strlen(username) * 2 + 1);
+	mysql_real_escape_string(conn, user, username, strlen(username));
+	snprintf(sql, SQL_MAX, "SELECT username FROM passwd WHERE "
+						"username = '%s'", user);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_real_query(conn, sql, strlen(sql));
+	res = mysql_store_result(conn);
+	if (mysql_num_rows(res) > 0)
+		ret = 1;
+
+	mysql_free_result(res);
+	mysql_close(conn);
+
+	return ret;
+}
