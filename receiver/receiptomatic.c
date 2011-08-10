@@ -62,6 +62,30 @@ out:
 	return ret;
 }
 
+static void send_error_email(char *email_addr)
+{
+	static int sent_email = 0;
+
+	/* We only want to send one error email per received email */
+	if (sent_email)
+		return;
+
+	FILE *fp = popen(MAIL_CMD, "w");
+
+	fprintf(fp, "Reply-to: %s\n", MAIL_REPLY_TO);
+	fprintf(fp, "From: %s\n", MAIL_FROM);
+	fprintf(fp, "Subject: Receiptomatic email error\n");
+	fprintf(fp, "To: %s\n", email_addr);
+	fputs("Content-type: text/plain\n\n", fp);
+	fputs("The email address that you sent your image(s) from is not the "
+					"one you use to login into the system."
+					"\n\n", fp);
+	fputs("Your image has not been stored.\n", fp);
+
+	pclose(fp);
+	sent_email = 1;
+}
+
 /*
  * Given an email address in any of the following forms:
  *
@@ -229,6 +253,7 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	char path[PATH_MAX];
 	char sql[1024];
 	char *user;
+	char *from;
 	char *image_id;
 	int bytes;
 	unsigned int uid;
@@ -258,15 +283,19 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	 *
 	 *	UID/YYYY/MM/DD
 	 */
+	from = get_from_addr((char *)user_data);
 	user = alloca(strlen(user_data) * 2 + 1);
-	mysql_real_escape_string(conn, user, user_data, strlen(user_data));
+	mysql_real_escape_string(conn, user, from, strlen(from));
+	free(from);
 	snprintf(sql, sizeof(sql), "SELECT uid FROM passwd WHERE username = "
 								"'%s'", user);
 	printf("SQL: %s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
-	if (mysql_num_rows(res) == 0)
+	if (mysql_num_rows(res) == 0) {
+		send_error_email((char *)user_data);
 		goto out;
+	}
 	row = mysql_fetch_row(res);
 	uid = atoi(row[0]);
 
@@ -334,7 +363,6 @@ static void process_message(int dirfd, char *filename)
 	const InternetAddressList *recips;
 	InternetAddress *addr;
 	int fd;
-	char *from;
 
 	g_mime_init(0);
 
@@ -349,13 +377,9 @@ static void process_message(int dirfd, char *filename)
 	printf("To: %s\n", internet_address_to_string(addr, FALSE));
 	printf("Subject: %s\n", (char *)g_mime_message_get_subject(message));
 
-	from = get_from_addr((char *)g_mime_message_get_sender(message));
-	printf("Using <%s> for image destination.\n", from);
-
 	g_mime_message_foreach_part(message, (GMimePartFunc)process_part,
-								(void *)from);
+				(void *)g_mime_message_get_sender(message));
 
-	free(from);
 	g_object_unref(stream);
 	g_object_unref(parser);
 	g_object_unref(message);
