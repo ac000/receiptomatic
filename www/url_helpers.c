@@ -588,7 +588,7 @@ void set_custom_field_names(struct session *current_session,
 	set_default_field_names(fields);
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT * FROM field_names WHERE uid = '%u'",
+	snprintf(sql, SQL_MAX, "SELECT * FROM field_names WHERE uid = %u",
 							current_session->uid);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
