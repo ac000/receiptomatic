@@ -525,53 +525,22 @@ int check_amounts(double gross, double net, double vat, double vr)
  */
 void set_default_field_names(struct field_names *fields)
 {
-	fields->receipt_date = malloc(strlen(DFN_RECEIPT_DATE) + 1);
-	strcpy(fields->receipt_date, DFN_RECEIPT_DATE);
-
-	fields->department = malloc(strlen(DFN_DEPARTMENT) + 1);
-	strcpy(fields->department, DFN_DEPARTMENT);
-
-	fields->employee_number = malloc(strlen(DFN_EMPLOYEE_NUMBER) + 1);
-	strcpy(fields->employee_number, DFN_EMPLOYEE_NUMBER);
-
-	fields->reason = malloc(strlen(DFN_REASON) + 1);
-	strcpy(fields->reason, DFN_REASON);
-
-	fields->po_num = malloc(strlen(DFN_PO_NUM) + 1);
-	strcpy(fields->po_num, DFN_PO_NUM);
-
-	fields->cost_codes = malloc(strlen(DFN_COST_CODES) + 1);
-	strcpy(fields->cost_codes, DFN_COST_CODES);
-
-	fields->account_codes = malloc(strlen(DFN_ACCOUNT_CODES) + 1);
-	strcpy(fields->account_codes, DFN_ACCOUNT_CODES);
-
-	fields->supplier_name = malloc(strlen(DFN_SUPPLIER_NAME) + 1);
-	strcpy(fields->supplier_name, DFN_SUPPLIER_NAME);
-
-	fields->supplier_town = malloc(strlen(DFN_SUPPLIER_TOWN) + 1);
-	strcpy(fields->supplier_town, DFN_SUPPLIER_TOWN);
-
-	fields->vat_number = malloc(strlen(DFN_VAT_NUMBER) + 1);
-	strcpy(fields->vat_number, DFN_VAT_NUMBER);
-
-	fields->gross_amount = malloc(strlen(DFN_GROSS_AMOUNT) + 1);
-	strcpy(fields->gross_amount, DFN_GROSS_AMOUNT);
-
-	fields->net_amount = malloc(strlen(DFN_NET_AMOUNT) + 1);
-	strcpy(fields->net_amount, DFN_NET_AMOUNT);
-
-	fields->vat_amount = malloc(strlen(DFN_VAT_AMOUNT) + 1);
-	strcpy(fields->vat_amount, DFN_VAT_AMOUNT);
-
-	fields->vat_rate = malloc(strlen(DFN_VAT_RATE) + 1);
-	strcpy(fields->vat_rate, DFN_VAT_RATE);
-
-	fields->currency = malloc(strlen(DFN_CURRENCY) + 1);
-	strcpy(fields->currency, DFN_CURRENCY);
-
-	fields->payment_method = malloc(strlen(DFN_PAYMENT_METHOD) + 1);
-	strcpy(fields->payment_method, DFN_PAYMENT_METHOD);
+	fields->receipt_date = strdup(DFN_RECEIPT_DATE);
+	fields->department = strdup(DFN_DEPARTMENT);
+	fields->employee_number = strdup(DFN_EMPLOYEE_NUMBER);
+	fields->reason = strdup(DFN_REASON);
+	fields->po_num = strdup(DFN_PO_NUM);
+	fields->cost_codes = strdup(DFN_COST_CODES);
+	fields->account_codes = strdup(DFN_ACCOUNT_CODES);
+	fields->supplier_name = strdup(DFN_SUPPLIER_NAME);
+	fields->supplier_town = strdup(DFN_SUPPLIER_TOWN);
+	fields->vat_number = strdup(DFN_VAT_NUMBER);
+	fields->gross_amount = strdup(DFN_GROSS_AMOUNT);
+	fields->net_amount = strdup(DFN_NET_AMOUNT);
+	fields->vat_amount = strdup(DFN_VAT_AMOUNT);
+	fields->vat_rate = strdup(DFN_VAT_RATE);
+	fields->currency = strdup(DFN_CURRENCY);
+	fields->payment_method = strdup(DFN_PAYMENT_METHOD);
 }
 
 /*
@@ -598,43 +567,75 @@ void set_custom_field_names(struct session *current_session,
 
 	db_row = get_dbrow(res);
 
-	if (strlen(get_var(db_row, "receipt_date")) > 0)
+	if (strlen(get_var(db_row, "receipt_date")) > 0) {
+		free(fields->receipt_date);
 		fields->receipt_date = strdup(get_var(db_row, "receipt_date"));
-	if (strlen(get_var(db_row, "department")) > 0)
+	}
+	if (strlen(get_var(db_row, "department")) > 0) {
+		free(fields->department);
 		fields->department = strdup(get_var(db_row, "department"));
-	if (strlen(get_var(db_row, "employee_number")) > 0)
+	}
+	if (strlen(get_var(db_row, "employee_number")) > 0) {
+		free(fields->employee_number);
 		fields->employee_number = strdup(get_var(db_row,
 							"employee_number"));
-	if (strlen(get_var(db_row, "reason")) > 0)
+	}
+	if (strlen(get_var(db_row, "reason")) > 0) {
+		free(fields->reason);
 		fields->reason = strdup(get_var(db_row, "reason"));
-	if (strlen(get_var(db_row, "po_num")) > 0)
+	}
+	if (strlen(get_var(db_row, "po_num")) > 0) {
+		free(fields->po_num);
 		fields->po_num = strdup(get_var(db_row, "po_num"));
-	if (strlen(get_var(db_row, "cost_codes")) > 0)
+	}
+	if (strlen(get_var(db_row, "cost_codes")) > 0) {
+		free(fields->cost_codes);
 		fields->cost_codes = strdup(get_var(db_row, "cost_codes"));
-	if (strlen(get_var(db_row, "account_codes")) > 0)
+	}
+	if (strlen(get_var(db_row, "account_codes")) > 0) {
+		free(fields->account_codes);
 		fields->account_codes = strdup(get_var(db_row,
 							"account_codes"));
-	if (strlen(get_var(db_row, "supplier_name")) > 0)
+	}
+	if (strlen(get_var(db_row, "supplier_name")) > 0) {
+		free(fields->supplier_name);
 		fields->supplier_name = strdup(get_var(db_row,
 							"supplier_name"));
-	if (strlen(get_var(db_row, "supplier_town")) > 0)
+	}
+	if (strlen(get_var(db_row, "supplier_town")) > 0) {
+		free(fields->supplier_town);
 		fields->supplier_town = strdup(get_var(db_row,
 							"supplier_town"));
-	if (strlen(get_var(db_row, "vat_number")) > 0)
+	}
+	if (strlen(get_var(db_row, "vat_number")) > 0) {
+		free(fields->vat_number);
 		fields->vat_number = strdup(get_var(db_row, "vat_number"));
-	if (strlen(get_var(db_row, "gross_amount")) > 0)
+	}
+	if (strlen(get_var(db_row, "gross_amount")) > 0) {
+		free(fields->gross_amount);
 		fields->gross_amount = strdup(get_var(db_row, "gross_amount"));
-	if (strlen(get_var(db_row, "net_amount")) > 0)
+	}
+	if (strlen(get_var(db_row, "net_amount")) > 0) {
+		free(fields->net_amount);
 		fields->net_amount = strdup(get_var(db_row, "net_amount"));
-	if (strlen(get_var(db_row, "vat_amount")) > 0)
+	}
+	if (strlen(get_var(db_row, "vat_amount")) > 0) {
+		free(fields->vat_amount);
 		fields->vat_amount = strdup(get_var(db_row, "vat_amount"));
-	if (strlen(get_var(db_row, "vat_rate")) > 0)
+	}
+	if (strlen(get_var(db_row, "vat_rate")) > 0) {
+		free(fields->vat_rate);
 		fields->vat_rate = strdup(get_var(db_row, "vat_rate"));
-	if (strlen(get_var(db_row, "currency")) > 0)
+	}
+	if (strlen(get_var(db_row, "currency")) > 0) {
+		free(fields->currency);
 		fields->currency = strdup(get_var(db_row, "currency"));
-	if (strlen(get_var(db_row, "payment_method")) > 0)
+	}
+	if (strlen(get_var(db_row, "payment_method")) > 0) {
+		free(fields->payment_method);
 		fields->payment_method = strdup(get_var(db_row,
 							"payment_method"));
+	}
 
 	free_vars(db_row);
 
