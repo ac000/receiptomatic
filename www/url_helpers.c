@@ -453,6 +453,7 @@ void create_session(GHashTable *credentials, char *http_user_agent,
 	snprintf(sql, SQL_MAX, "SELECT uid, name, capabilities FROM passwd "
 						"WHERE username = '%s'",
 						username);
+	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	db_row = get_dbrow(res);
