@@ -20,8 +20,10 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/time.h>
 #include <time.h>
 #include <alloca.h>
+#include <netdb.h>
 
 #include <mhash.h>
 
@@ -38,6 +40,7 @@
 #include "data_extraction.h"
 #include "url_helpers.h"
 #include "url_handlers.h"
+#include "audit.h"
 
 /*
  * /login/
@@ -50,13 +53,15 @@ static void login(char *http_user_agent, char *http_x_forwarded_for,
 							GHashTable *qvars)
 {
 	int ret = 1;
+	int sid;
 	TMPL_varlist *vl = NULL;
 
 	if (qvars) {
 		ret = check_auth(qvars);
 		if (ret == 0) {
+			sid = log_login(qvars, http_x_forwarded_for);
 			create_session(qvars, http_user_agent,
-							http_x_forwarded_for);
+						http_x_forwarded_for, sid);
 			printf("Location: /receipts/\r\n\r\n");
 			return; /* Successful login */
 		}
@@ -2392,14 +2397,31 @@ static void receipts(struct session *current_session)
 	TMPL_varlist *vl = NULL;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
+	time_t llogin;
+	char llogin_from[NI_MAXHOST];
 
-	/* Display the user's name and UID at the top of the page */
 	if (current_session->capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
 	if (current_session->capabilities & ADMIN)
 		ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
+	/* Display the user's name and UID at the top of the page */
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
+
+	/*
+	 * Display the users last login time and location, we only show
+	 * this on the /receipts/ page.
+	 */
+	llogin = get_last_login(current_session->uid, llogin_from);
+	if (llogin > 0) {
+		char tbuf[32];
+
+		strftime(tbuf, 32, "%a %b %H:%M %Y", localtime(&llogin));
+		ml = TMPL_add_var(ml, "last_login", tbuf, NULL);
+		ml = TMPL_add_var(ml, "last_login_from", llogin_from, NULL);
+	} else {
+		ml = TMPL_add_var(ml, "last_login", "First login", NULL);
+	}
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT id, timestamp, path, name FROM images "

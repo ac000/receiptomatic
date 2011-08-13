@@ -290,6 +290,7 @@ void set_current_session(struct session *current_session, char *cookies,
 	char login_at[21];
 	char last_seen[21];
 	char uid[11];
+	char sid[11];
 	char restrict_ip[2];
 	char capabilities[4];
 	char user_hdr[1024];
@@ -318,6 +319,7 @@ void set_current_session(struct session *current_session, char *cookies,
 	cols = tctdbget(tdb, rbuf, rsize);
 	tcmapiterinit(cols);
 
+	current_session->sid = atoi(tcmapget2(cols, "sid"));
 	current_session->uid = atoi(tcmapget2(cols, "uid"));
 	current_session->username = strdup(tcmapget2(cols, "username"));
 	current_session->name = strdup(tcmapget2(cols, "name"));
@@ -372,10 +374,12 @@ void set_current_session(struct session *current_session, char *cookies,
 	snprintf(login_at, 21, "%ld", current_session->login_at);
 	snprintf(last_seen, 21, "%ld", current_session->last_seen);
 	snprintf(uid, 11, "%u", current_session->uid);
+	snprintf(sid, 11, "%u", current_session->sid);
 	snprintf(restrict_ip, 2, "%d", current_session->restrict_ip);
 	snprintf(capabilities, 4, "%d", current_session->capabilities);
-	cols = tcmapnew3("uid", uid, "username", current_session->username,
-				"name", current_session->name, "login_at",
+	cols = tcmapnew3("sid", sid, "uid", uid, "username",
+				current_session->username, "name",
+				current_session->name, "login_at",
 				login_at, "last_seen", last_seen, "origin_ip",
 				current_session->origin_ip, "client_id",
 				current_session->client_id, "session_id",
@@ -428,13 +432,14 @@ char *create_session_id(void)
  * Create a new user session. This is done upon each successful login.
  */
 void create_session(GHashTable *credentials, char *http_user_agent,
-						char *http_x_forwarded_for)
+			char *http_x_forwarded_for, unsigned int sid)
 {
 	char *session_id;
 	char restrict_ip[2] = "0\0";
 	char sql[SQL_MAX];
 	char pkbuf[256];
 	char timestamp[21];
+	char ssid[11];
 	char *username;
 	int primary_key_size;
 	MYSQL *conn;
@@ -470,11 +475,12 @@ void create_session(GHashTable *credentials, char *http_user_agent,
 	tctdbopen(tdb, SESSION_DB, TDBOWRITER | TDBOCREAT);
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
 	snprintf(timestamp, 21, "%ld", (long)time(NULL));
-	cols = tcmapnew3("uid", get_var(db_row, "uid"), "username",
-					get_var(credentials, "username"),
-					"name", get_var(db_row, "name"),
-					"login_at", timestamp, "last_seen",
-					timestamp, "origin_ip",
+	snprintf(ssid, 11, "%u", sid);
+	cols = tcmapnew3("sid", ssid, "uid", get_var(db_row, "uid"),
+					"username", get_var(credentials,
+					"username"), "name", get_var(db_row,
+					"name"), "login_at", timestamp,
+					"last_seen", timestamp, "origin_ip",
 					http_x_forwarded_for, "client_id",
 					http_user_agent, "session_id",
 					session_id, "restrict_ip", restrict_ip,

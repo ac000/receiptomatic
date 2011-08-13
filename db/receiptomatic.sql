@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 04, 2011 at 05:17 PM
+-- Generation Time: Aug 13, 2011 at 02:01 PM
 -- Server version: 5.0.77
 -- PHP Version: 5.1.6
 
@@ -152,4 +152,22 @@ CREATE TABLE IF NOT EXISTS `tags` (
   KEY `timestamp` (`timestamp`),
   KEY `payment_method` (`payment_method`),
   KEY `uid` (`uid`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `utmp`
+--
+
+CREATE TABLE IF NOT EXISTS `utmp` (
+  `login_at` double(16,6) NOT NULL,
+  `uid` int(10) unsigned NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `ip` varchar(39) NOT NULL,
+  `hostname` varchar(255) NOT NULL,
+  `sid` bigint(20) unsigned NOT NULL,
+  UNIQUE KEY `sid` (`sid`),
+  KEY `uid` (`uid`),
+  KEY `login_at` (`login_at`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;

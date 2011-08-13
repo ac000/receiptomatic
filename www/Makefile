@@ -1,7 +1,7 @@
 LIBS=-L../../libctemplate `pkg-config --libs glib-2.0` `mysql_config --libs` -lm -lrt -lcrypt -lfcgi -lmhash -ltokyocabinet -lmagic -lctemplate
 INCS=-I../../libctemplate `pkg-config --cflags glib-2.0` `mysql_config --cflags `
-receiptomatic-www: receiptomatic-www.o get_config.o url_handlers.o url_helpers.o data_extraction.o utils.o db.o
-	gcc -Wall -o receiptomatic-www receiptomatic-www.o get_config.o url_handlers.o url_helpers.o data_extraction.o utils.o db.o -D_RECEIPTOMATIC_WWW_ ${LIBS}
+receiptomatic-www: receiptomatic-www.o get_config.o url_handlers.o url_helpers.o data_extraction.o utils.o db.o audit.o
+	gcc -Wall -o receiptomatic-www receiptomatic-www.o get_config.o url_handlers.o url_helpers.o data_extraction.o utils.o db.o audit.o -D_RECEIPTOMATIC_WWW_ ${LIBS}
 
 receiptomatic-www.o: common.h receiptomatic-www.h receiptomatic-www.c
 	gcc -Wall -c receiptomatic-www.c ${INCS}
@@ -23,6 +23,9 @@ db.o: common.h db.h db.c
 
 get_config.o: common.h get_config.c
 	gcc -Wall -c get_config.c ${INCS}
+
+audit.o: common.h audit.h audit.c
+	gcc -Wall -c audit.c ${INCS}
 
 clean:
 	rm receiptomatic-www *.o

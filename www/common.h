@@ -65,6 +65,7 @@
  * in a tokyocabinet database table inbetween requests.
  */
 struct session {
+	unsigned int sid;
 	unsigned int uid;
 	unsigned char capabilities;
 	char *username;
