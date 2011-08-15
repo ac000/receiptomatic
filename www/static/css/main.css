@@ -27,11 +27,11 @@ body {
 }
 
 .list {
-	vertical_align: top;
+	vertical-align: top;
 }
 
 .listzebra {
-	vertical_align: top;
+	vertical-align: top;
 	background-color: rgb(245, 250, 255);
 }
 
