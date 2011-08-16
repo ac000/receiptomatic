@@ -456,10 +456,7 @@ static void admin_list_users(struct session *current_session, GHashTable *qvars)
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/admin_list_users.tmpl", NULL, NULL, ml, stdout,
-								error_log);
-	fflush(error_log);
+	send_template("templates/admin_list_users.tmpl", ml);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
