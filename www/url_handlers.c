@@ -72,9 +72,7 @@ static void login(char *http_user_agent, char *http_x_forwarded_for,
 	if (ret == -2)
 		vl = TMPL_add_var(0, "enabled", "no", NULL);
 
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/login.tmpl", NULL, NULL, vl, stdout, error_log);
-	fflush(error_log);
+	send_template("templates/login.tmpl", vl);
 	TMPL_free_varlist(vl);
 }
 
