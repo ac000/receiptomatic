@@ -940,10 +940,7 @@ mysql_cleanup:
 	mysql_close(conn);
 
 out:
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/forgotten_password.tmpl", NULL, NULL, vl, stdout,
-								error_log);
-	fflush(error_log);
+	send_template("templates/forgotten_password.tmpl", vl);
 	TMPL_free_varlist(vl);
 }
 
