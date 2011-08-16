@@ -185,7 +185,7 @@ static void dump_session_state(int signo)
 static void terminate(int signo)
 {
 	kill(0, SIGTERM);
-	exit(EXIT_SUCCESS);
+	_exit(EXIT_SUCCESS);
 }
 
 /*
