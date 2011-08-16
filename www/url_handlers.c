@@ -2172,11 +2172,7 @@ static void tagged_receipts(struct session *current_session, GHashTable *qvars)
 	ml = TMPL_add_loop(ml, "table", loop);
 
 out:
-	printf("Cache-Control: private\r\n");
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/tagged_receipts.tmpl", NULL, NULL, ml, stdout,
-								error_log);
-	fflush(error_log);
+	send_template("templates/tagged_receipts.tmpl", ml);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
