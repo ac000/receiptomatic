@@ -206,10 +206,7 @@ static void delete_image(struct session *current_session, GHashTable *qvars)
 		goto out1;
 	}
 
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/delete_image.tmpl", NULL, NULL, vl, stdout,
-								error_log);
-	fflush(error_log);
+	send_template("templates/delete_image.tmpl", vl);
 	headers_sent = 1;
 
 out1:
