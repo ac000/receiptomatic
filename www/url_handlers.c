@@ -2364,11 +2364,7 @@ static void process_receipt(struct session *current_session, GHashTable *qvars)
 	} else {
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
 			vl = TMPL_add_var(vl, "from", "receipt_info");
-		printf("Cache-Control: private\r\n");
-		printf("Content-Type: text/html\r\n\r\n");
-		TMPL_write("templates/process_receipt.tmpl", NULL, NULL, vl,
-							stdout, error_log);
-		fflush(error_log);
+		send_template("templates/process_receipt.tmpl", vl);
 		TMPL_free_varlist(vl);
 	}
 	free_fields(&fields);
