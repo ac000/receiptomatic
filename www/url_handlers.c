@@ -1081,10 +1081,7 @@ static void prefs_fmap(struct session *current_session, GHashTable *qvars)
 					fields.payment_method) ? "" :
 					fields.payment_method, NULL);
 
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/prefs_fmap.tmpl", NULL, NULL, vl, stdout,
-								error_log);
-	fflush(error_log);
+	send_template("templates/prefs_fmap.tmpl", vl);
 	TMPL_free_varlist(vl);
 	free_fields(&fields);
 }
