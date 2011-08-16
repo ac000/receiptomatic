@@ -1204,10 +1204,7 @@ static void prefs_edit_user(char *request_method,
 
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/prefs_edit_user.tmpl", NULL, NULL, vl, stdout,
-								error_log);
-	fflush(error_log);
+	send_template("templates/prefs_edit_user.tmpl", vl);
 	TMPL_free_varlist(vl);
 }
 
