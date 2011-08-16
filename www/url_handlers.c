@@ -874,10 +874,7 @@ static void generate_new_key(GHashTable *qvars)
 	vl = TMPL_add_var(vl, "email", email_addr, NULL);
 
 out:
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/generate_new_key.tmpl", NULL, NULL, vl, stdout,
-								error_log);
-	fflush(error_log);
+	send_template("templates/generate_new_key.tmpl", vl);
 	TMPL_free_varlist(vl);
 
 	mysql_free_result(res);
