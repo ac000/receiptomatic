@@ -28,6 +28,10 @@
 extern char **environ;
 static char **rargv;
 
+static volatile sig_atomic_t create_new_server = 0;
+static volatile sig_atomic_t dump_sessions = 0;
+static volatile sig_atomic_t clear_sessions = 0;
+
 FILE *access_log;
 FILE *sql_log;
 FILE *error_log;
@@ -118,12 +122,23 @@ static void create_server(int nr)
 			accept_request();
 		}
 	}
+
+	create_new_server = 0;
+}
+
+/*
+ * signal handler for SIGUSR1, sets a flag to inform that
+ * dump_sessions_state() should be run.
+ */
+static void sh_dump_session_state(int signo)
+{
+	dump_sessions = 1;
 }
 
 /*
  * Dumps session state upon receiving a SIGUSR1
  */
-static void dump_session_state(int signo)
+static void dump_session_state(void)
 {
 	TCTDB *tdb;
 	TDBQRY *qry;
@@ -177,6 +192,28 @@ static void dump_session_state(int signo)
 	tctdbdel(tdb);
 
 	fflush(debug_log);
+
+	dump_sessions = 0;
+}
+
+/*
+ * Signal handler to handle child process terminations.
+ */
+static void reaper(int signo)
+{
+	int status;
+
+	waitpid(-1, &status, 0);
+	/*
+	 * If a process dies, create a new one.
+	 *
+	 * However, don't create new processes if we get a
+	 * SIGTERM or SIGKILL signal as that will stop the
+	 * thing from being shutdown.
+	 */
+	if (WIFSIGNALED(status) && (WTERMSIG(status) != SIGTERM &&
+				WTERMSIG(status) != SIGKILL))
+		create_new_server = 1;
 }
 
 /*
@@ -189,10 +226,19 @@ static void terminate(int signo)
 }
 
 /*
+ * signal handler for SIGRTMIN, sets a flag to inform that
+ * clear_old_sessions() should be run.
+ */
+static void sh_clear_old_sessions(int sig, siginfo_t *si, void *uc)
+{
+	clear_sessions = 1;
+}
+
+/*
  * Clear out old sessions that haven't been accessed (last_seen) since
  * SESSION_EXPIRY ago.
  */
-static void clear_old_sessions(int sig, siginfo_t *si, void *uc)
+static void clear_old_sessions(void)
 {
 	TCTDB *tdb;
 	TDBQRY *qry;
@@ -227,6 +273,8 @@ out:
 	tctdbqrydel(qry);
 	tctdbclose(tdb);
 	tctdbdel(tdb);
+
+	clear_sessions = 0;
 }
 
 /*
@@ -241,7 +289,7 @@ static void init_clear_session_timer(void)
 
 	memset(&action, 0, sizeof(&action));
 	action.sa_flags = SA_RESTART;
-	action.sa_sigaction = clear_old_sessions;
+	action.sa_sigaction = sh_clear_old_sessions;
 	sigemptyset(&action.sa_mask);
 	sigaction(SIGRTMIN, &action, NULL);
 
@@ -261,7 +309,6 @@ static void init_clear_session_timer(void)
 int main(int argc, char **argv)
 {
 	struct sigaction action;
-	int status;
 	int ret;
 
 	/* Used by set_proc_title() */
@@ -286,7 +333,7 @@ int main(int argc, char **argv)
 	/* Setup signal handler for USR1 to dump session state */
 	memset(&action, 0, sizeof(&action));
 	sigemptyset(&action.sa_mask);
-	action.sa_handler = dump_session_state;
+	action.sa_handler = sh_dump_session_state;
 	action.sa_flags = SA_RESTART;
 	sigaction(SIGUSR1, &action, NULL);
 
@@ -299,6 +346,15 @@ int main(int argc, char **argv)
 	action.sa_handler = terminate;
 	sigaction(SIGTERM, &action, NULL);
 
+	/*
+	 * Setup a signal handler for SIGCHLD to handle child
+	 * process terminations.
+	 */
+	memset(&action, 0, sizeof(&action));
+	sigemptyset(&action.sa_mask);
+	action.sa_handler = reaper;
+	sigaction(SIGCHLD, &action, NULL);
+
 	init_clear_session_timer();
 
 	/* Pre-fork NR_PROCS worker processes */
@@ -307,18 +363,27 @@ int main(int argc, char **argv)
 	/* Set the process name for the master process */
 	set_proc_title("receiptomatic-www: master");
 
+	/*
+	 * To make the signal handlers as simple as possible and
+	 * reentrant safe, they just set flags to say what should
+	 * be done.
+	 *
+	 * The simplest way to check these is to wake up periodically, which
+	 * is what we currently do. The more complex way is the self-pipe
+	 * trick. p. 1370, The Linux Programming Interface - M. Kerrisk
+	 *
+	 * We can actually sleep a long time without problems, as the sleep
+	 * is interrupted by the signal and the rest of the loop is executed
+	 * and then we do the sleep again.
+	 */
 	for (;;) {
-		waitpid(-1, &status, 0);
-		/*
-		 * If a process dies, create a new one.
-		 *
-		 * However, don't create new processes if we get a
-		 * SIGTERM or SIGKILL signal as that will stop the
-		 * thing from being shutdown.
-		 */
-		if (WIFSIGNALED(status) && (WTERMSIG(status) != SIGTERM &&
-						WTERMSIG(status) != SIGKILL))
+		sleep(60);
+		if (create_new_server)
 			create_server(1);
+		if (dump_sessions)
+			dump_session_state();
+		if (clear_sessions)
+			clear_old_sessions();
 	}
 
 	mysql_library_end();
