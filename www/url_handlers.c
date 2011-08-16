@@ -551,10 +551,7 @@ static void admin_add_user(struct session *current_session, GHashTable *qvars)
 	}
 
 out:
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/admin_add_user.tmpl", NULL, NULL, vl, stdout,
-								error_log);
-	fflush(error_log);
+	send_template("templates/admin_add_user.tmpl", vl);
 
 out2:
 	TMPL_free_varlist(vl);
