@@ -25,6 +25,9 @@
 /* Hashing algorithms */
 #include <mhash.h>
 
+/* HTML template library */
+#include <ctemplate.h>
+
 #include <glib.h>
 
 #include "common.h"
@@ -1207,4 +1210,15 @@ void do_activate_user(char *uid, char *key, char *password)
 
 	mysql_close(conn);
 	free(hash);
+}
+
+/*
+ * Send the specified template to the user.
+ */
+void send_template(char *template, TMPL_varlist *varlist)
+{
+	printf("Cache-Control: private\r\n");
+	printf("Content-Type: text/html\r\n\r\n");
+	TMPL_write(template, NULL, NULL, varlist, stdout, error_log);
+	fflush(error_log);
 }

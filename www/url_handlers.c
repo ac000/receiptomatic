@@ -2499,11 +2499,7 @@ static void receipts(struct session *current_session)
 	free_fields(&fields);
 
 out:
-	printf("Cache-Control: private\r\n");
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/receipts.tmpl", NULL, NULL, ml, stdout,
-								error_log);
-	fflush(error_log);
+	send_template("templates/receipts.tmpl", ml);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);

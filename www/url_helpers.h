@@ -32,5 +32,6 @@ int do_add_user(GHashTable *qvars, unsigned char capabilities);
 void do_update_user(GHashTable *qvars);
 void do_edit_user(struct session *current_session, GHashTable *qvars);
 void do_activate_user(char *uid, char *key, char *password);
+void send_template(char *template, TMPL_varlist *varlist);
 
 #endif /* _URLHELPERS_H_ */
