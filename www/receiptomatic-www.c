@@ -297,7 +297,6 @@ int main(int argc, char **argv)
 	memset(&action, 0, sizeof(&action));
 	sigemptyset(&action.sa_mask);
 	action.sa_handler = terminate;
-	action.sa_flags = SA_RESTART;
 	sigaction(SIGTERM, &action, NULL);
 
 	init_clear_session_timer();
