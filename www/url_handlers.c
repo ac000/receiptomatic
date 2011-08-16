@@ -337,9 +337,7 @@ static void admin(struct session *current_session)
 
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/admin.tmpl", NULL, NULL, vl, stdout, error_log);
-	fflush(error_log);
+	send_template("templates/admin.tmpl", vl);
 	TMPL_free_varlist(vl);
 }
 
