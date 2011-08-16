@@ -817,10 +817,7 @@ out:
 	mysql_close(conn);
 
 out2:
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/activate_user.tmpl", NULL, NULL, vl, stdout,
-								error_log);
-	fflush(error_log);
+	send_template("templates/activate_user.tmpl", vl);
 	TMPL_free_varlist(vl);
 }
 
