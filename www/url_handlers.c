@@ -1252,10 +1252,7 @@ static void extract_data(struct session *current_session)
 	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
 	vl = TMPL_add_var(vl, "approver", "yes", NULL);
 
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write("templates/extract_data.tmpl", NULL, NULL, vl, stdout,
-								error_log);
-	fflush(error_log);
+	send_template("templates/extract_data.tmpl", vl);
 	TMPL_free_varlist(vl);
 }
 
