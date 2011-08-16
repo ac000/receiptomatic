@@ -372,12 +372,10 @@ int main(int argc, char **argv)
 	 * is what we currently do. The more complex way is the self-pipe
 	 * trick. p. 1370, The Linux Programming Interface - M. Kerrisk
 	 *
-	 * We can actually sleep a long time without problems, as the sleep
-	 * is interrupted by the signal and the rest of the loop is executed
-	 * and then we do the sleep again.
+	 * Changed from sleep() to pause() which matches more what we want.
 	 */
 	for (;;) {
-		sleep(60);
+		pause();
 		if (create_new_server)
 			create_server(1);
 		if (dump_sessions)
