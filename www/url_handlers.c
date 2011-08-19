@@ -703,6 +703,104 @@ out:
 }
 
 /*
+ * /admin/pending_activations/
+ *
+ * HTML is in templates/admin_pending_activations.tmpl
+ *
+ * List currently pending user account activations.
+ */
+static void admin_pending_activations(struct session *current_session,
+							GHashTable *qvars)
+{
+	char sql[SQL_MAX];
+	char page[10];
+	int rpp = 15;	/* Rows Per Page to display */
+	int nr_rows;
+	int i;
+	int pages;
+	int page_no = 1;
+	int from = 0;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	TMPL_varlist *vl = NULL;
+	TMPL_varlist *ml = NULL;
+	TMPL_loop *loop = NULL;
+
+	if (!(current_session->capabilities & ADMIN))
+		return;
+
+	ml = TMPL_add_var(ml, "admin", "yes", NULL);
+
+	if (current_session->capabilities & APPROVER)
+		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+
+	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
+
+	if (qvars) {
+		page_no = atoi(get_var(qvars, "page_no"));
+		if (page_no < 1)
+			page_no = 1;
+		/* Determine the LIMIT offset to start from in the SQL */
+		from = page_no * rpp;
+	}
+
+	conn = db_conn();
+	snprintf(sql, SQL_MAX, "SELECT name, user, expires FROM activations "
+					"INNER JOIN passwd ON "
+					"(activations.user = passwd.username) "
+					"LIMIT %d, %d", from, rpp);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_query(conn, sql);
+	res = mysql_store_result(conn);
+
+	nr_rows = mysql_num_rows(res);
+	for (i = 0; i < nr_rows; i++) {
+		char tbuf[64];
+		time_t secs;
+		GHashTable *db_row = NULL;
+
+		db_row = get_dbrow(res);
+		pages = ceilf((float)nr_rows / (float)rpp);
+
+		if (!(i % 2))
+			vl = TMPL_add_var(NULL, "zebra", "yes", NULL);
+		else
+			vl = TMPL_add_var(NULL, "zebra", "no", NULL);
+
+		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
+		vl = TMPL_add_var(vl, "username", get_var(db_row,
+							"user"), NULL);
+		secs = atol(get_var(db_row, "expires"));
+		if (time(NULL) - secs > 86400)
+			vl = TMPL_add_var(vl, "expired", "yes", NULL);
+		strftime(tbuf, sizeof(tbuf), "%F %H:%M:%S", localtime(&secs));
+		vl = TMPL_add_var(vl, "expires", tbuf, NULL);
+
+		loop = TMPL_add_varlist(loop, vl);
+		free_vars(db_row);
+	}
+
+	if (pages > 1) {
+		if (page_no - 1 > 0) {
+			snprintf(page, 10, "%d", page_no - 1);
+			ml = TMPL_add_var(ml, "prev_page", page, NULL);
+		}
+		if (page_no + 1 <= pages) {
+			snprintf(page, 10, "%d", page_no + 1);
+			ml = TMPL_add_var(ml, "next_page", page, NULL);
+		}
+	} else {
+		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
+	}
+	ml = TMPL_add_loop(ml, "table", loop);
+
+	send_template("templates/admin_pending_activations.tmpl", ml);
+	TMPL_free_varlist(ml);
+	mysql_free_result(res);
+	mysql_close(conn);
+}
+
+/*
  * /activate_user/
  *
  * HTML is in templates/activate_user.tmpl
@@ -2659,6 +2757,11 @@ void handle_request(void)
 
 	if (strncmp(request_uri, "/admin/edit_user/", 17) == 0) {
 		admin_edit_user(request_method, &current_session, qvars);
+		goto out;
+	}
+
+	if (strncmp(request_uri, "/admin/pending_activations/", 27) == 0) {
+		admin_pending_activations(&current_session, qvars);
 		goto out;
 	}
 

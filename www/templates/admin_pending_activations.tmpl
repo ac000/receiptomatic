@@ -1,0 +1,64 @@
+<html>
+<head>
+	<title>admin / Pending Activations</title>
+	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
+</head>
+<body>
+	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/">preferences</a> |
+	<tmpl_if name = "approver">
+	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/">approve receipts</a> | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
+	</tmpl_if>
+	<tmpl_if name = "admin">
+	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
+	</tmpl_if>
+	<p />
+	<tmpl_var name = "user_hdr" />
+	<big><big>| Admin / Pending Activations</big></big>
+	<hr />
+
+	<table cellpadding = "4">
+	<tbody>
+	<tr>
+		<td><strong>Name</strong></td>
+		<td><strong>Username</strong></td>
+		<td><strong>Expires</strong></td>
+	</tr>
+<tmpl_loop name = "table">
+<tmpl_if name = "zebra" value = "yes">
+	<tr class = "listzebra">
+<tmpl_else>
+	<tr>
+</tmpl_if>
+		<td><tmpl_var name = "name" /></td>
+		<td><tmpl_var name = "username" /></td>
+		<td>
+		<tmpl_if name = "expired">
+			<span class = t_red>
+		</tmpl_if>
+			<tmpl_var name = "expires" />
+		<tmpl_if name = "expired">
+			</span>
+		</tmpl_if>
+		</td>
+	</tr>
+</tmpl_loop>
+	</tbody>
+	</table>
+
+<tmpl_if name = "no_pages">
+<tmpl_else>
+	<tmpl_if name = "prev_page">
+		<a href = "/admin/pending_activations/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
+	<tmpl_else>
+		<span class = "lighter">Prev Page</span>
+	</tmpl_if>
+	&nbsp;::&nbsp;
+	<tmpl_if name = "next_page">
+		<a href = "/admin/pending_activations/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
+	<tmpl_else>
+		<span class = "lighter">Next Page</span>
+	</tmpl_if>
+</tmpl_if>
+
+</body>
+</html>
