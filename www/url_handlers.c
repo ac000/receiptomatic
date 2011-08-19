@@ -1544,13 +1544,9 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 		return;
 	}
 
-	if (qvars) {
-		page_no = atoi(get_var(qvars, "page_no"));
-		if (page_no < 1)
-			page_no = 1;
-		/* Determine the LIMIT offset to start from in the SQL */
-		from = page_no * APPROVER_ROWS - APPROVER_ROWS;
-	}
+	if (qvars)
+		get_page_pagination(get_var(qvars, "page_no"), APPROVER_ROWS,
+							&page_no, &from);
 
 	conn = db_conn();
 
