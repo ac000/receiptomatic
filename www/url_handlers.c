@@ -1769,13 +1769,9 @@ static void reviewed_receipts(struct session *current_session,
 	if (!(current_session->capabilities & APPROVER))
 		return;
 
-	if (qvars) {
-		page_no = atoi(get_var(qvars, "page_no"));
-		if (page_no < 1)
-			page_no = 1;
-		/* Determine the LIMIT offset to start from in the SQL */
-		from = page_no * GRID_SIZE - GRID_SIZE;
-	}
+	if (qvars)
+		get_page_pagination(get_var(qvars, "page_no"), GRID_SIZE,
+							&page_no, &from);
 
 	if (current_session->capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
