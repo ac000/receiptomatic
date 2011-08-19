@@ -2454,7 +2454,7 @@ static void receipts(struct session *current_session)
 	if (llogin > 0) {
 		char tbuf[32];
 
-		strftime(tbuf, 32, "%a %b %H:%M %Y", localtime(&llogin));
+		strftime(tbuf, 32, "%a %b %e %H:%M %Y", localtime(&llogin));
 		ml = TMPL_add_var(ml, "last_login", tbuf, NULL);
 		ml = TMPL_add_var(ml, "last_login_from", llogin_from, NULL);
 	} else {
