@@ -479,3 +479,22 @@ int user_already_exists(char *username)
 
 	return ret;
 }
+
+/*
+ * Calculate the page_number to show and the where in the results
+ * set to show from.
+ *
+ * This is used in the results pagination code.
+ */
+void get_page_pagination(char *req_page_no, int rpp, int *page_no, int *from)
+{
+	*page_no = atoi(req_page_no);
+
+	if (*page_no < 2) {
+		/* Reset to values for showing the first page */
+		*page_no = 1;
+		*from = 0;
+	} else {
+		*from = *page_no * rpp - rpp;
+	}
+}
