@@ -771,7 +771,7 @@ static void admin_pending_activations(struct session *current_session,
 		vl = TMPL_add_var(vl, "username", get_var(db_row,
 							"user"), NULL);
 		secs = atol(get_var(db_row, "expires"));
-		if (time(NULL) - secs > 86400)
+		if (time(NULL) > secs)
 			vl = TMPL_add_var(vl, "expired", "yes", NULL);
 		strftime(tbuf, sizeof(tbuf), "%F %H:%M:%S", localtime(&secs));
 		vl = TMPL_add_var(vl, "expires", tbuf, NULL);
@@ -811,7 +811,6 @@ static void activate_user(char *request_method, GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char *key;
-	time_t tm;
 	int post = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -856,8 +855,7 @@ static void activate_user(char *request_method, GHashTable *qvars)
 	vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
 
 	/* Check if the activation key has expired. */
-	tm = time(NULL);
-	if (tm - atol(get_var(db_row, "expires")) > 86400) {
+	if (time(NULL) > atol(get_var(db_row, "expires"))) {
 		vl = TMPL_add_var(vl, "expired", "yes", NULL);
 		vl = TMPL_add_var(vl, "email", get_var(db_row, "user"), NULL);
 		goto out;
