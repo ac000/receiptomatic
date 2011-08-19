@@ -2775,6 +2775,4 @@ out2:
 				(double)etv.tv_usec / 1000000.0) -
 				((double)stv.tv_sec + (double)stv.tv_usec
 				/ 1000000.0));
-
-	return;
 }
