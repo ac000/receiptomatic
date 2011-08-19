@@ -732,13 +732,9 @@ static void admin_pending_activations(struct session *current_session,
 
 	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
 
-	if (qvars) {
-		page_no = atoi(get_var(qvars, "page_no"));
-		if (page_no < 1)
-			page_no = 1;
-		/* Determine the LIMIT offset to start from in the SQL */
-		from = page_no * rpp;
-	}
+	if (qvars)
+		get_page_pagination(get_var(qvars, "page_no"), rpp, &page_no,
+									&from);
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT name, user, expires FROM activations "
