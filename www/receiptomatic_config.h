@@ -10,9 +10,18 @@
 #ifndef _RECEIPTOMATIC_CONFIG_H_
 #define _RECEIPTOMATIC_CONFIG_H_
 
+#include <limits.h>
+
 char *rec_image_path;
 char *rec_base_url;
 char *rec_session_db;
+
+/* Default log path set in www/receiptomatic-www.c */
+extern char *log_dir;
+char access_log_path[PATH_MAX];
+char error_log_path[PATH_MAX];
+char sql_log_path[PATH_MAX];
+char debug_log_path[PATH_MAX];
 
 char *mail_cmd;
 char *mail_from;
@@ -31,6 +40,12 @@ extern unsigned int db_flags;
 #define IMAGE_PATH	rec_image_path
 #define BASE_URL	rec_base_url
 #define SESSION_DB	rec_session_db
+
+#define LOG_DIR		log_dir
+#define ACCESS_LOG	access_log_path
+#define ERROR_LOG	error_log_path
+#define SQL_LOG		sql_log_path
+#define DEBUG_LOG	debug_log_path
 
 #define MAIL_CMD	mail_cmd
 #define MAIL_FROM	mail_from

@@ -19,9 +19,11 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <signal.h>
+#include <limits.h>
 
 #include "common.h"
 #include "get_config.h"
+#include "receiptomatic_config.h"
 #include "url_handlers.h"
 #include "receiptomatic-www.h"
 
@@ -31,6 +33,8 @@ static char **rargv;
 static volatile sig_atomic_t create_new_server = 0;
 static volatile sig_atomic_t dump_sessions = 0;
 static volatile sig_atomic_t clear_sessions = 0;
+
+char *log_dir = "/tmp";
 
 FILE *access_log;
 FILE *sql_log;
@@ -306,6 +310,23 @@ static void init_clear_session_timer(void)
 	timer_settime(timerid, 0, &its, NULL);
 }
 
+static void init_logs(void)
+{
+	snprintf(access_log_path, PATH_MAX, "%s/receiptomatic-www.access.log",
+								LOG_DIR);
+	snprintf(error_log_path, PATH_MAX, "%s/receiptomatic-www.error.log",
+								LOG_DIR);
+	snprintf(sql_log_path, PATH_MAX, "%s/receiptomatic-www.sql.log",
+								LOG_DIR);
+	snprintf(debug_log_path, PATH_MAX, "%s/receiptomatic-www.debug.log",
+								LOG_DIR);
+
+	access_log = fopen(ACCESS_LOG, "w");
+	error_log = fopen(ERROR_LOG, "w");
+	sql_log = fopen(SQL_LOG, "w");
+	debug_log = fopen(DEBUG_LOG, "w");
+}
+
 int main(int argc, char **argv)
 {
 	struct sigaction action;
@@ -314,18 +335,21 @@ int main(int argc, char **argv)
 	/* Used by set_proc_title() */
 	rargv = argv;
 
-	mysql_library_init(0, NULL, NULL);
-
-	access_log = fopen("/tmp/receiptomatic-www.access.log", "w");
-	error_log = fopen("/tmp/receiptomatic-www.error.log", "w");
-	sql_log = fopen("/tmp/receiptomatic-www.sql.log", "w");
-	debug_log = fopen("/tmp/receiptomatic-www.debug.log", "w");
-
 	ret = get_config(argv[1]);
 	if (ret == -1) {
+		snprintf(error_log_path, PATH_MAX,
+					"%s/receiptomatic-www.error.log",
+					LOG_DIR);
+		error_log = fopen(ERROR_LOG, "w");
 		d_fprintf(error_log, "config: could not open %s\n", argv[1]);
+		fclose(error_log);
 		exit(EXIT_FAILURE);
 	}
+
+	/* Set the log paths and open them */
+	init_logs();
+
+	mysql_library_init(0, NULL, NULL);
 
 	/* Ignore SIGHUP for now */
 	signal(SIGHUP, SIG_IGN);

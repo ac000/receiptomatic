@@ -62,6 +62,8 @@ int get_config(char *filename)
 			mail_reply_to = strdup(value);
 		else if (strcmp(option, "MAIL_SUBJECT") == 0)
 			mail_subject = strdup(value);
+		else if (strcmp(option, "LOG_DIR") == 0)
+			log_dir = strdup(value);
 	}
 
 	fclose(fp);
