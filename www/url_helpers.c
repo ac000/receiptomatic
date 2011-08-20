@@ -1005,7 +1005,7 @@ void do_update_user(GHashTable *qvars)
 	char *username;
 	char *name;
 	char *d_reason;
-	unsigned char capabilities;
+	unsigned char capabilities = 0;
 	unsigned int uid;
 	int enabled = 0;
 	int activated = 0;
