@@ -161,7 +161,8 @@ static void delete_image(struct session *current_session, GHashTable *qvars)
 	snprintf(path, PATH_MAX, "%s/%s/%s", IMAGE_PATH,
 						get_var(db_row, "path"),
 						get_var(db_row, "name"));
-	realpath(path, image_path);
+	if (!realpath(path, image_path))
+		goto out1;
 
 	vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"), NULL);
 	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"), NULL);
@@ -182,14 +183,18 @@ static void delete_image(struct session *current_session, GHashTable *qvars)
 		snprintf(path, PATH_MAX, "%s/%s/small/%s", IMAGE_PATH,
 						get_var(db_row, "path"),
 						get_var(db_row, "name"));
-		realpath(path, image_path);
+		if (!realpath(path, image_path))
+			goto out1;
+
 		unlink(image_path);
 
 		/* remove the medium image */
 		snprintf(path, PATH_MAX, "%s/%s/medium/%s", IMAGE_PATH,
 						get_var(db_row, "path"),
 						get_var(db_row, "name"));
-		realpath(path, image_path);
+		if (!realpath(path, image_path))
+			goto out1;
+
 		unlink(image_path);
 
 		snprintf(sql, SQL_MAX, "DELETE FROM images WHERE id = '%s'",
@@ -347,7 +352,7 @@ static void admin_list_users(struct session *current_session, GHashTable *qvars)
 	int rpp = 15;	/* Rows Per Page to display */
 	int nr_rows;
 	int i;
-	int pages;
+	int pages = 0;
 	int page_no = 1;
 	int from = 0;
 	MYSQL *conn;
@@ -713,7 +718,7 @@ static void admin_pending_activations(struct session *current_session,
 	int rpp = 15;	/* Rows Per Page to display */
 	int nr_rows;
 	int i;
-	int pages;
+	int pages = 0;
 	int page_no = 1;
 	int from = 0;
 	MYSQL *conn;
@@ -1321,7 +1326,6 @@ static void process_receipt_approval(struct session *current_session)
 	int list_size;
 	int i;
 	MYSQL *conn;
-	MYSQL_RES *res;
 	GList *post_vars = NULL;
 
 	if (!(current_session->capabilities & APPROVER))
@@ -1348,6 +1352,7 @@ static void process_receipt_approval(struct session *current_session)
 		char *action = get_avar(post_vars, i, "approved_status");
 		char *reason;
 		char *image_id;
+		MYSQL_RES *res;
 
 		image_id = alloca(strlen(get_avar(post_vars, i, "id")) *
 									2 + 1);
@@ -1457,10 +1462,10 @@ static void process_receipt_approval(struct session *current_session)
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_query(conn, sql);
 		}
+		mysql_free_result(res);
 	}
 
 	mysql_query(conn, "UNLOCK TABLES");
-	mysql_free_result(res);
 	mysql_close(conn);
 	free_avars(post_vars);
 
@@ -1491,7 +1496,7 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 	int nr_rows;
 	int from = 0;
 	int page_no = 1;
-	int pages;
+	int pages = 0;
 	struct field_names fields;
 	TMPL_varlist *ml = NULL;
 	TMPL_varlist *vl = NULL;
@@ -1756,7 +1761,7 @@ static void reviewed_receipts(struct session *current_session,
 	int from = 0;
 	int page_no = 1;
 	int nr_rows;
-	int pages;
+	int pages = 0;
 	char page[10];
 	char sql[SQL_MAX];
 	MYSQL *conn;
@@ -2078,7 +2083,7 @@ static void tagged_receipts(struct session *current_session, GHashTable *qvars)
 	int from = 0;
 	int page_no = 1;
 	int nr_rows;
-	int pages;
+	int pages = 0;
 	char page[10];
 	char sql[SQL_MAX];
 	MYSQL *conn;
@@ -2237,7 +2242,7 @@ static void process_receipt(struct session *current_session, GHashTable *qvars)
 
 	/* Prevent users from tagging other users receipts */
 	if (!is_users_receipt(current_session, get_var(qvars, "image_id")))
-		goto out;
+		return;
 
 	conn = db_conn();
 
@@ -2554,11 +2559,11 @@ void handle_request(void)
 {
 	struct session current_session;
 	int logged_in = 0;
-	char *request_uri;
-	char *request_method;
+	char *request_uri = "\0";
+	char *request_method = "\0";
 	char *http_cookie = "\0";	/* we might not get any cookies */
 	char *http_user_agent;
-	char *http_x_forwarded_for;
+	char *http_x_forwarded_for = "\0";
 	char *query_string;
 	struct timeval stv;
 	struct timeval etv;

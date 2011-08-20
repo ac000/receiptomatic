@@ -51,6 +51,7 @@ void extract_data_now(struct session *current_session, int fd)
 	MYSQL_RES *res;
 	int nr_rows;
 	int i;
+	ssize_t bytes_wrote;
 
 	conn = db_conn();
 
@@ -85,7 +86,9 @@ void extract_data_now(struct session *current_session, int fd)
 					"VAT Amount\tNet Amount\tVAT Rate\t"
 					"VAT Number\tReceipt Date\tReason\t"
 					"Payment Method\r\n");
-	write(fd, line, strlen(line));
+	bytes_wrote = write(fd, line, strlen(line));
+	if (bytes_wrote < strlen(line))
+		d_fprintf(error_log, "Failed to write data: %s\n", line);
 
 	for (i = 0; i < nr_rows; i++) {
 		GHashTable *db_row = NULL;
@@ -109,7 +112,10 @@ void extract_data_now(struct session *current_session, int fd)
 					get_var(db_row, "receipt_date"),
 					get_var(db_row, "reason"),
 					get_var(db_row, "payment_method"));
-		write(fd, line, strlen(line));
+		bytes_wrote = write(fd, line, strlen(line));
+		if (bytes_wrote < strlen(line))
+			d_fprintf(error_log, "Failed to write data: %s\n",
+									line);
 		free_vars(db_row);
 	}
 

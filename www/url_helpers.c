@@ -406,6 +406,7 @@ char *create_session_id(void)
 	int fd;
 	int i;
 	int hbs;
+	ssize_t bytes_read;
 	char buf[1024];
 	char shash[65];
 	unsigned char *hash;
@@ -413,8 +414,17 @@ char *create_session_id(void)
 	MHASH td;
 
 	fd = open("/dev/urandom", O_RDONLY);
-	read(fd, buf, 1024);
+	bytes_read = read(fd, buf, 1024);
 	close(fd);
+	/*
+	 * If we couldn't read the required amount, something is
+	 * seriously wrong. Log it and exit.
+	 */
+	if (bytes_read < 1024) {
+		d_fprintf(error_log, "Couldn't read sufficient data from "
+							"/dev/urandom\n");
+		_exit(EXIT_FAILURE);
+	}
 
 	td = mhash_init(MHASH_SHA256);
 	mhash(td, &buf, 1024);
