@@ -7,8 +7,6 @@
  * See COPYING
  */
 
-#define _XOPEN_SOURCE
-
 /* FastCGI stdio wrappers */
 #include <fcgi_stdio.h>
 

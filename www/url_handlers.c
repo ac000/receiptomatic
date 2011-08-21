@@ -7,8 +7,6 @@
  * See COPYING
  */
 
-#define _XOPEN_SOURCE		/* for strptime(), crypt() */
-
 /* FastCGI stdio wrappers */
 #include <fcgi_stdio.h>
 
