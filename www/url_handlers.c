@@ -433,11 +433,11 @@ static void admin_list_users(struct session *current_session, GHashTable *qvars)
 
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
-			snprintf(page, 10, "%d", page_no - 1);
+			snprintf(page, sizeof(page), "%d", page_no - 1);
 			ml = TMPL_add_var(ml, "prev_page", page, NULL);
 		}
 		if (page_no + 1 <= pages) {
-			snprintf(page, 10, "%d", page_no + 1);
+			snprintf(page, sizeof(page), "%d", page_no + 1);
 			ml = TMPL_add_var(ml, "next_page", page, NULL);
 		}
 	} else {
@@ -1725,11 +1725,11 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
-			snprintf(page, 10, "%d", page_no - 1);
+			snprintf(page, sizeof(page), "%d", page_no - 1);
 			ml = TMPL_add_var(ml, "prev_page", page, NULL);
 		}
 		if (page_no + 1 <= pages) {
-			snprintf(page, 10, "%d", page_no + 1);
+			snprintf(page, sizeof(page), "%d", page_no + 1);
 			ml = TMPL_add_var(ml, "next_page", page, NULL);
 		}
 	} else {
@@ -1860,11 +1860,11 @@ static void reviewed_receipts(struct session *current_session,
 
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
-			snprintf(page, 10, "%d", page_no - 1);
+			snprintf(page, sizeof(page), "%d", page_no - 1);
 			ml = TMPL_add_var(ml, "prev_page", page, NULL);
 		}
 		if (page_no + 1 <= pages) {
-			snprintf(page, 10, "%d", page_no + 1);
+			snprintf(page, sizeof(page), "%d", page_no + 1);
 			ml = TMPL_add_var(ml, "next_page", page, NULL);
 		}
 	} else {
@@ -2188,11 +2188,11 @@ static void tagged_receipts(struct session *current_session, GHashTable *qvars)
 
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
-			snprintf(page, 10, "%d", page_no - 1);
+			snprintf(page, sizeof(page), "%d", page_no - 1);
 			ml = TMPL_add_var(ml, "prev_page", page, NULL);
 		}
 		if (page_no + 1 <= pages) {
-			snprintf(page, 10, "%d", page_no + 1);
+			snprintf(page, sizeof(page), "%d", page_no + 1);
 			ml = TMPL_add_var(ml, "next_page", page, NULL);
 		}
 	} else {
