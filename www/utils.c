@@ -431,7 +431,7 @@ void delete_user_session(unsigned int uid)
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOWRITER);
 
-	snprintf(suid, 11, "%u", uid);
+	snprintf(suid, sizeof(suid), "%u", uid);
 	qry = tctdbqrynew(tdb);
 	tctdbqryaddcond(qry, "uid", TDBQCNUMEQ, suid);
 	res = tctdbqrysearch(qry);
