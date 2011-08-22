@@ -61,7 +61,7 @@ unsigned int log_login(GHashTable *credentials, char *ip_addr)
 		addr_len = sizeof(addr6);
 	}
 	getnameinfo(addr, addr_len, host, sizeof(host), NULL, 0, 0);
-	
+
 	conn = db_conn();
 
 	username = alloca(strlen(get_var(credentials, "username")) * 2 + 1);
@@ -79,7 +79,7 @@ unsigned int log_login(GHashTable *credentials, char *ip_addr)
 	row = mysql_fetch_row(res);
 	uid = atoi(row[0]);
 	mysql_free_result(res);
-	
+
 	/* We need to be sure a new sid isn't inserted here */
 	mysql_query(conn, "LOCK TABLES utmp WRITE");
 	mysql_query(conn, "SELECT IFNULL(MAX(sid), 0) FROM utmp");
