@@ -1102,6 +1102,7 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 	char login_at[21];
 	char last_seen[21];
 	char uid[11];
+	char sid[11];
 	char restrict_ip[2];
 	char capabilities[4];
 	char *hash;
@@ -1165,6 +1166,7 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 	tctdbqrydel(qry);
 
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
+	snprintf(sid, sizeof(sid), "%u", current_session->sid);
 	snprintf(login_at, sizeof(login_at), "%ld", current_session->login_at);
 	snprintf(last_seen, sizeof(last_seen), "%ld", time(NULL));
 	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
@@ -1175,8 +1177,9 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 	sprintf(name, "%s", get_var(qvars, "name"));
 	username = alloca(strlen(get_var(qvars, "email1")) + 1);
 	sprintf(username, "%s", get_var(qvars, "email1"));
-	cols = tcmapnew3("uid", uid, "username", username, "name", name,
-				"login_at", login_at, "last_seen", last_seen,
+	cols = tcmapnew3("sid", sid, "uid", uid, "username", username,
+				"name", name, "login_at", login_at,
+				"last_seen", last_seen,
 				"origin_ip", current_session->origin_ip,
 				"client_id", current_session->client_id,
 				"session_id", current_session->session_id,
