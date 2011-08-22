@@ -300,12 +300,10 @@ void set_current_session(struct session *current_session, char *cookies,
 	 * Don't assume the order we get the cookies back is the
 	 * same order as we sent them.
 	 */
-        if (strncmp(cookies, "session_id", 10) == 0)
-                strncpy(session_id, cookies + 11, 64);
-        else
-                strncpy(session_id, cookies + 88, 64);
-
-	session_id[64] = '\0';
+	if (strncmp(cookies, "session_id", 10) == 0)
+		snprintf(session_id, sizeof(session_id), "%s", cookies + 11);
+	else
+		snprintf(session_id, sizeof(session_id), "%s", cookies + 88);
 
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
