@@ -1053,22 +1053,17 @@ void do_update_user(GHashTable *qvars)
 				strlen(get_var(qvars, "ap_cheque")) > 0 ||
 				strlen(get_var(qvars, "ap_self")) > 0) {
 		capabilities |= APPROVER;
-		if (strlen(get_var(qvars, "ap_card")) > 0) {
+		if (strlen(get_var(qvars, "ap_card")) > 0)
 			capabilities |= APPROVER_CARD;
-		}
-		if (strlen(get_var(qvars, "ap_cash")) > 0) {
+		if (strlen(get_var(qvars, "ap_cash")) > 0)
 			capabilities |= APPROVER_CASH;
-		}
-		if (strlen(get_var(qvars, "ap_cheque")) > 0) {
+		if (strlen(get_var(qvars, "ap_cheque")) > 0)
 			capabilities |= APPROVER_CHEQUE;
-		}
-		if (strlen(get_var(qvars, "ap_self")) > 0) {
+		if (strlen(get_var(qvars, "ap_self")) > 0)
 			capabilities |= APPROVER_SELF;
-		}
 	}
-	if (strlen(get_var(qvars, "is_admin")) > 0) {
+	if (strlen(get_var(qvars, "is_admin")) > 0)
 		capabilities |= ADMIN;
-	}
 
 	if (atoi(get_var(qvars, "enabled")) == 1)
 		enabled = 1;
