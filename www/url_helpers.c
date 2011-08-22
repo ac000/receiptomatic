@@ -485,8 +485,8 @@ void create_session(GHashTable *credentials, char *http_user_agent,
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOWRITER | TDBOCREAT);
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
-	snprintf(timestamp, 21, "%ld", (long)time(NULL));
-	snprintf(ssid, 11, "%u", sid);
+	snprintf(timestamp, sizeof(timestamp), "%ld", (long)time(NULL));
+	snprintf(ssid, sizeof(ssid), "%u", sid);
 	cols = tcmapnew3("sid", ssid, "uid", get_var(db_row, "uid"),
 					"username", get_var(credentials,
 					"username"), "name", get_var(db_row,
