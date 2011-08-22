@@ -95,8 +95,7 @@ int is_logged_in(char *cookies, char *client_id, char *remote_ip,
 	if (!cookies)
 		goto out3;
 
-	strncpy(session_id, cookies + 11, 64);
-	session_id[64] = '\0';
+	snprintf(session_id, sizeof(session_id), "%s", cookies + 11);
 
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOREADER);
