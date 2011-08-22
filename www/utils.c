@@ -222,7 +222,7 @@ GHashTable *set_vars(char *request_method, char *query)
 	memset(buf, 0, sizeof(buf));
 
 	if (strcmp(request_method, "GET") == 0 && strlen(query) > 0) {
-		strncpy(buf, query, BUF_SIZE);
+		snprintf(buf, BUF_SIZE, "%s", query);
 	} else if (strcmp(request_method, "POST") == 0) {
 		fread(buf, sizeof(buf) - 1, 1, stdin);
 		if (!strstr(buf, "=") && !strstr(buf, "&"))
