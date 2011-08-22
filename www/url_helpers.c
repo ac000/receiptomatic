@@ -293,7 +293,7 @@ void set_current_session(struct session *current_session, char *cookies,
 	char sid[11];
 	char restrict_ip[2];
 	char capabilities[4];
-	char user_hdr[1024];
+	char user_hdr[1025];
 	const char *rbuf;
 
 	/*
@@ -337,7 +337,7 @@ void set_current_session(struct session *current_session, char *cookies,
 	 * Set the user header banner, which displays the users name, uid and
 	 * whether they are an Approver and or Admin.
 	 */
-	snprintf(user_hdr, 1024, "<big><big> %s</big></big><small>"
+	snprintf(user_hdr, sizeof(user_hdr), "<big><big> %s</big></big><small>"
 				"<span class = \"lighter\"> (%d) </span>"
 				"</small>", current_session->name,
 				current_session->uid);
