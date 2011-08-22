@@ -369,12 +369,15 @@ void set_current_session(struct session *current_session, char *cookies,
 	tctdbqrydel(qry);
 
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
-	snprintf(login_at, 21, "%ld", current_session->login_at);
-	snprintf(last_seen, 21, "%ld", current_session->last_seen);
-	snprintf(uid, 11, "%u", current_session->uid);
-	snprintf(sid, 11, "%u", current_session->sid);
-	snprintf(restrict_ip, 2, "%d", current_session->restrict_ip);
-	snprintf(capabilities, 4, "%d", current_session->capabilities);
+	snprintf(login_at, sizeof(login_at), "%ld", current_session->login_at);
+	snprintf(last_seen, sizeof(last_seen), "%ld",
+						current_session->last_seen);
+	snprintf(uid, sizeof(uid), "%u", current_session->uid);
+	snprintf(sid, sizeof(sid), "%u", current_session->sid);
+	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
+						current_session->restrict_ip);
+	snprintf(capabilities, sizeof(capabilities), "%d",
+						current_session->capabilities);
 	cols = tcmapnew3("sid", sid, "uid", uid, "username",
 				current_session->username, "name",
 				current_session->name, "login_at",
