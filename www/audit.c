@@ -136,7 +136,7 @@ time_t get_last_login(unsigned int uid, char *from_host)
 	if (mysql_num_rows(res) > 0) {
 		row = mysql_fetch_row(res);
 		login = atol(row[0]);
-		strncpy(from_host, row[1], NI_MAXHOST);
+		snprintf(from_host, NI_MAXHOST, "%s", row[1]);
 	} else {
 		login = 0;
 	}
