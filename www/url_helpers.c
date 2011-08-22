@@ -1159,7 +1159,7 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
 
-	snprintf(uid, 11, "%u", current_session->uid);
+	snprintf(uid, sizeof(uid), "%u", current_session->uid);
 	qry = tctdbqrynew(tdb);
 	tctdbqryaddcond(qry, "uid", TDBQCNUMEQ, uid);
 	res = tctdbqrysearch(qry);
@@ -1170,10 +1170,12 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 	tctdbqrydel(qry);
 
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
-	snprintf(login_at, 21, "%ld", current_session->login_at);
-	snprintf(last_seen, 21, "%ld", time(NULL));
-	snprintf(restrict_ip, 2, "%d", current_session->restrict_ip);
-	snprintf(capabilities, 4, "%d", current_session->capabilities);
+	snprintf(login_at, sizeof(login_at), "%ld", current_session->login_at);
+	snprintf(last_seen, sizeof(last_seen), "%ld", time(NULL));
+	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
+						current_session->restrict_ip);
+	snprintf(capabilities, sizeof(capabilities), "%d",
+						current_session->capabilities);
 	name = alloca(strlen(get_var(qvars, "name")) + 1);
 	sprintf(name, "%s", get_var(qvars, "name"));
 	username = alloca(strlen(get_var(qvars, "email1")) + 1);
