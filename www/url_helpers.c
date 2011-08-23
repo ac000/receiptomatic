@@ -1034,6 +1034,10 @@ void do_update_user(GHashTable *qvars)
 		res = mysql_store_result(conn);
 		row = mysql_fetch_row(res);
 		hash = malloc(strlen(row[0]) + 1);
+		if (!hash) {
+			perror("malloc");
+			exit(EXIT_FAILURE);
+		}
 		snprintf(hash, sizeof(hash), "%s", row[0]);
 		mysql_free_result(res);
 	}
@@ -1126,6 +1130,10 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 		res = mysql_store_result(conn);
 		row = mysql_fetch_row(res);
 		hash = malloc(strlen(row[0]) + 1);
+		if (!hash) {
+			perror("malloc");
+			exit(EXIT_FAILURE);
+		}
 		snprintf(hash, sizeof(hash), "%s", row[0]);
 		mysql_free_result(res);
 	}

@@ -48,8 +48,15 @@ static char from_hex(char ch)
 static char *url_decode(char *str)
 {
 	char *pstr = str;
-	char *buf = malloc(strlen(str) + 1);
-	char *pbuf = buf;
+	char *buf;
+	char *pbuf;
+
+	buf = malloc(strlen(str) + 1);
+	if (!buf) {
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
+	pbuf = buf;
 
 	while (*pstr) {
 		if (*pstr == '%') {
@@ -160,6 +167,10 @@ GList *get_avars(char *query)
 		subtoken = strtok_r(token, "=", &saveptr2);
 		if (!subtoken) { /* Maybe there is no value */
 			value = malloc(1);
+			if (!value) {
+				perror("malloc");
+				exit(EXIT_FAILURE);
+			}
 			value[0] = '\0';
 		} else {
 			value = url_decode(subtoken);

@@ -84,6 +84,10 @@ static void set_proc_title(char *title)
 		size += strlen(environ[i]) + 1;
 
 	p = malloc(size);
+	if (!p) {
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
 
 	argv_last = rargv[0] + strlen(rargv[0]) + 1;
 
