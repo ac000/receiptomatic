@@ -1038,7 +1038,7 @@ void do_update_user(GHashTable *qvars)
 			perror("malloc");
 			exit(EXIT_FAILURE);
 		}
-		snprintf(hash, sizeof(hash), "%s", row[0]);
+		snprintf(hash, strlen(row[0]) + 1, "%s", row[0]);
 		mysql_free_result(res);
 	}
 
@@ -1134,7 +1134,7 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 			perror("malloc");
 			exit(EXIT_FAILURE);
 		}
-		snprintf(hash, sizeof(hash), "%s", row[0]);
+		snprintf(hash, strlen(row[0]) + 1, "%s", row[0]);
 		mysql_free_result(res);
 	}
 
