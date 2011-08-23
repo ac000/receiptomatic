@@ -165,16 +165,11 @@ GList *get_avars(char *query)
 
 		/* get the array value */
 		subtoken = strtok_r(token, "=", &saveptr2);
-		if (!subtoken) { /* Maybe there is no value */
-			value = malloc(1);
-			if (!value) {
-				perror("malloc");
-				exit(EXIT_FAILURE);
-			}
-			value[0] = '\0';
-		} else {
+		if (subtoken != NULL)
 			value = url_decode(subtoken);
-		}
+		else
+			value = NULL;
+
 		string = NULL;
 
 		g_hash_table_replace(query_values, g_strdup(key),

@@ -1348,7 +1348,7 @@ static void process_receipt_approval(struct session *current_session)
 	list_size = g_list_length(post_vars);
 	for (i = 0; i < list_size; i++) {
 		char *action = get_avar(post_vars, i, "approved_status");
-		char *reason;
+		char *reason = '\0';
 		char *image_id;
 		MYSQL_RES *res;
 
@@ -1359,13 +1359,16 @@ static void process_receipt_approval(struct session *current_session)
 							strlen(get_avar(
 							post_vars, i, "id")));
 
-		reason = alloca(strlen(get_avar(post_vars, i, "reason")) *
-									2 + 1);
-		mysql_real_escape_string(conn, reason, get_avar(post_vars,
-							i, "reason"),
-							strlen(get_avar(
-							post_vars, i,
-							"reason")));
+		if (get_avar(post_vars, i, "reason")) {
+			reason = alloca(strlen(
+					get_avar(post_vars, i,"reason"))
+					* 2 + 1);
+
+			mysql_real_escape_string(conn, reason,
+					get_avar(post_vars, i, "reason"),
+					strlen(get_avar(post_vars, i,
+					"reason")));
+		}
 
 		/* Can user approve their own receipts? */
 		if (!(current_session->capabilities & APPROVER_SELF)) {
