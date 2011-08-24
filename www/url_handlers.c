@@ -231,7 +231,7 @@ out2:
  * want users seeing other users receipts). The application needs to get
  * the image and send it through to the client.
  */
-static void get_image(char *image)
+static void get_image(void)
 {
 	int fd;
 	ssize_t bytes_read = 1;
@@ -242,15 +242,17 @@ static void get_image(char *image)
 	magic_t cookie;
 	const char *mime_type;
 
-	snprintf(path, PATH_MAX, "%s/%s", IMAGE_PATH, image + 11);
+	snprintf(path, PATH_MAX, "%s/%s", IMAGE_PATH, env_vars.request_uri
+									+ 11);
 	if (!realpath(path, image_path))
 		return;
 
 	/* Don't let users access other user images */
 	if (!image_access_allowed(image_path)) {
 		printf("Status: 401 Unauthorized\r\n\r\n");
-		d_fprintf(access_log, "Access denied to %s for %s\n", image,
-						user_session.username);
+		d_fprintf(access_log, "Access denied to %s for %s\n",
+							env_vars.request_uri,
+							user_session.username);
 		return;
 	}
 
@@ -264,7 +266,7 @@ static void get_image(char *image)
 	printf("Cache-Control: private\r\n");
 	printf("Content-Type: %s\r\n", mime_type);
 	printf("Content-Length: %ld\r\n\r\n", sb.st_size);
-	d_fprintf(debug_log, "Sending image: %s\n", image);
+	d_fprintf(debug_log, "Sending image: %s\n", env_vars.request_uri);
 
 	while (bytes_read > 0) {
 		bytes_read = read(fd, &buf, BUF_SIZE);
@@ -280,7 +282,7 @@ static void get_image(char *image)
  * Allows the user to download the image to view at full size outside
  * the browser.
  */
-static void full_image(char *image)
+static void full_image(void)
 {
 	int fd;
 	ssize_t bytes_read = 1;
@@ -289,15 +291,17 @@ static void full_image(char *image)
 	char image_path[PATH_MAX];
 	struct stat sb;
 
-	snprintf(path, PATH_MAX, "%s/%s", IMAGE_PATH, image + 12);
+	snprintf(path, PATH_MAX, "%s/%s", IMAGE_PATH, env_vars.request_uri
+									+ 12);
 	if (!realpath(path, image_path))
 		return;
 
 	/* Don't let users access other users images */
 	if (!image_access_allowed(image_path)) {
 		printf("Status: 401 Unauthorized\r\n\r\n");
-		d_fprintf(access_log, "Access denied to %s for %s\n", image,
-						user_session.username);
+		d_fprintf(access_log, "Access denied to %s for %s\n",
+							env_vars.request_uri,
+							user_session.username);
 		return;
 	}
 
@@ -2662,12 +2666,12 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/get_image/", 11) == 0) {
-		get_image(request_uri);
+		get_image();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/full_image/", 12) == 0) {
-		full_image(request_uri);
+		full_image();
 		goto out;
 	}
 
