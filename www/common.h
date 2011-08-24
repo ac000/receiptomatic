@@ -109,6 +109,20 @@ struct field_names {
 	char *payment_method;
 } field_names;
 
+/*
+ * This structure maps to the environment variable list sent
+ * by the application. We don't store every item.
+ */
+struct env_vars {
+	char *request_uri;
+	char *request_method;
+	char *http_cookie;
+	char *http_user_agent;
+	char *http_x_forwarded_for;
+	char *query_string;
+} env_vars;
+extern struct env_vars env_vars;
+
 /* Default Field Names */
 #define DFN_RECEIPT_DATE	"Receipt Date"
 #define DFN_DEPARTMENT		"Department"

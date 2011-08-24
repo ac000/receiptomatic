@@ -80,8 +80,7 @@ char *username_to_name(char *username)
  * If any of these checks fail, the request is denied and the user is
  * punted to the login screen.
  */
-int is_logged_in(char *cookies, char *client_id, char *remote_ip,
-							char *request_uri)
+int is_logged_in(void)
 {
 	char session_id[65];
 	TCTDB *tdb;
@@ -92,10 +91,11 @@ int is_logged_in(char *cookies, char *client_id, char *remote_ip,
 	int ret = 0;
 	const char *rbuf;
 
-	if (!cookies)
+	if (!env_vars.http_cookie)
 		goto out3;
 
-	snprintf(session_id, sizeof(session_id), "%s", cookies + 11);
+	snprintf(session_id, sizeof(session_id), "%s",
+						env_vars.http_cookie + 11);
 
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOREADER);
@@ -113,11 +113,13 @@ int is_logged_in(char *cookies, char *client_id, char *remote_ip,
 	/* restrict_ip */
 	if (atoi(tcmapget2(cols, "restrict_ip")) == 1) {
 		/* origin_ip */
-		if (strcmp(tcmapget2(cols, "origin_ip"), remote_ip) != 0)
+		if (strcmp(tcmapget2(cols, "origin_ip"),
+					env_vars.http_x_forwarded_for) != 0)
 			goto out;
 	}
 	/* client_id */
-	if (strcmp(tcmapget2(cols, "client_id"), client_id) != 0)
+	if (strcmp(tcmapget2(cols, "client_id"),
+					env_vars.http_user_agent) != 0)
 		goto out;
 
 	/* We got here, all checks are OK */
@@ -276,7 +278,7 @@ int image_access_allowed(char *path)
  * Sets up the user_session structure. This contains various bits of
  * information pertaining to the users session.
  */
-void set_user_session(char *cookies, char *request_uri)
+void set_user_session(void)
 {
 	TCTDB *tdb;
 	TDBQRY *qry;
@@ -299,10 +301,12 @@ void set_user_session(char *cookies, char *request_uri)
 	 * Don't assume the order we get the cookies back is the
 	 * same order as we sent them.
 	 */
-	if (strncmp(cookies, "session_id", 10) == 0)
-		snprintf(session_id, sizeof(session_id), "%s", cookies + 11);
+	if (strncmp(env_vars.http_cookie, "session_id", 10) == 0)
+		snprintf(session_id, sizeof(session_id), "%s",
+						env_vars.http_cookie + 11);
 	else
-		snprintf(session_id, sizeof(session_id), "%s", cookies + 88);
+		snprintf(session_id, sizeof(session_id), "%s",
+						env_vars.http_cookie + 88);
 
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
@@ -441,8 +445,7 @@ char *create_session_id(void)
 /*
  * Create a new user session. This is done upon each successful login.
  */
-void create_session(GHashTable *credentials, char *http_user_agent,
-			char *http_x_forwarded_for, unsigned int sid)
+void create_session(GHashTable *credentials, unsigned int sid)
 {
 	char *session_id;
 	char restrict_ip[2] = "0\0";
@@ -491,9 +494,10 @@ void create_session(GHashTable *credentials, char *http_user_agent,
 					"username"), "name", get_var(db_row,
 					"name"), "login_at", timestamp,
 					"last_seen", timestamp, "origin_ip",
-					http_x_forwarded_for, "client_id",
-					http_user_agent, "session_id",
-					session_id, "restrict_ip", restrict_ip,
+					env_vars.http_x_forwarded_for,
+					"client_id", env_vars.http_user_agent,
+					"session_id", session_id,
+					"restrict_ip", restrict_ip,
 					"capabilities", get_var(db_row,
 					"capabilities"), NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);

@@ -221,15 +221,16 @@ void free_avars(GList *avars)
 /*
  * Sets the GET / POST variable list.
  */
-GHashTable *set_vars(char *request_method, char *query)
+GHashTable *set_vars(void)
 {
 	char buf[BUF_SIZE];
 
 	memset(buf, 0, sizeof(buf));
 
-	if (strcmp(request_method, "GET") == 0 && strlen(query) > 0) {
-		snprintf(buf, BUF_SIZE, "%s", query);
-	} else if (strcmp(request_method, "POST") == 0) {
+	if (strcmp(env_vars.request_method, "GET") == 0 &&
+					strlen(env_vars.query_string) > 0) {
+		snprintf(buf, BUF_SIZE, "%s", env_vars.query_string);
+	} else if (strcmp(env_vars.request_method, "POST") == 0) {
 		fread(buf, sizeof(buf) - 1, 1, stdin);
 		if (!strstr(buf, "=") && !strstr(buf, "&"))
 			goto out2;
@@ -311,6 +312,44 @@ void free_vars(GHashTable *vars)
 {
 	if (vars != NULL)
 		g_hash_table_destroy(vars);
+}
+
+/*
+ * Fill out a structure with various environment variables
+ * sent to the application.
+ */
+void set_env_vars(void)
+{
+	if (getenv("REQUEST_URI"))
+		env_vars.request_uri = strdup(getenv("REQUEST_URI"));
+	else
+		env_vars.request_uri = NULL;
+
+	if (getenv("REQUEST_METHOD"))
+		env_vars.request_method = strdup(getenv("REQUEST_METHOD"));
+	else
+		env_vars.request_method = NULL;
+
+	if (getenv("HTTP_COOKIE"))
+		env_vars.http_cookie = strdup(getenv("HTTP_COOKIE"));
+	else
+		env_vars.http_cookie = NULL;
+
+	if (getenv("HTTP_USER_AGENT"))
+		env_vars.http_user_agent = strdup(getenv("HTTP_USER_AGENT"));
+	else
+		env_vars.http_user_agent = NULL;
+
+	if (getenv("HTTP_X_FORWARDED_FOR"))
+		env_vars.http_x_forwarded_for = strdup(getenv(
+						"HTTP_X_FORWARDED_FOR"));
+	else
+		env_vars.http_x_forwarded_for = NULL;
+
+	if (getenv("QUERY_STRING"))
+		env_vars.query_string = strdup(getenv("QUERY_STRING"));
+	else
+		env_vars.query_string = NULL;
 }
 
 /*

@@ -43,6 +43,9 @@
 /* Structure to hold user's session information */
 struct session user_session;
 
+/* Structure to hold envionment variables sent by the browser */
+struct env_vars env_vars;
+
 /*
  * /login/
  *
@@ -50,8 +53,7 @@ struct session user_session;
  *
  * Display the login screen.
  */
-static void login(char *http_user_agent, char *http_x_forwarded_for,
-							GHashTable *qvars)
+static void login(GHashTable *qvars)
 {
 	int ret = 1;
 	int sid;
@@ -60,9 +62,8 @@ static void login(char *http_user_agent, char *http_x_forwarded_for,
 	if (qvars) {
 		ret = check_auth(qvars);
 		if (ret == 0) {
-			sid = log_login(qvars, http_x_forwarded_for);
-			create_session(qvars, http_user_agent,
-						http_x_forwarded_for, sid);
+			sid = log_login(qvars);
+			create_session(qvars, sid);
 			printf("Location: /receipts/\r\n\r\n");
 			return; /* Successful login */
 		}
@@ -553,7 +554,7 @@ out2:
  *
  * Edit a users settings.
  */
-static void admin_edit_user(char *request_method, GHashTable *qvars)
+static void admin_edit_user(GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	unsigned int uid;
@@ -576,7 +577,7 @@ static void admin_edit_user(char *request_method, GHashTable *qvars)
 	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
 
 	/* If we got a POST, update user settings before showing them. */
-	if (strcmp(request_method, "POST") == 0) {
+	if (strcmp(env_vars.request_method, "POST") == 0) {
 		if ((strlen(get_var(qvars, "email1")) == 0 &&
 				strlen(get_var(qvars, "email2")) == 0) ||
 				(strcmp(get_var(qvars, "email1"),
@@ -802,7 +803,7 @@ static void admin_pending_activations(GHashTable *qvars)
  *
  * Activate a users account.
  */
-static void activate_user(char *request_method, GHashTable *qvars)
+static void activate_user(GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char *key;
@@ -824,7 +825,7 @@ static void activate_user(char *request_method, GHashTable *qvars)
 	 * Otherwise we should have an activation key to proceed with
 	 * the account activation.
 	 */
-	if (strcmp(request_method, "POST") == 0)
+	if (strcmp(env_vars.request_method, "POST") == 0)
 		post = 1;
 
 	conn = db_conn();
@@ -1154,7 +1155,7 @@ static void prefs_fmap(GHashTable *qvars)
  *
  * Allow users to change their details.
  */
-static void prefs_edit_user(char *request_method, GHashTable *qvars)
+static void prefs_edit_user(GHashTable *qvars)
 {
 	int form_err = 0;
 	TMPL_varlist *vl = NULL;
@@ -1163,7 +1164,7 @@ static void prefs_edit_user(char *request_method, GHashTable *qvars)
 	 * If we got POST data, update the users settings before
 	 * showing them.
 	 */
-	if (strcmp(request_method, "POST") == 0) {
+	if (strcmp(env_vars.request_method, "POST") == 0) {
 		if ((strlen(get_var(qvars, "email1")) == 0 &&
 				strlen(get_var(qvars, "email2")) == 0) ||
 				(strcmp(get_var(qvars, "email1"),
@@ -2556,47 +2557,16 @@ static void env(void)
 void handle_request(void)
 {
 	int logged_in = 0;
-	char *request_uri = "\0";
-	char *request_method = "\0";
-	char *http_cookie = "\0";	/* we might not get any cookies */
-	char *http_user_agent;
-	char *http_x_forwarded_for = "\0";
-	char *query_string;
+	char *request_uri;
 	struct timeval stv;
 	struct timeval etv;
 	GHashTable *qvars = NULL;
 
 	gettimeofday(&stv, NULL);
 
-	/*
-	 * The below variables are the least that we require. If we don't
-	 * get any of them (except for cookies as the client might not have
-	 * one yet), just return out.
-	 */
-	if (getenv("REQUEST_URI"))
-		request_uri = strdupa(getenv("REQUEST_URI"));
-	else
-		goto out2;
-	if (getenv("REQUEST_METHOD"))
-		request_method = strdupa(getenv("REQUEST_METHOD"));
-	else
-		goto out2;
-	if (getenv("HTTP_COOKIE"))
-		http_cookie = strdupa(getenv("HTTP_COOKIE"));
-	if (getenv("HTTP_USER_AGENT"))
-		http_user_agent = strdupa(getenv("HTTP_USER_AGENT"));
-	else
-		goto out2;
-	if (getenv("HTTP_X_FORWARDED_FOR"))
-		http_x_forwarded_for = strdupa(getenv("HTTP_X_FORWARDED_FOR"));
-	else
-		goto out2;
-	if (getenv("QUERY_STRING"))
-		query_string = strdupa(getenv("QUERY_STRING"));
-	else
-		goto out2;
-
-	d_fprintf(debug_log, "Cookies: %s\n", http_cookie);
+	set_env_vars();
+	request_uri = strdupa(env_vars.request_uri);
+	d_fprintf(debug_log, "Cookies: %s\n", env_vars.http_cookie);
 
 	/*
 	 * Get the query values from a GET or POST and put them in
@@ -2607,14 +2577,14 @@ void handle_request(void)
 	 * of GHashTables.
 	 */
 	if (strncmp(request_uri, "/process_receipt_approval/", 26) != 0)
-		qvars = set_vars(request_method, query_string);
+		qvars = set_vars();
 
 	/*
 	 * Some routes need to come before the login / session stuff as
 	 * they can't be logged in and have no session.
 	 */
 	if (strncmp(request_uri, "/activate_user/", 15) == 0) {
-		activate_user(request_method, qvars);
+		activate_user(qvars);
 		goto out2;
 	}
 
@@ -2630,18 +2600,16 @@ void handle_request(void)
 
 	memset(&user_session, 0, sizeof(user_session));
 	if (strncmp(request_uri, "/login/", 7) == 0) {
-		login(http_user_agent, http_x_forwarded_for, qvars);
+		login(qvars);
 		goto out;
 	}
 
-	logged_in = is_logged_in(http_cookie, http_user_agent,
-							http_x_forwarded_for,
-							request_uri);
+	logged_in = is_logged_in();
 	if (!logged_in) {
 		printf("Location: /login/\r\n\r\n");
 		goto out;
 	}
-	set_user_session(http_cookie, request_uri);
+	set_user_session();
 
 	/* Add new url handlers after here */
 
@@ -2716,7 +2684,7 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/prefs/edit_user/", 17) == 0) {
-		prefs_edit_user(request_method, qvars);
+		prefs_edit_user(qvars);
 		goto out;
 	}
 
@@ -2736,7 +2704,7 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/admin/edit_user/", 17) == 0) {
-		admin_edit_user(request_method, qvars);
+		admin_edit_user(qvars);
 		goto out;
 	}
 
@@ -2770,11 +2738,18 @@ out2:
 	free_vars(qvars);
 	gettimeofday(&etv, NULL);
 	d_fprintf(access_log, "Got request from %s for %s (%s), %f secs\n",
-				http_x_forwarded_for,
+				env_vars.http_x_forwarded_for,
 				request_uri,
-				request_method,
+				env_vars.request_method,
 				((double)etv.tv_sec +
 				(double)etv.tv_usec / 1000000.0) -
 				((double)stv.tv_sec + (double)stv.tv_usec
 				/ 1000000.0));
+
+	free(env_vars.request_uri);
+	free(env_vars.request_method);
+	free(env_vars.http_cookie);
+	free(env_vars.http_user_agent);
+	free(env_vars.http_x_forwarded_for);
+	free(env_vars.query_string);
 }
