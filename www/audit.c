@@ -29,7 +29,7 @@
  * We log the time (seconds.microseconds), uid, username, ip address,
  * hostname and the session id that was assigned to this session.
  */
-unsigned int log_login(GHashTable *credentials)
+unsigned int log_login(void)
 {
 	char sql[SQL_MAX];
 	char *username;
@@ -67,10 +67,10 @@ unsigned int log_login(GHashTable *credentials)
 
 	conn = db_conn();
 
-	username = alloca(strlen(get_var(credentials, "username")) * 2 + 1);
-	mysql_real_escape_string(conn, username, get_var(credentials,
-						"username"), strlen(get_var(
-						credentials, "username")));
+	username = alloca(strlen(get_var(qvars, "username")) * 2 + 1);
+	mysql_real_escape_string(conn, username, get_var(qvars, "username"),
+						strlen(get_var(qvars,
+						"username")));
 	hostname = alloca(strlen(host) * 2 + 1);
 	mysql_real_escape_string(conn, hostname, host, strlen(host));
 

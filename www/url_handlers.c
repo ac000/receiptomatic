@@ -46,6 +46,9 @@ struct session user_session;
 /* Structure to hold envionment variables sent by the browser */
 struct env_vars env_vars;
 
+/* Hash table to store the QUERY_STRING values */
+GHashTable *qvars = NULL;
+
 /*
  * /login/
  *
@@ -53,17 +56,17 @@ struct env_vars env_vars;
  *
  * Display the login screen.
  */
-static void login(GHashTable *qvars)
+static void login(void)
 {
 	int ret = 1;
 	int sid;
 	TMPL_varlist *vl = NULL;
 
 	if (qvars) {
-		ret = check_auth(qvars);
+		ret = check_auth();
 		if (ret == 0) {
-			sid = log_login(qvars);
-			create_session(qvars, sid);
+			sid = log_login();
+			create_session(sid);
 			printf("Location: /receipts/\r\n\r\n");
 			return; /* Successful login */
 		}
@@ -127,7 +130,7 @@ static void logout(void)
  *
  * It will only delete images that are un-tagged.
  */
-static void delete_image(GHashTable *qvars)
+static void delete_image(void)
 {
 	char sql[SQL_MAX];
 	char path[PATH_MAX];
@@ -347,7 +350,7 @@ static void admin(void)
  *
  * List users in the system.
  */
-static void admin_list_users(GHashTable *qvars)
+static void admin_list_users(void)
 {
 	char sql[SQL_MAX];
 	char page[10];
@@ -462,7 +465,7 @@ static void admin_list_users(GHashTable *qvars)
  *
  * Add a user to the system.
  */
-static void admin_add_user(GHashTable *qvars)
+static void admin_add_user(void)
 {
 	unsigned char capabilities = 0;
 	int form_err = 0;
@@ -527,7 +530,7 @@ static void admin_add_user(GHashTable *qvars)
 	if (!form_err) {
 		int ret;
 
-		ret = do_add_user(qvars, capabilities);
+		ret = do_add_user(capabilities);
 		if (ret == -10) {
 			/*
 			 * Tried to add an already existing user.
@@ -554,7 +557,7 @@ out2:
  *
  * Edit a users settings.
  */
-static void admin_edit_user(GHashTable *qvars)
+static void admin_edit_user(void)
 {
 	char sql[SQL_MAX];
 	unsigned int uid;
@@ -604,7 +607,7 @@ static void admin_edit_user(GHashTable *qvars)
 		}
 
 		if (!form_err) {
-			do_update_user(qvars);
+			do_update_user();
 			vl = TMPL_add_var(vl, "updated", "yes", NULL);
 		}
 	}
@@ -710,7 +713,7 @@ out:
  *
  * List currently pending user account activations.
  */
-static void admin_pending_activations(GHashTable *qvars)
+static void admin_pending_activations(void)
 {
 	char sql[SQL_MAX];
 	char page[10];
@@ -803,7 +806,7 @@ static void admin_pending_activations(GHashTable *qvars)
  *
  * Activate a users account.
  */
-static void activate_user(GHashTable *qvars)
+static void activate_user(void)
 {
 	char sql[SQL_MAX];
 	char *key;
@@ -901,7 +904,7 @@ out2:
  *
  * Generate a new activation key and send it to the user.
  */
-static void generate_new_key(GHashTable *qvars)
+static void generate_new_key(void)
 {
 	char sql[SQL_MAX];
 	char *email_addr;
@@ -958,7 +961,7 @@ out:
  *
  * Allow a user to set a new password, if they have forgotten it.
  */
-static void forgotten_password(GHashTable *qvars)
+static void forgotten_password(void)
 {
 	char sql[SQL_MAX];
 	char *email_addr;
@@ -1038,14 +1041,14 @@ static void prefs(void)
  *
  * Change the image tag field names.
  */
-static void prefs_fmap(GHashTable *qvars)
+static void prefs_fmap(void)
 {
 	struct field_names fields;
 	int updated = 0;
 	TMPL_varlist *vl = NULL;
 
 	if (qvars) {
-		update_fmap(qvars);
+		update_fmap();
 		updated = 1;
 	}
 
@@ -1155,7 +1158,7 @@ static void prefs_fmap(GHashTable *qvars)
  *
  * Allow users to change their details.
  */
-static void prefs_edit_user(GHashTable *qvars)
+static void prefs_edit_user(void)
 {
 	int form_err = 0;
 	TMPL_varlist *vl = NULL;
@@ -1198,7 +1201,7 @@ static void prefs_edit_user(GHashTable *qvars)
 		}
 
 		if (!form_err) {
-			do_edit_user(qvars);
+			do_edit_user();
 			/* After the update we want to re-GET */
 			printf("Location: /prefs/edit_user/?updated=yes"
 								"\r\n\r\n");
@@ -1268,7 +1271,7 @@ static void prefs_edit_user(GHashTable *qvars)
 /*
  * /do_extract_data/
  */
-static void do_extract_data(GHashTable *qvars)
+static void do_extract_data(void)
 {
 	int fd;
 	char temp_name[30] = "/tmp/receiptomatic-www-XXXXXX";
@@ -1479,7 +1482,7 @@ static void process_receipt_approval(void)
  *
  * Allows an approver to approve or reject receipts.
  */
-static void approve_receipts(GHashTable *qvars)
+static void approve_receipts(void)
 {
 	char sql[SQL_MAX];
 	char pmsql[128];
@@ -1753,7 +1756,7 @@ out:
  *
  * Displays previously reviewed receipts.
  */
-static void reviewed_receipts(GHashTable *qvars)
+static void reviewed_receipts(void)
 {
 	int i;
 	int c = 1;		/* column number */
@@ -1887,7 +1890,7 @@ out:
  *
  * Displays the logged information for a given receipt.
  */
-static void receipt_info(GHashTable *qvars)
+static void receipt_info(void)
 {
 	char sql[SQL_MAX];
 	char tbuf[60];
@@ -2075,7 +2078,7 @@ out:
  *
  * Displays a gallery of previously tagged receipts.
  */
-static void tagged_receipts(GHashTable *qvars)
+static void tagged_receipts(void)
 {
 	int i;
 	int c = 1;		/* column number */
@@ -2219,7 +2222,7 @@ out:
  * Users can only tag/edit their own receipts and only receipts that
  * are PENDING.
  */
-static void process_receipt(GHashTable *qvars)
+static void process_receipt(void)
 {
 	char sql[SQL_MAX];
 	char secs[11];
@@ -2381,7 +2384,7 @@ static void process_receipt(GHashTable *qvars)
 						"payment_method"), NULL);
 
 	if (!tag_error) {
-		tag_image(qvars);
+		tag_image();
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
 			printf("Location: /receipt_info/?image_id=%s\r\n\r\n",
 						get_var(qvars, "image_id"));
@@ -2560,8 +2563,8 @@ void handle_request(void)
 	char *request_uri;
 	struct timeval stv;
 	struct timeval etv;
-	GHashTable *qvars = NULL;
 
+	qvars = NULL;
 	gettimeofday(&stv, NULL);
 
 	set_env_vars();
@@ -2584,23 +2587,23 @@ void handle_request(void)
 	 * they can't be logged in and have no session.
 	 */
 	if (strncmp(request_uri, "/activate_user/", 15) == 0) {
-		activate_user(qvars);
+		activate_user();
 		goto out2;
 	}
 
 	if (strncmp(request_uri, "/generate_new_key/", 18) == 0) {
-		generate_new_key(qvars);
+		generate_new_key();
 		goto out2;
 	}
 
 	if (strncmp(request_uri, "/forgotten_password/", 20) == 0) {
-		forgotten_password(qvars);
+		forgotten_password();
 		goto out2;
 	}
 
 	memset(&user_session, 0, sizeof(user_session));
 	if (strncmp(request_uri, "/login/", 7) == 0) {
-		login(qvars);
+		login();
 		goto out;
 	}
 
@@ -2619,22 +2622,22 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/process_receipt/", 17) == 0) {
-		process_receipt(qvars);
+		process_receipt();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/tagged_receipts/", 16) == 0) {
-		tagged_receipts(qvars);
+		tagged_receipts();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/receipt_info/", 14) == 0) {
-		receipt_info(qvars);
+		receipt_info();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/approve_receipts/", 18) == 0) {
-		approve_receipts(qvars);
+		approve_receipts();
 		goto out;
 	}
 
@@ -2644,7 +2647,7 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/reviewed_receipts/", 19) == 0) {
-		reviewed_receipts(qvars);
+		reviewed_receipts();
 		goto out;
 	}
 
@@ -2654,7 +2657,7 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/do_extract_data/", 17) == 0) {
-		do_extract_data(qvars);
+		do_extract_data();
 		goto out;
 	}
 
@@ -2669,7 +2672,7 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/delete_image/", 14) == 0) {
-		delete_image(qvars);
+		delete_image();
 		goto out;
 	}
 
@@ -2679,12 +2682,12 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/prefs/fmap/", 11) == 0) {
-		prefs_fmap(qvars);
+		prefs_fmap();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/prefs/edit_user/", 17) == 0) {
-		prefs_edit_user(qvars);
+		prefs_edit_user();
 		goto out;
 	}
 
@@ -2694,22 +2697,22 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/admin/list_users/", 18) == 0) {
-		admin_list_users(qvars);
+		admin_list_users();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/admin/add_user/", 16) == 0) {
-		admin_add_user(qvars);
+		admin_add_user();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/admin/edit_user/", 17) == 0) {
-		admin_edit_user(qvars);
+		admin_edit_user();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/admin/pending_activations/", 27) == 0) {
-		admin_pending_activations(qvars);
+		admin_pending_activations();
 		goto out;
 	}
 

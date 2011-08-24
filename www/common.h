@@ -25,6 +25,8 @@
 
 #include <sys/time.h>
 
+#include <glib.h>
+
 #include "receiptomatic_config.h"
 #include "db.h"
 
@@ -145,5 +147,7 @@ extern FILE *access_log;
 extern FILE *sql_log;
 extern FILE *error_log;
 extern FILE *debug_log;
+
+extern GHashTable *qvars;
 
 #endif /* _COMMON_H_ */

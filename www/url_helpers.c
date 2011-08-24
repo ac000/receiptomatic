@@ -141,7 +141,7 @@ out3:
  * the salt from their password entry and compares the result with
  * their stored password.
  */
-int check_auth(GHashTable *credentials)
+int check_auth(void)
 {
 	int ret = -1;
 	char sql[SQL_MAX];
@@ -152,10 +152,9 @@ int check_auth(GHashTable *credentials)
 	MYSQL_ROW row;
 
 	conn = db_conn();
-	username = alloca(strlen(get_var(credentials, "username")) * 2 + 1);
-	mysql_real_escape_string(conn, username, get_var(
-						credentials, "username"),
-						strlen(get_var(credentials,
+	username = alloca(strlen(get_var(qvars, "username")) * 2 + 1);
+	mysql_real_escape_string(conn, username, get_var(qvars, "username"),
+						strlen(get_var(qvars,
 						"username")));
 	snprintf(sql, SQL_MAX, "SELECT password, enabled FROM passwd WHERE "
 						"username = '%s'", username);
@@ -173,7 +172,7 @@ int check_auth(GHashTable *credentials)
 		goto out;
 	}
 
-	enc_passwd = crypt(get_var(credentials, "password"), row[0]);
+	enc_passwd = crypt(get_var(qvars, "password"), row[0]);
 	if (strcmp(enc_passwd, row[0]) == 0)
 		ret = 0;
 
@@ -445,7 +444,7 @@ char *create_session_id(void)
 /*
  * Create a new user session. This is done upon each successful login.
  */
-void create_session(GHashTable *credentials, unsigned int sid)
+void create_session(unsigned int sid)
 {
 	char *session_id;
 	char restrict_ip[2] = "0\0";
@@ -463,10 +462,10 @@ void create_session(GHashTable *credentials, unsigned int sid)
 
 	conn = db_conn();
 
-	username = alloca(strlen(get_var(credentials, "username")) * 2 + 1);
+	username = alloca(strlen(get_var(qvars, "username")) * 2 + 1);
 	mysql_real_escape_string(conn, username, get_var(
-						credentials, "username"),
-						strlen(get_var(credentials,
+						qvars, "username"),
+						strlen(get_var(qvars,
 						"username")));
 	snprintf(sql, SQL_MAX, "SELECT uid, name, capabilities FROM passwd "
 						"WHERE username = '%s'",
@@ -478,7 +477,7 @@ void create_session(GHashTable *credentials, unsigned int sid)
 
 	session_id = create_session_id();
 
-	if (strcmp(get_var(credentials, "restrict_ip"), "true") == 0) {
+	if (strcmp(get_var(qvars, "restrict_ip"), "true") == 0) {
 		d_fprintf(debug_log, "Restricting session to origin ip "
 								"address\n");
 		restrict_ip[0] = '1';
@@ -490,9 +489,9 @@ void create_session(GHashTable *credentials, unsigned int sid)
 	snprintf(timestamp, sizeof(timestamp), "%ld", (long)time(NULL));
 	snprintf(ssid, sizeof(ssid), "%u", sid);
 	cols = tcmapnew3("sid", ssid, "uid", get_var(db_row, "uid"),
-					"username", get_var(credentials,
-					"username"), "name", get_var(db_row,
-					"name"), "login_at", timestamp,
+					"username", get_var(qvars, "username"),
+					"name", get_var(db_row, "name"),
+					"login_at", timestamp,
 					"last_seen", timestamp, "origin_ip",
 					env_vars.http_x_forwarded_for,
 					"client_id", env_vars.http_user_agent,
@@ -666,7 +665,7 @@ out:
 /*
  * Stores custom image tag field names for a user in the database.
  */
-void update_fmap(GHashTable *qvars)
+void update_fmap(void)
 {
 	MYSQL *conn;
 	char sql[SQL_MAX];
@@ -799,7 +798,7 @@ void update_fmap(GHashTable *qvars)
 /*
  * Takes the form data from /process_receipt/ and enters it into the database.
  */
-void tag_image(GHashTable *qvars)
+void tag_image(void)
 {
 	char sql[SQL_MAX];
 	char *image_id;
@@ -945,7 +944,7 @@ void tag_image(GHashTable *qvars)
 /*
  * Add a new user to the system.
  */
-int do_add_user(GHashTable *qvars, unsigned char capabilities)
+int do_add_user(unsigned char capabilities)
 {
 	char sql[SQL_MAX];
 	char *key;
@@ -1008,7 +1007,7 @@ out:
 /*
  * Update a users settings.
  */
-void do_update_user(GHashTable *qvars)
+void do_update_user(void)
 {
 	char sql[SQL_MAX];
 	char *hash;
@@ -1094,7 +1093,7 @@ void do_update_user(GHashTable *qvars)
 /*
  * Update a users settings, by a user.
  */
-void do_edit_user(GHashTable *qvars)
+void do_edit_user(void)
 {
 	TCTDB *tdb;
 	TDBQRY *qry;
