@@ -11,6 +11,6 @@
 #define _DATA_EXTRACTION_H_
 
 void send_receipt_data(int fd);
-void extract_data_now(struct session *current_session, int fd);
+void extract_data_now(int fd);
 
 #endif /* _DATA_EXTRACTION_H_ */

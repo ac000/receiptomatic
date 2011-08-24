@@ -11,6 +11,6 @@
 #define _AUDIT_H_
 
 unsigned int log_login(GHashTable *credentials, char *ip_addr);
-time_t get_last_login(unsigned int uid, char *from_host);
+time_t get_last_login(char *from_host);
 
 #endif /* _AUDIT_H_ */

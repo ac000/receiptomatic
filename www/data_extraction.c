@@ -43,7 +43,7 @@ void send_receipt_data(int fd)
 	}
 }
 
-void extract_data_now(struct session *current_session, int fd)
+void extract_data_now(int fd)
 {
 	char sql[SQL_MAX];
 	char line[BUF_SIZE];
@@ -69,8 +69,8 @@ void extract_data_now(struct session *current_session, int fd)
 					"approved.uid = %u AND "
 					"approved.timestamp > %ld AND "
 					"approved.status = %d",
-					current_session->uid,
-					current_session->login_at, APPROVED);
+					user_session.uid,
+					user_session.login_at, APPROVED);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);

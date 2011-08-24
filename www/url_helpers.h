@@ -14,23 +14,21 @@ char *username_to_name(char *username);
 int is_logged_in(char *cookies, char *client_id, char *remote_ip,
 							char *request_uri);
 int check_auth(GHashTable *credentials);
-int is_users_receipt(struct session *current_session, char *id);
-int tag_info_allowed(struct session *current_session, char *image_id);
-int image_access_allowed(struct session *current_session, char *path);
-void set_current_session(struct session *current_session, char *cookies,
-							char *request_uri);
+int is_users_receipt(char *id);
+int tag_info_allowed(char *image_id);
+int image_access_allowed(char *path);
+void set_user_session(char *cookies, char *request_uri);
 char *create_session_id(void);
 void create_session(GHashTable *credentials, char *http_user_agent,
 				char *http_x_forwarded_for, unsigned int sid);
 int check_amounts(double gross, double net, double vat, double vr);
 void set_default_field_names(struct field_names *fields);
-void set_custom_field_names(struct session *current_session,
-						struct field_names *fields);
-void update_fmap(struct session *current_session, GHashTable *qvars);
-void tag_image(struct session *current_session, GHashTable *qvars);
+void set_custom_field_names(struct field_names *fields);
+void update_fmap(GHashTable *qvars);
+void tag_image(GHashTable *qvars);
 int do_add_user(GHashTable *qvars, unsigned char capabilities);
 void do_update_user(GHashTable *qvars);
-void do_edit_user(struct session *current_session, GHashTable *qvars);
+void do_edit_user(GHashTable *qvars);
 void do_activate_user(char *uid, char *key, char *password);
 void send_template(char *template, TMPL_varlist *varlist);
 

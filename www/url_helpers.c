@@ -185,7 +185,7 @@ out:
 /*
  * Checks that an image/receipt id belongs to a specified user.
  */
-int is_users_receipt(struct session *current_session, char *id)
+int is_users_receipt(char *id)
 {
 	char sql[SQL_MAX];
 	char *s_id;
@@ -200,7 +200,7 @@ int is_users_receipt(struct session *current_session, char *id)
 
 	snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE id = '%s' AND "
 							"uid = %u", s_id,
-							current_session->uid);
+							user_session.uid);
 
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -216,7 +216,7 @@ int is_users_receipt(struct session *current_session, char *id)
 /*
  * Checks the users permission to access receipt tag information.
  */
-int tag_info_allowed(struct session *current_session, char *image_id)
+int tag_info_allowed(char *image_id)
 {
 	char sql[SQL_MAX];
 	char *s_image_id;
@@ -225,7 +225,7 @@ int tag_info_allowed(struct session *current_session, char *image_id)
 	MYSQL_RES *res;
 
 	/* Approvers can see all tags */
-	if (current_session->capabilities & APPROVER) {
+	if (user_session.capabilities & APPROVER) {
 		ret = 1;
 		goto out;
 	}
@@ -237,7 +237,7 @@ int tag_info_allowed(struct session *current_session, char *image_id)
 
 	snprintf(sql, SQL_MAX, "SELECT path FROM images WHERE id = '%s' AND "
 							"uid = %u", s_image_id,
-							current_session->uid);
+							user_session.uid);
 
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -255,16 +255,16 @@ out:
  * Determine if access to an image is allowed. It checks for /UID/ at the
  * start of the image path after IMAGE_PATH.
  */
-int image_access_allowed(struct session *current_session, char *path)
+int image_access_allowed(char *path)
 {
 	int ret = 0;
 	char uidir[PATH_MAX];
 
 	memset(uidir, 0, sizeof(uidir));
-	snprintf(uidir, sizeof(uidir), "/%d/", current_session->uid);
+	snprintf(uidir, sizeof(uidir), "/%d/", user_session.uid);
 
 	/* Approvers can see all images */
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		ret = 1;
 	else if (strncmp(path + strlen(IMAGE_PATH), uidir, strlen(uidir)) == 0)
 		ret = 1;
@@ -273,11 +273,10 @@ int image_access_allowed(struct session *current_session, char *path)
 }
 
 /*
- * Sets up the current_session structure. This contains various bits of
+ * Sets up the user_session structure. This contains various bits of
  * information pertaining to the users session.
  */
-void set_current_session(struct session *current_session, char *cookies,
-							char *request_uri)
+void set_user_session(char *cookies, char *request_uri)
 {
 	TCTDB *tdb;
 	TDBQRY *qry;
@@ -317,17 +316,17 @@ void set_current_session(struct session *current_session, char *cookies,
 	cols = tctdbget(tdb, rbuf, rsize);
 	tcmapiterinit(cols);
 
-	current_session->sid = atoi(tcmapget2(cols, "sid"));
-	current_session->uid = atoi(tcmapget2(cols, "uid"));
-	current_session->username = strdup(tcmapget2(cols, "username"));
-	current_session->name = strdup(tcmapget2(cols, "name"));
-	current_session->login_at = atol(tcmapget2(cols, "login_at"));
-	current_session->last_seen = time(NULL);
-	current_session->origin_ip = strdup(tcmapget2(cols, "origin_ip"));
-	current_session->client_id = strdup(tcmapget2(cols, "client_id"));
-	current_session->session_id = strdup(tcmapget2(cols, "session_id"));
-	current_session->restrict_ip = atoi(tcmapget2(cols, "restrict_ip"));
-	current_session->capabilities = atoi(tcmapget2(cols, "capabilities"));
+	user_session.sid = atoi(tcmapget2(cols, "sid"));
+	user_session.uid = atoi(tcmapget2(cols, "uid"));
+	user_session.username = strdup(tcmapget2(cols, "username"));
+	user_session.name = strdup(tcmapget2(cols, "name"));
+	user_session.login_at = atol(tcmapget2(cols, "login_at"));
+	user_session.last_seen = time(NULL);
+	user_session.origin_ip = strdup(tcmapget2(cols, "origin_ip"));
+	user_session.client_id = strdup(tcmapget2(cols, "client_id"));
+	user_session.session_id = strdup(tcmapget2(cols, "session_id"));
+	user_session.restrict_ip = atoi(tcmapget2(cols, "restrict_ip"));
+	user_session.capabilities = atoi(tcmapget2(cols, "capabilities"));
 
 	tcmapdel(cols);
 	tclistdel(res);
@@ -339,20 +338,20 @@ void set_current_session(struct session *current_session, char *cookies,
 	 */
 	snprintf(user_hdr, sizeof(user_hdr), "<big><big> %s</big></big><small>"
 				"<span class = \"lighter\"> (%d) </span>"
-				"</small>", current_session->name,
-				current_session->uid);
-	if (current_session->capabilities & APPROVER &&
-					current_session->capabilities & ADMIN)
+				"</small>", user_session.name,
+				user_session.uid);
+	if (user_session.capabilities & APPROVER &&
+					user_session.capabilities & ADMIN)
 		strncat(user_hdr, "<span class = \"t_red\">(Approver / Admin)"
 					"</span>", 1024 - strlen(user_hdr));
-	else if (current_session->capabilities & APPROVER)
+	else if (user_session.capabilities & APPROVER)
 		strncat(user_hdr, "<span class = \"t_red\">(Approver)"
 					"</span>", 1024 - strlen(user_hdr));
-	else if (current_session->capabilities & ADMIN)
+	else if (user_session.capabilities & ADMIN)
 		strncat(user_hdr, "<span class = \"t_red\">(Admin)"
 					"</span>", 1024 - strlen(user_hdr));
 	strncat(user_hdr, "&nbsp;", 1024 - strlen(user_hdr));
-	current_session->user_hdr = strdup(user_hdr);
+	user_session.user_hdr = strdup(user_hdr);
 
 	/*
 	 * We want to update the last_seen timestamp in the users session.
@@ -369,22 +368,22 @@ void set_current_session(struct session *current_session, char *cookies,
 	tctdbqrydel(qry);
 
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
-	snprintf(login_at, sizeof(login_at), "%ld", current_session->login_at);
+	snprintf(login_at, sizeof(login_at), "%ld", user_session.login_at);
 	snprintf(last_seen, sizeof(last_seen), "%ld",
-						current_session->last_seen);
-	snprintf(uid, sizeof(uid), "%u", current_session->uid);
-	snprintf(sid, sizeof(sid), "%u", current_session->sid);
+						user_session.last_seen);
+	snprintf(uid, sizeof(uid), "%u", user_session.uid);
+	snprintf(sid, sizeof(sid), "%u", user_session.sid);
 	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
-						current_session->restrict_ip);
+						user_session.restrict_ip);
 	snprintf(capabilities, sizeof(capabilities), "%d",
-						current_session->capabilities);
+						user_session.capabilities);
 	cols = tcmapnew3("sid", sid, "uid", uid, "username",
-				current_session->username, "name",
-				current_session->name, "login_at",
+				user_session.username, "name",
+				user_session.name, "login_at",
 				login_at, "last_seen", last_seen, "origin_ip",
-				current_session->origin_ip, "client_id",
-				current_session->client_id, "session_id",
-				current_session->session_id, "restrict_ip",
+				user_session.origin_ip, "client_id",
+				user_session.client_id, "session_id",
+				user_session.session_id, "restrict_ip",
 				restrict_ip, "capabilities", capabilities,
 				NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
@@ -563,8 +562,7 @@ void set_default_field_names(struct field_names *fields)
 /*
  * Get the users custom image tag field names for display.
  */
-void set_custom_field_names(struct session *current_session,
-						struct field_names *fields)
+void set_custom_field_names(struct field_names *fields)
 {
 	char sql[SQL_MAX];
 	MYSQL *conn;
@@ -575,7 +573,7 @@ void set_custom_field_names(struct session *current_session,
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT * FROM field_names WHERE uid = %u",
-							current_session->uid);
+							user_session.uid);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
@@ -664,7 +662,7 @@ out:
 /*
  * Stores custom image tag field names for a user in the database.
  */
-void update_fmap(struct session *current_session, GHashTable *qvars)
+void update_fmap(GHashTable *qvars)
 {
 	MYSQL *conn;
 	char sql[SQL_MAX];
@@ -688,9 +686,9 @@ void update_fmap(struct session *current_session, GHashTable *qvars)
 
 	conn = db_conn();
 
-	username = alloca(strlen(current_session->username) * 2 + 1);
-	mysql_real_escape_string(conn, username, current_session->username,
-					strlen(current_session->username));
+	username = alloca(strlen(user_session.username) * 2 + 1);
+	mysql_real_escape_string(conn, username, user_session.username,
+					strlen(user_session.username));
 
 	receipt_date = alloca(strlen(get_var(qvars, "receipt_date")) * 2 + 1);
 	mysql_real_escape_string(conn, receipt_date, get_var(
@@ -781,7 +779,7 @@ void update_fmap(struct session *current_session, GHashTable *qvars)
 					"'%s', '%s', '%s', '%s', '%s', '%s', "
 					"'%s', '%s', '%s', '%s', '%s', "
 					"'%s', '%s', '%s', '%s', '%s')",
-					current_session->uid, username,
+					user_session.uid, username,
 					receipt_date, department,
 					employee_number, reason, po_num,
 					cost_codes, account_codes,
@@ -797,7 +795,7 @@ void update_fmap(struct session *current_session, GHashTable *qvars)
 /*
  * Takes the form data from /process_receipt/ and enters it into the database.
  */
-void tag_image(struct session *current_session, GHashTable *qvars)
+void tag_image(GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char *image_id;
@@ -827,9 +825,9 @@ void tag_image(struct session *current_session, GHashTable *qvars)
 	mysql_real_escape_string(conn, image_id, get_var(qvars, "image_id"),
 					strlen(get_var(qvars, "image_id")));
 
-	username = alloca(strlen(current_session->username) * 2 + 1);
-	mysql_real_escape_string(conn, username, current_session->username,
-					strlen(current_session->username));
+	username = alloca(strlen(user_session.username) * 2 + 1);
+	mysql_real_escape_string(conn, username, user_session.username,
+					strlen(user_session.username));
 
 	employee_number = alloca(strlen(get_var(qvars,
 					"employee_number")) * 2 + 1);
@@ -919,7 +917,7 @@ void tag_image(struct session *current_session, GHashTable *qvars)
 				"%ld, '%s', '%s', '%s', '%s', '%s', '%s', "
 				"'%s', '%s', %.2f, %.2f, %.2f, %.2f, '%s', "
 				"%ld, '%s', '%s')",
-				image_id, current_session->uid, username,
+				image_id, user_session.uid, username,
 				time(NULL), employee_number, department,
 				po_num, cost_codes, account_codes,
 				supplier_town, supplier_name, currency,
@@ -1092,7 +1090,7 @@ void do_update_user(GHashTable *qvars)
 /*
  * Update a users settings, by a user.
  */
-void do_edit_user(struct session *current_session, GHashTable *qvars)
+void do_edit_user(GHashTable *qvars)
 {
 	TCTDB *tdb;
 	TDBQRY *qry;
@@ -1124,7 +1122,7 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 
 		snprintf(sql, SQL_MAX, "SELECT password FROM passwd WHERE "
 							"uid = %u",
-							current_session->uid);
+							user_session.uid);
 		d_fprintf(sql_log, "%s\n", sql);
 		mysql_query(conn, sql);
 		res = mysql_store_result(conn);
@@ -1147,9 +1145,9 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 
 	snprintf(sql, SQL_MAX, "REPLACE INTO passwd VALUES (%d, '%s', '%s', "
 						"'%s', %d, 1, 1, '')",
-						current_session->uid, username,
+						user_session.uid, username,
 						hash, name,
-						current_session->capabilities);
+						user_session.capabilities);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 
@@ -1163,7 +1161,7 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
 
-	snprintf(uid, sizeof(uid), "%u", current_session->uid);
+	snprintf(uid, sizeof(uid), "%u", user_session.uid);
 	qry = tctdbqrynew(tdb);
 	tctdbqryaddcond(qry, "uid", TDBQCNUMEQ, uid);
 	res = tctdbqrysearch(qry);
@@ -1174,13 +1172,13 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 	tctdbqrydel(qry);
 
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
-	snprintf(sid, sizeof(sid), "%u", current_session->sid);
-	snprintf(login_at, sizeof(login_at), "%ld", current_session->login_at);
+	snprintf(sid, sizeof(sid), "%u", user_session.sid);
+	snprintf(login_at, sizeof(login_at), "%ld", user_session.login_at);
 	snprintf(last_seen, sizeof(last_seen), "%ld", time(NULL));
 	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
-						current_session->restrict_ip);
+						user_session.restrict_ip);
 	snprintf(capabilities, sizeof(capabilities), "%d",
-						current_session->capabilities);
+						user_session.capabilities);
 	name = alloca(strlen(get_var(qvars, "name")) + 1);
 	sprintf(name, "%s", get_var(qvars, "name"));
 	username = alloca(strlen(get_var(qvars, "email1")) + 1);
@@ -1188,9 +1186,9 @@ void do_edit_user(struct session *current_session, GHashTable *qvars)
 	cols = tcmapnew3("sid", sid, "uid", uid, "username", username,
 				"name", name, "login_at", login_at,
 				"last_seen", last_seen,
-				"origin_ip", current_session->origin_ip,
-				"client_id", current_session->client_id,
-				"session_id", current_session->session_id,
+				"origin_ip", user_session.origin_ip,
+				"client_id", user_session.client_id,
+				"session_id", user_session.session_id,
 				"restrict_ip", restrict_ip,
 				"capabilities", capabilities, NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);

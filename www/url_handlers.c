@@ -40,6 +40,9 @@
 #include "url_handlers.h"
 #include "audit.h"
 
+/* Structure to hold user's session information */
+struct session user_session;
+
 /*
  * /login/
  *
@@ -82,7 +85,7 @@ static void login(char *http_user_agent, char *http_x_forwarded_for,
  * Clean up a users session. Remove their entry from the sessions db and
  * set the session_id browser cookie to expired.
  */
-static void logout(struct session *current_session)
+static void logout(void)
 {
 	TCTDB *tdb;
 	TDBQRY *qry;
@@ -95,7 +98,7 @@ static void logout(struct session *current_session)
 
 	qry = tctdbqrynew(tdb);
 	tctdbqryaddcond(qry, "session_id", TDBQCSTREQ,
-					current_session->session_id);
+					user_session.session_id);
 	res = tctdbqrysearch(qry);
 	rbuf = tclistval(res, 0, &rsize);
 	tctdbout(tdb, rbuf, strlen(rbuf));
@@ -123,7 +126,7 @@ static void logout(struct session *current_session)
  *
  * It will only delete images that are un-tagged.
  */
-static void delete_image(struct session *current_session, GHashTable *qvars)
+static void delete_image(GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char path[PATH_MAX];
@@ -167,7 +170,7 @@ static void delete_image(struct session *current_session, GHashTable *qvars)
 	vl = TMPL_add_var(vl, "image_id", get_var(qvars, "image_id"), NULL);
 
 	memset(uidir, 0, sizeof(uidir));
-	snprintf(uidir, sizeof(uidir), "/%d/", current_session->uid);
+	snprintf(uidir, sizeof(uidir), "/%d/", user_session.uid);
 	/* Is it one of the users images? */
 	if (strncmp(image_path + strlen(IMAGE_PATH), uidir, strlen(uidir))
 									!= 0)
@@ -224,7 +227,7 @@ out2:
  * want users seeing other users receipts). The application needs to get
  * the image and send it through to the client.
  */
-static void get_image(struct session *current_session, char *image)
+static void get_image(char *image)
 {
 	int fd;
 	ssize_t bytes_read = 1;
@@ -240,10 +243,10 @@ static void get_image(struct session *current_session, char *image)
 		return;
 
 	/* Don't let users access other user images */
-	if (!image_access_allowed(current_session, image_path)) {
+	if (!image_access_allowed(image_path)) {
 		printf("Status: 401 Unauthorized\r\n\r\n");
 		d_fprintf(access_log, "Access denied to %s for %s\n", image,
-						current_session->username);
+						user_session.username);
 		return;
 	}
 
@@ -273,7 +276,7 @@ static void get_image(struct session *current_session, char *image)
  * Allows the user to download the image to view at full size outside
  * the browser.
  */
-static void full_image(struct session *current_session, char *image)
+static void full_image(char *image)
 {
 	int fd;
 	ssize_t bytes_read = 1;
@@ -287,10 +290,10 @@ static void full_image(struct session *current_session, char *image)
 		return;
 
 	/* Don't let users access other users images */
-	if (!image_access_allowed(current_session, image_path)) {
+	if (!image_access_allowed(image_path)) {
 		printf("Status: 401 Unauthorized\r\n\r\n");
 		d_fprintf(access_log, "Access denied to %s for %s\n", image,
-						current_session->username);
+						user_session.username);
 		return;
 	}
 
@@ -318,19 +321,19 @@ static void full_image(struct session *current_session, char *image)
  *
  * Admin index page.
  */
-static void admin(struct session *current_session)
+static void admin(void)
 {
 	TMPL_varlist *vl = NULL;
 
-	if (!(current_session->capabilities & ADMIN))
+	if (!(user_session.capabilities & ADMIN))
 		return;
 
 	vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "approver", "yes", NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
 
 	send_template("templates/admin.tmpl", vl);
 	TMPL_free_varlist(vl);
@@ -343,7 +346,7 @@ static void admin(struct session *current_session)
  *
  * List users in the system.
  */
-static void admin_list_users(struct session *current_session, GHashTable *qvars)
+static void admin_list_users(GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char page[10];
@@ -359,15 +362,15 @@ static void admin_list_users(struct session *current_session, GHashTable *qvars)
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 
-	if (!(current_session->capabilities & ADMIN))
+	if (!(user_session.capabilities & ADMIN))
 		return;
 
 	ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
 
-	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
 
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), rpp, &page_no,
@@ -458,21 +461,21 @@ static void admin_list_users(struct session *current_session, GHashTable *qvars)
  *
  * Add a user to the system.
  */
-static void admin_add_user(struct session *current_session, GHashTable *qvars)
+static void admin_add_user(GHashTable *qvars)
 {
 	unsigned char capabilities = 0;
 	int form_err = 0;
 	TMPL_varlist *vl = NULL;
 
-	if (!(current_session->capabilities & ADMIN))
+	if (!(user_session.capabilities & ADMIN))
 		return;
 
 	vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "approver", "yes", NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
 
 	if (!qvars)
 		goto out;
@@ -550,9 +553,7 @@ out2:
  *
  * Edit a users settings.
  */
-static void admin_edit_user(char *request_method,
-					struct session *current_session,
-					GHashTable *qvars)
+static void admin_edit_user(char *request_method, GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	unsigned int uid;
@@ -561,7 +562,7 @@ static void admin_edit_user(char *request_method,
 	MYSQL_RES *res;
 	TMPL_varlist *vl = NULL;
 
-	if (!(current_session->capabilities & ADMIN))
+	if (!(user_session.capabilities & ADMIN))
 		return;
 
 	if (!qvars)
@@ -569,10 +570,10 @@ static void admin_edit_user(char *request_method,
 
 	vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "approver", "yes", NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
 
 	/* If we got a POST, update user settings before showing them. */
 	if (strcmp(request_method, "POST") == 0) {
@@ -708,8 +709,7 @@ out:
  *
  * List currently pending user account activations.
  */
-static void admin_pending_activations(struct session *current_session,
-							GHashTable *qvars)
+static void admin_pending_activations(GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char page[10];
@@ -725,15 +725,15 @@ static void admin_pending_activations(struct session *current_session,
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 
-	if (!(current_session->capabilities & ADMIN))
+	if (!(user_session.capabilities & ADMIN))
 		return;
 
 	ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
 
-	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
 
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), rpp, &page_no,
@@ -1015,16 +1015,16 @@ out:
  *
  * HTML is in templates/prefs.tmpl
  */
-static void prefs(struct session *current_session)
+static void prefs(void)
 {
 	TMPL_varlist *vl = NULL;
 
-	if (current_session->capabilities & ADMIN)
+	if (user_session.capabilities & ADMIN)
 		vl = TMPL_add_var(vl, "admin", "yes", NULL);
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "approver", "yes", NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
 
 	send_template("templates/prefs.tmpl", vl);
 	TMPL_free_varlist(vl);
@@ -1037,26 +1037,26 @@ static void prefs(struct session *current_session)
  *
  * Change the image tag field names.
  */
-static void prefs_fmap(struct session *current_session, GHashTable *qvars)
+static void prefs_fmap(GHashTable *qvars)
 {
 	struct field_names fields;
 	int updated = 0;
 	TMPL_varlist *vl = NULL;
 
 	if (qvars) {
-		update_fmap(current_session, qvars);
+		update_fmap(qvars);
 		updated = 1;
 	}
 
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "approver", "yes", NULL);
-	if (current_session->capabilities & ADMIN)
+	if (user_session.capabilities & ADMIN)
 		vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
 
 	fields = field_names;
-	set_custom_field_names(current_session, &fields);
+	set_custom_field_names(&fields);
 
 	if (updated)
 		vl = TMPL_add_var(vl, "fields_updated", "yes", NULL);
@@ -1154,9 +1154,7 @@ static void prefs_fmap(struct session *current_session, GHashTable *qvars)
  *
  * Allow users to change their details.
  */
-static void prefs_edit_user(char *request_method,
-					struct session *current_session,
-					GHashTable *qvars)
+static void prefs_edit_user(char *request_method, GHashTable *qvars)
 {
 	int form_err = 0;
 	TMPL_varlist *vl = NULL;
@@ -1172,7 +1170,7 @@ static void prefs_edit_user(char *request_method,
 				get_var(qvars, "email2")) != 0)) {
 			vl = TMPL_add_var(vl, "email_error", "yes", NULL);
 			form_err = 1;
-		} else if (strcmp(current_session->username,
+		} else if (strcmp(user_session.username,
 					get_var(qvars,"email1")) != 0) {
 			if (user_already_exists(get_var(qvars,"email1"))) {
 				vl = TMPL_add_var(vl, "user_exists", "yes",
@@ -1199,7 +1197,7 @@ static void prefs_edit_user(char *request_method,
 		}
 
 		if (!form_err) {
-			do_edit_user(current_session, qvars);
+			do_edit_user(qvars);
 			/* After the update we want to re-GET */
 			printf("Location: /prefs/edit_user/?updated=yes"
 								"\r\n\r\n");
@@ -1228,7 +1226,7 @@ static void prefs_edit_user(char *request_method,
 		conn = db_conn();
 		snprintf(sql, SQL_MAX, "SELECT username, name FROM passwd "
 							"WHERE uid = %u",
-							current_session->uid);
+							user_session.uid);
 		d_fprintf(sql_log, "%s\n", sql);
 		mysql_query(conn, sql);
 		res = mysql_store_result(conn);
@@ -1255,12 +1253,12 @@ static void prefs_edit_user(char *request_method,
 		vl = TMPL_add_var(vl, "name", get_var(qvars, "name"), NULL);
 	}
 
-	if (current_session->capabilities & ADMIN)
+	if (user_session.capabilities & ADMIN)
 		vl = TMPL_add_var(vl, "admin", "yes", NULL);
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "approver", "yes", NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
 
 	send_template("templates/prefs_edit_user.tmpl", vl);
 	TMPL_free_varlist(vl);
@@ -1269,18 +1267,18 @@ static void prefs_edit_user(char *request_method,
 /*
  * /do_extract_data/
  */
-static void do_extract_data(struct session *current_session, GHashTable *qvars)
+static void do_extract_data(GHashTable *qvars)
 {
 	int fd;
 	char temp_name[30] = "/tmp/receiptomatic-www-XXXXXX";
 
-	if (!(current_session->capabilities & APPROVER))
+	if (!(user_session.capabilities & APPROVER))
 		return;
 
 	fd = mkstemp(temp_name);
 
 	if (strcmp(get_var(qvars, "whence"), "now") == 0)
-		extract_data_now(current_session, fd);
+		extract_data_now(fd);
 
 	send_receipt_data(fd);
 
@@ -1295,16 +1293,16 @@ static void do_extract_data(struct session *current_session, GHashTable *qvars)
  *
  * Allows an approver to extract approved receipt data.
  */
-static void extract_data(struct session *current_session)
+static void extract_data(void)
 {
 	TMPL_varlist *vl = NULL;
 
-	if (!(current_session->capabilities & APPROVER))
+	if (!(user_session.capabilities & APPROVER))
 		return;
-	if (current_session->capabilities & ADMIN)
+	if (user_session.capabilities & ADMIN)
 		vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
 	vl = TMPL_add_var(vl, "approver", "yes", NULL);
 
 	send_template("templates/extract_data.tmpl", vl);
@@ -1316,7 +1314,7 @@ static void extract_data(struct session *current_session)
  *
  * Processes the form data from /approve_receipts/
  */
-static void process_receipt_approval(struct session *current_session)
+static void process_receipt_approval(void)
 {
 	char sql[SQL_MAX];
 	char buf[SQL_MAX];
@@ -1326,7 +1324,7 @@ static void process_receipt_approval(struct session *current_session)
 	MYSQL *conn;
 	GList *post_vars = NULL;
 
-	if (!(current_session->capabilities & APPROVER))
+	if (!(user_session.capabilities & APPROVER))
 		return;
 
 	memset(buf, 0, sizeof(buf));
@@ -1338,9 +1336,9 @@ static void process_receipt_approval(struct session *current_session)
 
 	conn = db_conn();
 
-	username = alloca(strlen(current_session->username) * 2 + 1);
-	mysql_real_escape_string(conn, username, current_session->username,
-					strlen(current_session->username));
+	username = alloca(strlen(user_session.username) * 2 + 1);
+	mysql_real_escape_string(conn, username, user_session.username,
+					strlen(user_session.username));
 
 	mysql_query(conn, "LOCK TABLES approved WRITE, images WRITE, "
 								"tags READ");
@@ -1371,11 +1369,11 @@ static void process_receipt_approval(struct session *current_session)
 		}
 
 		/* Can user approve their own receipts? */
-		if (!(current_session->capabilities & APPROVER_SELF)) {
+		if (!(user_session.capabilities & APPROVER_SELF)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE "
 						"id = '%s' AND uid = %u",
 						image_id,
-						current_session->uid);
+						user_session.uid);
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_real_query(conn, sql, strlen(sql));
 			res = mysql_store_result(conn);
@@ -1383,7 +1381,7 @@ static void process_receipt_approval(struct session *current_session)
 				action[0] = 's';
 		}
 		/* Can user approve card transactions? */
-		if (!(current_session->capabilities & APPROVER_CARD)) {
+		if (!(user_session.capabilities & APPROVER_CARD)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
 						"id = '%s' AND payment_method "
 						"= 'card'", image_id);
@@ -1394,7 +1392,7 @@ static void process_receipt_approval(struct session *current_session)
 				action[0] = 's';
 		}
 		/* Can user approve cash transactions? */
-		if (!(current_session->capabilities & APPROVER_CASH)) {
+		if (!(user_session.capabilities & APPROVER_CASH)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
 						"id = '%s' AND payment_method "
 						"= 'cash'", image_id);
@@ -1405,7 +1403,7 @@ static void process_receipt_approval(struct session *current_session)
 				action[0] = 's';
 		}
 		/* Can user approve cheque transactions? */
-		if (!(current_session->capabilities & APPROVER_CHEQUE)) {
+		if (!(user_session.capabilities & APPROVER_CHEQUE)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
 						"id = '%s' AND payment_method "
 						"= 'cheque'", image_id);
@@ -1438,7 +1436,7 @@ static void process_receipt_approval(struct session *current_session)
 			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
 						"'%s', %u, '%s', %ld, %d, "
 						"'%s')",
-						image_id, current_session->uid,
+						image_id, user_session.uid,
 						username, time(NULL), APPROVED,
 						reason);
 			d_fprintf(sql_log, "%s\n", sql);
@@ -1452,7 +1450,7 @@ static void process_receipt_approval(struct session *current_session)
 			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
 						"'%s', %u, '%s', %ld, %d, "
 						"'%s')",
-						image_id, current_session->uid,
+						image_id, user_session.uid,
 						username, time(NULL), REJECTED,
 						reason);
 			d_fprintf(sql_log, "%s\n", sql);
@@ -1480,7 +1478,7 @@ static void process_receipt_approval(struct session *current_session)
  *
  * Allows an approver to approve or reject receipts.
  */
-static void approve_receipts(struct session *current_session, GHashTable *qvars)
+static void approve_receipts(GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char pmsql[128];
@@ -1503,7 +1501,7 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 	TMPL_varlist *vl = NULL;
 	TMPL_loop *loop = NULL;
 
-	if (!(current_session->capabilities & APPROVER))
+	if (!(user_session.capabilities & APPROVER))
 		return;
 
 	memset(pmsql, 0, sizeof(pmsql));
@@ -1511,11 +1509,11 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 	 * Prepare the payment_method sql clause depending on the users
 	 * approver capabilities.
 	 */
-	if (current_session->capabilities & APPROVER_CASH) {
+	if (user_session.capabilities & APPROVER_CASH) {
 		strcat(pmsql, pm);
 		strcat(pmsql, cash);
 	}
-	if (current_session->capabilities & APPROVER_CARD) {
+	if (user_session.capabilities & APPROVER_CARD) {
 		if (strlen(pmsql) > 0)
 			strcpy(join, " OR ");
 		else
@@ -1524,7 +1522,7 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 		strcat(pmsql, pm);
 		strcat(pmsql, card);
 	}
-	if (current_session->capabilities & APPROVER_CHEQUE) {
+	if (user_session.capabilities & APPROVER_CHEQUE) {
 		if (strlen(pmsql) > 0)
 			strcpy(join, " OR ");
 		else
@@ -1546,7 +1544,7 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 	if (strlen(pmsql) == 0) {
 		d_fprintf(error_log, "User %u seems to have an invalid "
 					"capability setting in the passwd "
-					"table.\n", current_session->uid);
+					"table.\n", user_session.uid);
 		return;
 	}
 
@@ -1558,8 +1556,8 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 
 	memset(assql, 0, sizeof(assql));
 	/* If the user isn't APPROVER_SELF, don't show them their receipts */
-	if (!(current_session->capabilities & APPROVER_SELF))
-		sprintf(assql, "AND images.uid != %u", current_session->uid);
+	if (!(user_session.capabilities & APPROVER_SELF))
+		sprintf(assql, "AND images.uid != %u", user_session.uid);
 	else
 		assql[0] = '\0';
 
@@ -1591,12 +1589,12 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
 
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
-	if (current_session->capabilities & ADMIN)
+	if (user_session.capabilities & ADMIN)
 		ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
-	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
 
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
@@ -1605,7 +1603,7 @@ static void approve_receipts(struct session *current_session, GHashTable *qvars)
 	}
 
 	fields = field_names;
-	set_custom_field_names(current_session, &fields);
+	set_custom_field_names(&fields);
 
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
@@ -1754,8 +1752,7 @@ out:
  *
  * Displays previously reviewed receipts.
  */
-static void reviewed_receipts(struct session *current_session,
-							GHashTable *qvars)
+static void reviewed_receipts(GHashTable *qvars)
 {
 	int i;
 	int c = 1;		/* column number */
@@ -1772,19 +1769,19 @@ static void reviewed_receipts(struct session *current_session,
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 
-	if (!(current_session->capabilities & APPROVER))
+	if (!(user_session.capabilities & APPROVER))
 		return;
 
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), GRID_SIZE,
 							&page_no, &from);
 
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
-	if (current_session->capabilities & ADMIN)
+	if (user_session.capabilities & ADMIN)
 		ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
-	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM approved "
@@ -1809,7 +1806,7 @@ static void reviewed_receipts(struct session *current_session,
 	}
 
 	fields = field_names;
-	set_custom_field_names(current_session, &fields);
+	set_custom_field_names(&fields);
 
 	ml = TMPL_add_var(ml, "receipts", "yes", NULL);
 	/* Draw gallery grid */
@@ -1889,7 +1886,7 @@ out:
  *
  * Displays the logged information for a given receipt.
  */
-static void receipt_info(struct session *current_session, GHashTable *qvars)
+static void receipt_info(GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char tbuf[60];
@@ -1901,14 +1898,14 @@ static void receipt_info(struct session *current_session, GHashTable *qvars)
 	GHashTable *db_row = NULL;
 	TMPL_varlist *vl = NULL;
 
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "approver", "yes", NULL);
-	if (current_session->capabilities & ADMIN)
+	if (user_session.capabilities & ADMIN)
 		vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", current_session->user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
 
-	if (!tag_info_allowed(current_session, get_var(qvars, "image_id"))) {
+	if (!tag_info_allowed(get_var(qvars, "image_id"))) {
 		vl = TMPL_add_var(vl, "show_info", "no", NULL);
 		goto out;
 	}
@@ -1945,7 +1942,7 @@ static void receipt_info(struct session *current_session, GHashTable *qvars)
 	}
 
 	fields = field_names;
-	set_custom_field_names(current_session, &fields);
+	set_custom_field_names(&fields);
 	db_row = get_dbrow(res);
 
 	/* image url */
@@ -2047,7 +2044,7 @@ static void receipt_info(struct session *current_session, GHashTable *qvars)
 	/* Only PENDING receipts of the user are editable */
 	if (atoi(get_var(db_row, "approved")) == PENDING &&
 				atoi(get_var(db_row, "uid")) ==
-				current_session->uid) {
+				user_session.uid) {
 		vl = TMPL_add_var(vl, "showedit", "true", NULL);
 		if (strcmp(get_var(qvars, "edit"), "true") == 0) {
 			/* Don't show the Edit button when editing */
@@ -2077,7 +2074,7 @@ out:
  *
  * Displays a gallery of previously tagged receipts.
  */
-static void tagged_receipts(struct session *current_session, GHashTable *qvars)
+static void tagged_receipts(GHashTable *qvars)
 {
 	int i;
 	int c = 1;		/* column number */
@@ -2098,12 +2095,12 @@ static void tagged_receipts(struct session *current_session, GHashTable *qvars)
 		get_page_pagination(get_var(qvars, "page_no"), GRID_SIZE,
 							&page_no, &from);
 
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
-	if (current_session->capabilities & ADMIN)
+	if (user_session.capabilities & ADMIN)
 		ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
-	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM tags "
@@ -2119,7 +2116,7 @@ static void tagged_receipts(struct session *current_session, GHashTable *qvars)
 				"images.processed = 1 AND images.uid = "
 				"%u ORDER BY tags.timestamp DESC LIMIT "
 				"%d, %d",
-				current_session->uid, current_session->uid,
+				user_session.uid, user_session.uid,
 				from, GRID_SIZE);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
@@ -2132,7 +2129,7 @@ static void tagged_receipts(struct session *current_session, GHashTable *qvars)
 	}
 
 	fields = field_names;
-	set_custom_field_names(current_session, &fields);
+	set_custom_field_names(&fields);
 	ml = TMPL_add_var(ml, "receipts", "yes", NULL);
 	/* Draw gallery grid */
 	for (i = 0; i < nr_rows; i++) {
@@ -2221,7 +2218,7 @@ out:
  * Users can only tag/edit their own receipts and only receipts that
  * are PENDING.
  */
-static void process_receipt(struct session *current_session, GHashTable *qvars)
+static void process_receipt(GHashTable *qvars)
 {
 	char sql[SQL_MAX];
 	char secs[11];
@@ -2242,7 +2239,7 @@ static void process_receipt(struct session *current_session, GHashTable *qvars)
 		return;
 
 	/* Prevent users from tagging other users receipts */
-	if (!is_users_receipt(current_session, get_var(qvars, "image_id")))
+	if (!is_users_receipt(get_var(qvars, "image_id")))
 		return;
 
 	conn = db_conn();
@@ -2267,7 +2264,7 @@ static void process_receipt(struct session *current_session, GHashTable *qvars)
 	vl = TMPL_add_var(vl, "image_name", get_var(qvars, "image_name"),
 									NULL);
 	fields = field_names;
-	set_custom_field_names(current_session, &fields);
+	set_custom_field_names(&fields);
 
 	if (strlen(get_var(qvars, "department")) == 0) {
 		tag_error = 1;
@@ -2383,7 +2380,7 @@ static void process_receipt(struct session *current_session, GHashTable *qvars)
 						"payment_method"), NULL);
 
 	if (!tag_error) {
-		tag_image(current_session, qvars);
+		tag_image(qvars);
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
 			printf("Location: /receipt_info/?image_id=%s\r\n\r\n",
 						get_var(qvars, "image_id"));
@@ -2410,7 +2407,7 @@ out:
  * Main page of the application. Displays any un-tagged images and
  * a form for each to enter its data.
  */
-static void receipts(struct session *current_session)
+static void receipts(void)
 {
 	int i;
 	int nr_rows;
@@ -2424,19 +2421,19 @@ static void receipts(struct session *current_session)
 	time_t llogin;
 	char llogin_from[NI_MAXHOST];
 
-	if (current_session->capabilities & APPROVER)
+	if (user_session.capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", NULL);
-	if (current_session->capabilities & ADMIN)
+	if (user_session.capabilities & ADMIN)
 		ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
 	/* Display the user's name and UID at the top of the page */
-	ml = TMPL_add_var(ml, "user_hdr", current_session->user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
 
 	/*
 	 * Display the users last login time and location, we only show
 	 * this on the /receipts/ page.
 	 */
-	llogin = get_last_login(current_session->uid, llogin_from);
+	llogin = get_last_login(llogin_from);
 	if (llogin > 0) {
 		char tbuf[32];
 
@@ -2451,7 +2448,7 @@ static void receipts(struct session *current_session)
 	snprintf(sql, SQL_MAX, "SELECT id, timestamp, path, name FROM images "
 						"WHERE processed = 0 AND "
 						"uid = %u",
-						current_session->uid);
+						user_session.uid);
 	d_fprintf(sql_log, "%s\n", sql);
 
 	mysql_query(conn, sql);
@@ -2464,7 +2461,7 @@ static void receipts(struct session *current_session)
 	}
 
 	fields = field_names;
-	set_custom_field_names(current_session, &fields);
+	set_custom_field_names(&fields);
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
 		time_t secs;
@@ -2558,7 +2555,6 @@ static void env(void)
  */
 void handle_request(void)
 {
-	struct session current_session;
 	int logged_in = 0;
 	char *request_uri = "\0";
 	char *request_method = "\0";
@@ -2632,7 +2628,7 @@ void handle_request(void)
 		goto out2;
 	}
 
-	memset(&current_session, 0, sizeof(current_session));
+	memset(&user_session, 0, sizeof(user_session));
 	if (strncmp(request_uri, "/login/", 7) == 0) {
 		login(http_user_agent, http_x_forwarded_for, qvars);
 		goto out;
@@ -2645,67 +2641,67 @@ void handle_request(void)
 		printf("Location: /login/\r\n\r\n");
 		goto out;
 	}
-	set_current_session(&current_session, http_cookie, request_uri);
+	set_user_session(http_cookie, request_uri);
 
 	/* Add new url handlers after here */
 
 	if (strncmp(request_uri, "/receipts/", 10) == 0) {
-		receipts(&current_session);
+		receipts();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/process_receipt/", 17) == 0) {
-		process_receipt(&current_session, qvars);
+		process_receipt(qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/tagged_receipts/", 16) == 0) {
-		tagged_receipts(&current_session, qvars);
+		tagged_receipts(qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/receipt_info/", 14) == 0) {
-		receipt_info(&current_session, qvars);
+		receipt_info(qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/approve_receipts/", 18) == 0) {
-		approve_receipts(&current_session, qvars);
+		approve_receipts(qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/process_receipt_approval/", 26) == 0) {
-		process_receipt_approval(&current_session);
+		process_receipt_approval();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/reviewed_receipts/", 19) == 0) {
-		reviewed_receipts(&current_session, qvars);
+		reviewed_receipts(qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/extract_data/", 14) == 0) {
-		extract_data(&current_session);
+		extract_data();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/do_extract_data/", 17) == 0) {
-		do_extract_data(&current_session, qvars);
+		do_extract_data(qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/get_image/", 11) == 0) {
-		get_image(&current_session, request_uri);
+		get_image(request_uri);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/full_image/", 12) == 0) {
-		full_image(&current_session, request_uri);
+		full_image(request_uri);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/delete_image/", 14) == 0) {
-		delete_image(&current_session, qvars);
+		delete_image(qvars);
 		goto out;
 	}
 
@@ -2715,47 +2711,47 @@ void handle_request(void)
 	}
 
 	if (strncmp(request_uri, "/prefs/fmap/", 11) == 0) {
-		prefs_fmap(&current_session, qvars);
+		prefs_fmap(qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/prefs/edit_user/", 17) == 0) {
-		prefs_edit_user(request_method, &current_session, qvars);
+		prefs_edit_user(request_method, qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/prefs/", 7) == 0) {
-		prefs(&current_session);
+		prefs();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/admin/list_users/", 18) == 0) {
-		admin_list_users(&current_session, qvars);
+		admin_list_users(qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/admin/add_user/", 16) == 0) {
-		admin_add_user(&current_session, qvars);
+		admin_add_user(qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/admin/edit_user/", 17) == 0) {
-		admin_edit_user(request_method, &current_session, qvars);
+		admin_edit_user(request_method, qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/admin/pending_activations/", 27) == 0) {
-		admin_pending_activations(&current_session, qvars);
+		admin_pending_activations(qvars);
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/admin/", 7) == 0) {
-		admin(&current_session);
+		admin();
 		goto out;
 	}
 
 	if (strncmp(request_uri, "/logout/", 8) == 0) {
-		logout(&current_session);
+		logout();
 		goto out;
 	}
 
@@ -2763,12 +2759,12 @@ void handle_request(void)
 	printf("Location: /login/\r\n\r\n");
 
 out:
-	free(current_session.username);
-	free(current_session.name);
-	free(current_session.origin_ip);
-	free(current_session.client_id);
-	free(current_session.session_id);
-	free(current_session.user_hdr);
+	free(user_session.username);
+	free(user_session.name);
+	free(user_session.origin_ip);
+	free(user_session.client_id);
+	free(user_session.session_id);
+	free(user_session.user_hdr);
 
 out2:
 	free_vars(qvars);

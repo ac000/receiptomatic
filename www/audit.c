@@ -109,7 +109,7 @@ unsigned int log_login(GHashTable *credentials, char *ip_addr)
  *
  * If the user has never logged in before, 0 is returned.
  */
-time_t get_last_login(unsigned int uid, char *from_host)
+time_t get_last_login(char *from_host)
 {
 	char sql[SQL_MAX];
 	MYSQL *conn;
@@ -129,7 +129,7 @@ time_t get_last_login(unsigned int uid, char *from_host)
 	 */
 	snprintf(sql, SQL_MAX, "SELECT login_at, hostname FROM utmp WHERE "
 					"uid = %u ORDER BY login_at DESC "
-					"LIMIT 1, 1", uid);
+					"LIMIT 1, 1", user_session.uid);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);

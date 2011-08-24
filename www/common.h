@@ -88,6 +88,8 @@ struct session {
 	char *user_hdr;
 };
 
+extern struct session user_session;
+
 struct field_names {
 	char *receipt_date;
 	char *department;
