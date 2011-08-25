@@ -1,5 +1,12 @@
+CC=gcc
+CFLAGS=-Wall -std=c99 -O2
+LIBS=`pkg-config --libs gmime-2.0` `mysql_config --libs` `GraphicsMagick-config --ldflags --libs` -lmhash
+INCS=`pkg-config --cflags gmime-2.0` `mysql_config --cflags` `GraphicsMagick-config --cppflags`
+
 receiptomatic: receiptomatic.c
-	gcc -g -Wall -o receiptomatic receiptomatic.c ../www/get_config.o ../www/db.o `pkg-config --cflags --libs gmime-2.0` `mysql_config --cflags --libs` `GraphicsMagick-config --cppflags --ldflags --libs` -lmhash
+	$(CC) $(CFLAGS) -c ../www/db.c ${INCS}
+	$(CC) $(CFLAGS) -c ../www/get_config.c ${INCS}
+	$(CC) $(CFLAGS) -o receiptomatic receiptomatic.c get_config.o db.o ${LIBS} ${INCS}
 
 clean:
-	rm receiptomatic
+	rm receiptomatic db.o get_config.o

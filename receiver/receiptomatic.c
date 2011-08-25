@@ -35,6 +35,8 @@
 #define IMG_MEDIUM	1
 #define IMG_SMALL	0
 
+/* dummy declaration for extern declaration in receiptomatic_config.h */
+char *log_dir;
 
 static int do_config(void)
 {
