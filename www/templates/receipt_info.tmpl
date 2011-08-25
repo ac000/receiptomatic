@@ -217,10 +217,12 @@
 		<td> :&nbsp;
 		<tmpl_if name = "approved" value = "rejected">
 			<span class = "t_red">Rejected</span>
+			<span class = "lighter"> (<tmpl_var name = "a_time" />)</span>
 		<tmpl_elsif name = "approved" value = "pending">
 			<span class = "t_yellow">Pending</span>
 		<tmpl_else>
 			<span class = "t_green">Approved</span>
+			<span class = "lighter"> (<tmpl_var name = "a_time" />)</span>
 		</tmpl_if>
 		</td>
 	</tr>

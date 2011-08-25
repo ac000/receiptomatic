@@ -1934,7 +1934,8 @@ static void receipt_info(void)
 				"tags.net_amount, tags.vat_rate, "
 				"tags.vat_number, tags.receipt_date, "
 				"tags.reason, tags.payment_method, "
-				"approved.reason AS r_reason, passwd.name AS "
+				"approved.reason AS r_reason, "
+				"approved.timestamp AS a_time, passwd.name AS "
 				"user, passwd.uid FROM images INNER JOIN tags "
 				"ON (images.id = tags.id) LEFT JOIN approved "
 				"ON (approved.id = tags.id) INNER JOIN passwd "
@@ -2045,6 +2046,11 @@ static void receipt_info(void)
 		vl = TMPL_add_var(vl, "approved", "pending", NULL);
 	else
 		vl = TMPL_add_var(vl, "approved", "yes", NULL);
+
+	/* Display the approval/rejection date/time */
+	secs = atol(get_var(db_row, "a_time"));
+	strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z", localtime(&secs));
+	vl = TMPL_add_var(vl, "a_time", tbuf, NULL);
 
 	vl = TMPL_add_var(vl, "reject_reason", get_var(db_row, "r_reason"),
 									NULL);
