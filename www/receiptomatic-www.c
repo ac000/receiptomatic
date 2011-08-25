@@ -33,6 +33,10 @@ static volatile sig_atomic_t dump_sessions = 0;
 static volatile sig_atomic_t clear_sessions = 0;
 
 char *log_dir = "/tmp";
+static char access_log_path[PATH_MAX];
+static char error_log_path[PATH_MAX];
+static char sql_log_path[PATH_MAX];
+static char debug_log_path[PATH_MAX];
 
 FILE *access_log;
 FILE *sql_log;
