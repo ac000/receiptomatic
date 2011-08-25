@@ -248,10 +248,10 @@ static void process_part(GMimeObject *part, gpointer user_data)
 {
 	const GMimeContentType *content_type;
 	char ymd[11];	/* YYYY/MM/DD */
-	char filename[NAME_MAX];
+	char filename[NAME_MAX + 1];
 	char ext[5];
 	char path[PATH_MAX];
-	char sql[1024];
+	char sql[SQL_MAX];
 	char *user;
 	char *from;
 	char *image_id;
