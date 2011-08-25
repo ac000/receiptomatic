@@ -183,8 +183,11 @@ static void resize_image(char *path, char *filename, int size)
 	char output_file[PATH_MAX];
 	int x;
 	int y;
+	int err;
 
-	chdir(path);
+	err = chdir(path);
+	if (err == -1)
+		exit(EXIT_FAILURE);
 
 	if (size == IMG_SMALL) {
 		mkdir("small", 0777);
@@ -215,8 +218,9 @@ static void resize_image(char *path, char *filename, int size)
 	DestroyMagick();
 
 out:
-	chdir("/tmp");
-	return;
+	err = chdir("/tmp");
+	if (err == -1)
+		exit(EXIT_FAILURE);
 }
 
 /*
@@ -394,15 +398,16 @@ int main(int argc, char **argv)
 	int fd;
 	int dirfd;
 	ssize_t bytes_read = 1;
+	ssize_t bytes_wrote;
 	char buf[BUF_SIZE];
 	char temp_name[21] = "receiptomatic-XXXXXX";
-	int ret;
+	int err;
 
 	if (argc == 2) {
 		get_config(argv[1]);
 	} else {
-		ret = do_config();
-		if (ret == -1) {
+		err = do_config();
+		if (err == -1) {
 			fprintf(stderr, "Could not open config file.\n");
 			exit(EXIT_FAILURE);
 		}
@@ -410,7 +415,9 @@ int main(int argc, char **argv)
 
 	/* Be super restrictive for the tempfile creation */
 	umask(0077);
-	chdir("/tmp");
+	err = chdir("/tmp");
+	if (err == -1)
+		exit(EXIT_FAILURE);
 
 	/*
 	 * This program gets the mail message pipe'd to it from sendmail.
@@ -422,7 +429,9 @@ int main(int argc, char **argv)
 	fd = mkstemp(temp_name);
 	while (bytes_read > 0) {
 		bytes_read = read(STDIN_FILENO, &buf, BUF_SIZE);
-		write(fd, buf, bytes_read);
+		bytes_wrote = write(fd, buf, bytes_read);
+		if (bytes_wrote != bytes_read)
+			exit(EXIT_FAILURE);
 	}
 	close(fd);
 
