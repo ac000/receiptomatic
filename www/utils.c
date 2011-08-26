@@ -82,8 +82,8 @@ static char *url_decode(char *str)
  */
 GHashTable *get_dbrow(MYSQL_RES *res)
 {
-	int num_fields;
-	int i;
+	unsigned int num_fields;
+	unsigned int i;
 	MYSQL_ROW row;
 	MYSQL_FIELD *fields;
 	GHashTable *db_row;
