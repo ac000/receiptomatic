@@ -1,10 +1,11 @@
 CC=gcc
-CFLAGS=-Wall -std=c99 -O2
+CFLAGS=-Wall -std=c99 -O2 -g -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -fPIE
+LDFLAGS=-Wl,-z,now -pie
 LIBS=-L../../libctemplate `pkg-config --libs glib-2.0` `mysql_config --libs` -lm -lrt -lcrypt -lfcgi -lmhash -ltokyocabinet -lmagic -lctemplate
 INCS=-I../../libctemplate `pkg-config --cflags glib-2.0` `mysql_config --cflags`
 
 receiptomatic-www: receiptomatic-www.o get_config.o url_handlers.o url_helpers.o data_extraction.o utils.o db.o audit.o
-	$(CC) -o receiptomatic-www receiptomatic-www.o get_config.o url_handlers.o url_helpers.o data_extraction.o utils.o db.o audit.o ${LIBS}
+	$(CC) $(LDFLAGS) -o receiptomatic-www receiptomatic-www.o get_config.o url_handlers.o url_helpers.o data_extraction.o utils.o db.o audit.o ${LIBS}
 
 receiptomatic-www.o: common.h receiptomatic-www.h receiptomatic-www.c
 	$(CC) $(CFLAGS) -c receiptomatic-www.c -D_RECEIPTOMATIC_WWW_ ${INCS}
