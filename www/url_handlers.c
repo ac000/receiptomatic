@@ -359,8 +359,8 @@ static void admin_list_users(void)
 	char sql[SQL_MAX];
 	char page[10];
 	int rpp = 15;	/* Rows Per Page to display */
-	int nr_rows;
-	int i;
+	unsigned long nr_rows;
+	unsigned long i;
 	int pages = 0;
 	int page_no = 1;
 	int from = 0;
@@ -722,8 +722,8 @@ static void admin_pending_activations(void)
 	char sql[SQL_MAX];
 	char page[10];
 	int rpp = 15;	/* Rows Per Page to display */
-	int nr_rows;
-	int i;
+	unsigned long nr_rows;
+	unsigned long i;
 	int pages = 0;
 	int page_no = 1;
 	int from = 0;
@@ -1499,8 +1499,8 @@ static void approve_receipts(void)
 	char join[5];
 	MYSQL *conn;
 	MYSQL_RES *res;
-	int i;
-	int nr_rows;
+	unsigned long i;
+	unsigned long nr_rows;
 	int from = 0;
 	int page_no = 1;
 	int pages = 0;
@@ -1724,7 +1724,7 @@ static void approve_receipts(void)
 									NULL);
 		vl = TMPL_add_var(vl, "id", get_var(db_row, "id"), NULL);
 
-		snprintf(item, 3, "%d", i);
+		snprintf(item, 3, "%lu", i);
 		vl = TMPL_add_var(vl, "item", item, NULL);
 
 		loop = TMPL_add_varlist(loop, vl);
@@ -1762,11 +1762,11 @@ out:
  */
 static void reviewed_receipts(void)
 {
-	int i;
+	unsigned long nr_rows;
+	unsigned long i;
 	int c = 1;		/* column number */
 	int from = 0;
 	int page_no = 1;
-	int nr_rows;
 	int pages = 0;
 	char page[10];
 	char sql[SQL_MAX];
@@ -2090,11 +2090,11 @@ out:
  */
 static void tagged_receipts(void)
 {
-	int i;
+	unsigned long nr_rows;
+	unsigned long i;
 	int c = 1;		/* column number */
 	int from = 0;
 	int page_no = 1;
-	int nr_rows;
 	int pages = 0;
 	char page[10];
 	char sql[SQL_MAX];
@@ -2423,8 +2423,8 @@ out:
  */
 static void receipts(void)
 {
-	int i;
-	int nr_rows;
+	unsigned long i;
+	unsigned long nr_rows;
 	char sql[SQL_MAX];
 	MYSQL *conn;
 	MYSQL_RES *res;

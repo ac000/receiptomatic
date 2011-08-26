@@ -49,8 +49,8 @@ void extract_data_now(int fd)
 	char line[BUF_SIZE];
 	MYSQL *conn;
 	MYSQL_RES *res;
-	int nr_rows;
-	int i;
+	unsigned long nr_rows;
+	unsigned long i;
 	ssize_t bytes_wrote;
 
 	conn = db_conn();
