@@ -400,7 +400,7 @@ int main(int argc, char **argv)
 	ssize_t bytes_read = 1;
 	ssize_t bytes_wrote;
 	char buf[BUF_SIZE];
-	char temp_name[21] = "receiptomatic-XXXXXX";
+	char temp_name[] = "receiptomatic-XXXXXX";
 	int err;
 
 	if (argc == 2) {
