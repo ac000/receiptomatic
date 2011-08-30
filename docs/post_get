@@ -1,0 +1,54 @@
+Overview
+========
+
+receiptomatic-www currently handles three types of data sent by the client:
+
+    GET
+    POST x-www-form-urlencoded
+    POST multipart/form-data
+
+All of this data ends up in three data structures:
+
+    qvars   - For simple GET and POST data.
+    avars   - For array variables.
+    u_files - Inforamtion pertaining to uploaded files.
+
+
+qvars
+=====
+
+For simple name=value data. This is just a straight forward GHashTable.
+
+
+avars
+=====
+
+For array variables. e.g
+
+    form0[name]
+    form0[age]
+
+    form1[name]
+    form1[age]
+
+This how they should look in the html. The numbering is used to group them
+into same GHashTables which are then added into a GList.
+
+You can mix array and non-array variables in the same request.
+
+
+u_files
+=======
+
+When sending files via POST multipart/form-data a simple structure is filled
+out with the following information:
+
+    Original filename
+    Temporary filename
+    Name data from input field
+    Mime type
+
+There is one structure per file and they are added to a GList.
+
+
+These are all defined in www/utils.c

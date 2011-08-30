@@ -10,15 +10,14 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
-GHashTable *get_dbrow(MYSQL_RES *res);
-GList *get_avars(char *query);
-char *get_avar(GList *avars, int index, char *key);
-void free_avars(GList *avars);
-void free_fields(struct field_names *fields);
-GHashTable *get_vars(char *query);
-char *get_var(GHashTable *vars, char *key);
-GHashTable *set_vars(void);
+void free_avars(void);
 void free_vars(GHashTable *vars);
+void free_u_files(void);
+void set_vars(void);
+GHashTable *get_dbrow(MYSQL_RES *res);
+char *get_avar(int index, char *key);
+char *get_var(GHashTable *vars, char *key);
+void free_fields(struct field_names *fields);
 void set_env_vars(void);
 char *generate_activation_key(char *email_addr);
 void send_activation_mail(char *name, char *address, char *key);

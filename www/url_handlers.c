@@ -46,9 +46,6 @@ struct session user_session;
 /* Structure to hold envionment variables sent by the browser */
 struct env_vars env_vars;
 
-/* Hash table to store the QUERY_STRING values */
-GHashTable *qvars = NULL;
-
 /*
  * /login/
  *
@@ -1325,22 +1322,16 @@ static void extract_data(void)
 static void process_receipt_approval(void)
 {
 	char sql[SQL_MAX];
-	char buf[SQL_MAX];
 	char *username;
-	int list_size;
-	int i;
+	unsigned int list_size;
+	unsigned int i;
 	MYSQL *conn;
-	GList *post_vars = NULL;
 
 	if (!(user_session.capabilities & APPROVER))
 		return;
 
-	memset(buf, 0, sizeof(buf));
-	fread(buf, sizeof(buf) - 1, 1, stdin);
-	if (!strstr(buf, "=") && !strstr(buf, "&"))
+	if (!avars)
 		return;
-
-	post_vars = get_avars(buf);
 
 	conn = db_conn();
 
@@ -1351,37 +1342,30 @@ static void process_receipt_approval(void)
 	mysql_query(conn, "LOCK TABLES approved WRITE, images WRITE, "
 								"tags READ");
 
-	list_size = g_list_length(post_vars);
+	list_size = g_list_length(avars);
 	for (i = 0; i < list_size; i++) {
-		char *action = get_avar(post_vars, i, "approved_status");
+		char *action = get_avar(i, "approved_status");
 		char *reason = '\0';
 		char *image_id;
 		MYSQL_RES *res;
 
-		image_id = alloca(strlen(get_avar(post_vars, i, "id")) *
-									2 + 1);
-		mysql_real_escape_string(conn, image_id, get_avar(post_vars,
-							i, "id"),
-							strlen(get_avar(
-							post_vars, i, "id")));
+		image_id = alloca(strlen(get_avar(i, "id")) * 2 + 1);
+		mysql_real_escape_string(conn, image_id, get_avar(i, "id"),
+						strlen(get_avar(i, "id")));
 
-		if (get_avar(post_vars, i, "reason")) {
-			reason = alloca(strlen(
-					get_avar(post_vars, i,"reason"))
-					* 2 + 1);
+		if (get_avar(i, "reason")) {
+			reason = alloca(strlen(get_avar(i,"reason")) * 2 + 1);
 
 			mysql_real_escape_string(conn, reason,
-					get_avar(post_vars, i, "reason"),
-					strlen(get_avar(post_vars, i,
-					"reason")));
+						get_avar(i, "reason"),
+						strlen(get_avar(i, "reason")));
 		}
 
 		/* Can user approve their own receipts? */
 		if (!(user_session.capabilities & APPROVER_SELF)) {
 			snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE "
 						"id = '%s' AND uid = %u",
-						image_id,
-						user_session.uid);
+						image_id, user_session.uid);
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_real_query(conn, sql, strlen(sql));
 			res = mysql_store_result(conn);
@@ -1474,7 +1458,6 @@ static void process_receipt_approval(void)
 
 	mysql_query(conn, "UNLOCK TABLES");
 	mysql_close(conn);
-	free_avars(post_vars);
 
 	printf("Location: /approve_receipts/\r\n\r\n");
 }
@@ -1952,6 +1935,7 @@ static void receipt_info(void)
 
 	fields = field_names;
 	set_custom_field_names(&fields);
+
 	db_row = get_dbrow(res);
 
 	/* image url */
@@ -2574,23 +2558,16 @@ void handle_request(void)
 	struct timeval stv;
 	struct timeval etv;
 
-	qvars = NULL;
 	gettimeofday(&stv, NULL);
 
+	qvars = NULL;
+	avars = NULL;
+	u_files = NULL;
+
 	set_env_vars();
+	set_vars();
 	request_uri = strdupa(env_vars.request_uri);
 	d_fprintf(debug_log, "Cookies: %s\n", env_vars.http_cookie);
-
-	/*
-	 * Get the query values from a GET or POST and put them in
-	 * a GHashTable.
-	 *
-	 * However, don't do this for /process_receipt_approval/ due to
-	 * that currently needing the data in a different form, a GList
-	 * of GHashTables.
-	 */
-	if (strncmp(request_uri, "/process_receipt_approval/", 26) != 0)
-		qvars = set_vars();
 
 	/*
 	 * Some routes need to come before the login / session stuff as
@@ -2749,6 +2726,8 @@ out:
 
 out2:
 	free_vars(qvars);
+	free_avars();
+	free_u_files();
 	gettimeofday(&etv, NULL);
 	d_fprintf(access_log, "Got request from %s for %s (%s), %f secs\n",
 				env_vars.http_x_forwarded_for,
@@ -2761,6 +2740,7 @@ out2:
 
 	free(env_vars.request_uri);
 	free(env_vars.request_method);
+	free(env_vars.content_type);
 	free(env_vars.http_cookie);
 	free(env_vars.http_user_agent);
 	free(env_vars.http_x_forwarded_for);

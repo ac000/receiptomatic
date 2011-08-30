@@ -118,6 +118,7 @@ struct field_names {
 struct env_vars {
 	char *request_uri;
 	char *request_method;
+	char *content_type;
 	char *http_cookie;
 	char *http_user_agent;
 	char *http_x_forwarded_for;
@@ -148,6 +149,9 @@ extern FILE *sql_log;
 extern FILE *error_log;
 extern FILE *debug_log;
 
+extern struct file_info file_info;
+extern GList *u_files;
+extern GList *avars;
 extern GHashTable *qvars;
 
 #endif /* _COMMON_H_ */
