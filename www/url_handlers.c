@@ -212,8 +212,8 @@ static void delete_image(void)
 	headers_sent = 1;
 
 out1:
-	mysql_close(conn);
 	mysql_free_result(res);
+	mysql_close(conn);
 	free_vars(db_row);
 	TMPL_free_varlist(vl);
 out2:
