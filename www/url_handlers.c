@@ -1371,6 +1371,7 @@ static void process_receipt_approval(void)
 			res = mysql_store_result(conn);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
+			mysql_free_result(res);
 		}
 		/* Can user approve card transactions? */
 		if (!(user_session.capabilities & APPROVER_CARD)) {
@@ -1382,6 +1383,7 @@ static void process_receipt_approval(void)
 			res = mysql_store_result(conn);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
+			mysql_free_result(res);
 		}
 		/* Can user approve cash transactions? */
 		if (!(user_session.capabilities & APPROVER_CASH)) {
@@ -1393,6 +1395,7 @@ static void process_receipt_approval(void)
 			res = mysql_store_result(conn);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
+			mysql_free_result(res);
 		}
 		/* Can user approve cheque transactions? */
 		if (!(user_session.capabilities & APPROVER_CHEQUE)) {
@@ -1404,6 +1407,7 @@ static void process_receipt_approval(void)
 			res = mysql_store_result(conn);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
+			mysql_free_result(res);
 		}
 
 		/* Make sure this reciept hasn't already been processed */
@@ -1414,6 +1418,7 @@ static void process_receipt_approval(void)
 		res = mysql_store_result(conn);
 		if (mysql_num_rows(res) > 0)
 			action[0] = 's'; /* This receipt is already done */
+		mysql_free_result(res);
 
 		/* Make sure it is a valid tagged-receipt */
 		snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE id = '%s'",
@@ -1423,6 +1428,7 @@ static void process_receipt_approval(void)
 		res = mysql_store_result(conn);
 		if (mysql_num_rows(res) == 0)
 			action[0] = 's'; /* Not a valid receipt */
+		mysql_free_result(res);
 
 		if (action[0] == 'a') { /* approved */
 			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
@@ -1453,7 +1459,6 @@ static void process_receipt_approval(void)
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_query(conn, sql);
 		}
-		mysql_free_result(res);
 	}
 
 	mysql_query(conn, "UNLOCK TABLES");
