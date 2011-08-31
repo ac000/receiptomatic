@@ -1275,7 +1275,7 @@ static void prefs_edit_user(void)
 static void do_extract_data(void)
 {
 	int fd;
-	char temp_name[30] = "/tmp/receiptomatic-www-XXXXXX";
+	char temp_name[] = "/tmp/receiptomatic-www-XXXXXX";
 
 	if (!(user_session.capabilities & APPROVER))
 		return;
