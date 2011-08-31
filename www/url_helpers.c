@@ -1019,8 +1019,6 @@ void do_update_user(void)
 	int enabled = 0;
 	int activated = 0;
 	MYSQL *conn;
-	MYSQL_RES *res;
-	MYSQL_ROW row;
 
 	conn = db_conn();
 	uid = atoi(get_var(qvars, "uid"));
@@ -1028,6 +1026,9 @@ void do_update_user(void)
 	if (strlen(get_var(qvars, "pass1")) > 0) {
 		hash = generate_password_hash(SHA512, get_var(qvars, "pass1"));
 	} else {
+		MYSQL_RES *res;
+		MYSQL_ROW row;
+
 		snprintf(sql, SQL_MAX, "SELECT password FROM passwd WHERE "
 							"uid = %u", uid);
 		d_fprintf(sql_log, "%s\n", sql);
