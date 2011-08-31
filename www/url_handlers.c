@@ -560,11 +560,8 @@ out2:
  */
 static void admin_edit_user(void)
 {
-	char sql[SQL_MAX];
 	unsigned int uid;
 	int form_err = 0;
-	MYSQL *conn;
-	MYSQL_RES *res;
 	TMPL_varlist *vl = NULL;
 
 	if (!(user_session.capabilities & ADMIN))
@@ -626,8 +623,11 @@ static void admin_edit_user(void)
 	 * from the POST'd form and not the database.
 	 */
 	if (!form_err) {
+		char sql[SQL_MAX];
 		unsigned char capabilities;
 		GHashTable *db_row = NULL;
+		MYSQL *conn;
+		MYSQL_RES *res;
 
 		conn = db_conn();
 		snprintf(sql, SQL_MAX, "SELECT username, name, capabilities, "
@@ -670,6 +670,9 @@ static void admin_edit_user(void)
 			vl = TMPL_add_var(vl, "is_admin", "yes", NULL);
 
 		free_vars(db_row);
+mysql_cleanup:
+		mysql_free_result(res);
+		mysql_close(conn);
 	} else {
 		vl = TMPL_add_var(vl, "username", get_var(qvars, "email1"),
 								NULL);
@@ -694,15 +697,8 @@ static void admin_edit_user(void)
 
 		if (atoi(get_var(qvars, "is_admin")) == 1)
 			vl = TMPL_add_var(vl, "is_admin", "yes", NULL);
-
-		goto out;
 	}
 
-mysql_cleanup:
-	mysql_free_result(res);
-	mysql_close(conn);
-
-out:
 	send_template("templates/admin_edit_user.tmpl", vl);
 	TMPL_free_varlist(vl);
 }
