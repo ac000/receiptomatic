@@ -2031,14 +2031,6 @@ static void receipt_info(void)
 	else
 		vl = TMPL_add_var(vl, "approved", "yes", NULL);
 
-	/* Display the approval/rejection date/time */
-	secs = atol(get_var(db_row, "a_time"));
-	strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z", localtime(&secs));
-	vl = TMPL_add_var(vl, "a_time", tbuf, NULL);
-
-	vl = TMPL_add_var(vl, "reject_reason", get_var(db_row, "r_reason"),
-									NULL);
-
 	/* Only PENDING receipts of the user are editable */
 	if (atoi(get_var(db_row, "approved")) == PENDING &&
 				atoi(get_var(db_row, "uid")) ==
@@ -2056,7 +2048,21 @@ static void receipt_info(void)
 							localtime(&secs));
 			vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
 		}
+	} else if (atoi(get_var(db_row, "approved")) == APPROVED ||
+			atoi(get_var(db_row, "approved")) == REJECTED) {
+		/*
+		 * The receipt has either been APPROVED or REJECTED
+		 * Display the approval/rejection date/time and
+		 * reason for rejection.
+		 */
+		secs = atol(get_var(db_row, "a_time"));
+		strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z",
+							localtime(&secs));
+		vl = TMPL_add_var(vl, "a_time", tbuf, NULL);
+		vl = TMPL_add_var(vl, "reject_reason", get_var(db_row,
+							"r_reason"), NULL);
 	}
+
 	free_vars(db_row);
 	free_fields(&fields);
 	mysql_free_result(res);
