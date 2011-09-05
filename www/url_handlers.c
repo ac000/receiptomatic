@@ -70,9 +70,9 @@ static void login(void)
 	}
 
 	if (ret == -1)
-		vl = TMPL_add_var(0, "logged_in", "no", NULL);
+		vl = TMPL_add_var(0, "logged_in", "no", (char *)NULL);
 	if (ret == -2)
-		vl = TMPL_add_var(0, "enabled", "no", NULL);
+		vl = TMPL_add_var(0, "enabled", "no", (char *)NULL);
 
 	send_template("templates/login.tmpl", vl);
 	TMPL_free_varlist(vl);
@@ -166,9 +166,12 @@ static void delete_image(void)
 	if (!realpath(path, image_path))
 		goto out1;
 
-	vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"), NULL);
-	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"), NULL);
-	vl = TMPL_add_var(vl, "image_id", get_var(qvars, "image_id"), NULL);
+	vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"),
+								(char *)NULL);
+	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
+								(char *)NULL);
+	vl = TMPL_add_var(vl, "image_id", get_var(qvars, "image_id"),
+								(char *)NULL);
 
 	memset(uidir, 0, sizeof(uidir));
 	snprintf(uidir, sizeof(uidir), "/%d/", user_session.uid);
@@ -333,12 +336,12 @@ static void admin(void)
 	if (!(user_session.capabilities & ADMIN))
 		return;
 
-	vl = TMPL_add_var(vl, "admin", "yes", NULL);
+	vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
 
 	if (user_session.capabilities & APPROVER)
-		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	send_template("templates/admin.tmpl", vl);
 	TMPL_free_varlist(vl);
@@ -370,12 +373,12 @@ static void admin_list_users(void)
 	if (!(user_session.capabilities & ADMIN))
 		return;
 
-	ml = TMPL_add_var(ml, "admin", "yes", NULL);
+	ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
 
 	if (user_session.capabilities & APPROVER)
-		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
 
-	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), rpp, &page_no,
@@ -398,14 +401,17 @@ static void admin_list_users(void)
 		pages = ceilf((float)nr_rows / (float)rpp);
 
 		if (!(i % 2))
-			vl = TMPL_add_var(NULL, "zebra", "yes", NULL);
+			vl = TMPL_add_var(NULL, "zebra", "yes", (char *)NULL);
 		else
-			vl = TMPL_add_var(NULL, "zebra", "no", NULL);
+			vl = TMPL_add_var(NULL, "zebra", "no", (char *)NULL);
 
-		vl = TMPL_add_var(vl, "uid", get_var(db_row, "uid"), NULL);
+		vl = TMPL_add_var(vl, "uid", get_var(db_row, "uid"),
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "username", get_var(db_row,
-							"username"), NULL);
-		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
+							"username"),
+								(char *)NULL);
+		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"),
+								(char *)NULL);
 
 		/* Pretty print the set of capabilities */
 		if (atoi(get_var(db_row, "capabilities")) & APPROVER)
@@ -418,22 +424,23 @@ static void admin_list_users(void)
 			strcat(caps, " Cheque");
 		if (atoi(get_var(db_row, "capabilities")) & APPROVER_SELF)
 			strcat(caps, " Self");
-		vl = TMPL_add_var(vl, "capabilities", caps, NULL);
+		vl = TMPL_add_var(vl, "capabilities", caps, (char *)NULL);
 
 		if (atoi(get_var(db_row, "capabilities")) & ADMIN)
-			vl = TMPL_add_var(vl, "admin", "yes", NULL);
+			vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
 		else
-			vl = TMPL_add_var(vl, "admin", "no", NULL);
+			vl = TMPL_add_var(vl, "admin", "no", (char *)NULL);
 
 		if (atoi(get_var(db_row, "enabled")) == 1)
-			vl = TMPL_add_var(vl, "enabled", "yes", NULL);
+			vl = TMPL_add_var(vl, "enabled", "yes", (char *)NULL);
 		else
-			vl = TMPL_add_var(vl, "enabled", "no", NULL);
+			vl = TMPL_add_var(vl, "enabled", "no", (char *)NULL);
 
 		if (atoi(get_var(db_row, "activated")) == 1)
-			vl = TMPL_add_var(vl, "activated", "yes", NULL);
+			vl = TMPL_add_var(vl, "activated", "yes",
+								(char *)NULL);
 		else
-			vl = TMPL_add_var(vl, "activated", "no", NULL);
+			vl = TMPL_add_var(vl, "activated", "no", (char *)NULL);
 
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
@@ -442,14 +449,14 @@ static void admin_list_users(void)
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
 			snprintf(page, sizeof(page), "%d", page_no - 1);
-			ml = TMPL_add_var(ml, "prev_page", page, NULL);
+			ml = TMPL_add_var(ml, "prev_page", page, (char *)NULL);
 		}
 		if (page_no + 1 <= pages) {
 			snprintf(page, sizeof(page), "%d", page_no + 1);
-			ml = TMPL_add_var(ml, "next_page", page, NULL);
+			ml = TMPL_add_var(ml, "next_page", page, (char *)NULL);
 		}
 	} else {
-		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
+		ml = TMPL_add_var(ml, "no_pages", "true", (char *)NULL);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 
@@ -475,31 +482,33 @@ static void admin_add_user(void)
 	if (!(user_session.capabilities & ADMIN))
 		return;
 
-	vl = TMPL_add_var(vl, "admin", "yes", NULL);
+	vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
 
 	if (user_session.capabilities & APPROVER)
-		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	if (!qvars)
 		goto out;
 
 	if (strlen(get_var(qvars, "name")) == 0) {
 		form_err = 1;
-		vl = TMPL_add_var(vl, "name_error", "yes", NULL);
+		vl = TMPL_add_var(vl, "name_error", "yes", (char *)NULL);
 	}
-	vl = TMPL_add_var(vl, "name", get_var(qvars, "name"), NULL);
+	vl = TMPL_add_var(vl, "name", get_var(qvars, "name"), (char *)NULL);
 
 	if ((strlen(get_var(qvars, "email1")) == 0 &&
 				strlen(get_var(qvars, "email2")) == 0) ||
 				(strcmp(get_var(qvars, "email1"),
 				get_var(qvars, "email2")) != 0)) {
 		form_err = 1;
-		vl = TMPL_add_var(vl, "email_error", "yes", NULL);
+		vl = TMPL_add_var(vl, "email_error", "yes", (char *)NULL);
 	}
-	vl = TMPL_add_var(vl, "email1", get_var(qvars, "email1"),  NULL);
-	vl = TMPL_add_var(vl, "email2", get_var(qvars, "email2"), NULL);
+	vl = TMPL_add_var(vl, "email1", get_var(qvars, "email1"),
+								(char *)NULL);
+	vl = TMPL_add_var(vl, "email2", get_var(qvars, "email2"),
+								(char *)NULL);
 
 	if (strlen(get_var(qvars, "ap_card")) > 0 ||
 				strlen(get_var(qvars, "ap_cash")) > 0 ||
@@ -508,24 +517,25 @@ static void admin_add_user(void)
 		capabilities |= APPROVER;
 		if (strlen(get_var(qvars, "ap_card")) > 0) {
 			capabilities |= APPROVER_CARD;
-			vl = TMPL_add_var(vl, "ap_card", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_card", "yes", (char *)NULL);
 		}
 		if (strlen(get_var(qvars, "ap_cash")) > 0) {
 			capabilities |= APPROVER_CASH;
-			vl = TMPL_add_var(vl, "ap_cash", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_cash", "yes", (char *)NULL);
 		}
 		if (strlen(get_var(qvars, "ap_cheque")) > 0) {
 			capabilities |= APPROVER_CHEQUE;
-			vl = TMPL_add_var(vl, "ap_cheque", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_cheque", "yes",
+								(char *)NULL);
 		}
 		if (strlen(get_var(qvars, "ap_self")) > 0) {
 			capabilities |= APPROVER_SELF;
-			vl = TMPL_add_var(vl, "ap_self", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_self", "yes", (char *)NULL);
 		}
 	}
 	if (strlen(get_var(qvars, "is_admin")) > 0) {
 		capabilities |= ADMIN;
-		vl = TMPL_add_var(vl, "is_admin", "yes", NULL);
+		vl = TMPL_add_var(vl, "is_admin", "yes", (char *)NULL);
 	}
 
 	if (!form_err) {
@@ -537,7 +547,7 @@ static void admin_add_user(void)
 			 * Tried to add an already existing user.
 			 * Tell the admin.
 			 */
-			vl = TMPL_add_var(vl, "dup_user", "yes", NULL);
+			vl = TMPL_add_var(vl, "dup_user", "yes", (char *)NULL);
 		} else {
 			printf("Location: /admin/add_user/\r\n\r\n");
 			goto out2;
@@ -570,12 +580,12 @@ static void admin_edit_user(void)
 	if (!qvars)
 		return;
 
-	vl = TMPL_add_var(vl, "admin", "yes", NULL);
+	vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
 
 	if (user_session.capabilities & APPROVER)
-		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	/* If we got a POST, update user settings before showing them. */
 	if (strcmp(env_vars.request_method, "POST") == 0) {
@@ -583,15 +593,16 @@ static void admin_edit_user(void)
 				strlen(get_var(qvars, "email2")) == 0) ||
 				(strcmp(get_var(qvars, "email1"),
 					get_var(qvars, "email2")) != 0)) {
-			vl = TMPL_add_var(vl, "email_error", "yes", NULL);
+			vl = TMPL_add_var(vl, "email_error", "yes",
+								(char *)NULL);
 			form_err = 1;
 		}
 		if (strlen(get_var(qvars, "pass1")) > 7 &&
 					strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
 					get_var(qvars, "pass2")) != 0) {
-				vl = TMPL_add_var(vl, "pass_error",
-							"mismatch", NULL);
+				vl = TMPL_add_var(vl, "pass_error", "mismatch",
+								(char *)NULL);
 				form_err = 1;
 			}
 		/*
@@ -600,17 +611,18 @@ static void admin_edit_user(void)
 		 */
 		} else if (strlen(get_var(qvars, "pass1")) != 0 &&
 					strlen(get_var(qvars, "pass2")) != 0) {
-			vl = TMPL_add_var(vl, "pass_error", "length", NULL);
+			vl = TMPL_add_var(vl, "pass_error", "length",
+								(char *)NULL);
 			form_err = 1;
 		}
 
 		if (!form_err) {
 			do_update_user();
-			vl = TMPL_add_var(vl, "updated", "yes", NULL);
+			vl = TMPL_add_var(vl, "updated", "yes", (char *)NULL);
 		}
 	}
 
-	vl = TMPL_add_var(vl, "uid", get_var(qvars, "uid"), NULL);
+	vl = TMPL_add_var(vl, "uid", get_var(qvars, "uid"), (char *)NULL);
 	uid = atoi(get_var(qvars, "uid"));
 
 	/*
@@ -643,31 +655,34 @@ static void admin_edit_user(void)
 		db_row = get_dbrow(res);
 
 		vl = TMPL_add_var(vl, "username", get_var(db_row, "username"),
-							NULL);
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "email1", get_var(db_row, "username"),
-							NULL);
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "email2", get_var(db_row, "username"),
-							NULL);
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
 		if (atoi(get_var(db_row, "enabled")) == 1)
-			vl = TMPL_add_var(vl, "is_enabled", "yes", NULL);
+			vl = TMPL_add_var(vl, "is_enabled", "yes",
+							(char *)NULL);
 		if (atoi(get_var(db_row, "activated")) == 1)
-			vl = TMPL_add_var(vl, "is_activated", "yes", NULL);
-		vl = TMPL_add_var(vl, "d_reason", get_var(db_row,
-							"d_reason"), NULL);
+			vl = TMPL_add_var(vl, "is_activated", "yes",
+							(char *)NULL);
+		vl = TMPL_add_var(vl, "d_reason", get_var(db_row, "d_reason"),
+							(char *)NULL);
 
 		capabilities = atoi(get_var(db_row, "capabilities"));
 		if (capabilities & APPROVER_CARD)
-			vl = TMPL_add_var(vl, "ap_card", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_card", "yes", (char *)NULL);
 		if (capabilities & APPROVER_CASH)
-			vl = TMPL_add_var(vl, "ap_cash", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_cash", "yes", (char *)NULL);
 		if (capabilities & APPROVER_CHEQUE)
-			vl = TMPL_add_var(vl, "ap_cheque", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_cheque", "yes",
+								(char *)NULL);
 		if (capabilities & APPROVER_SELF)
-			vl = TMPL_add_var(vl, "ap_self", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_self", "yes", (char *)NULL);
 
 		if (capabilities & ADMIN)
-			vl = TMPL_add_var(vl, "is_admin", "yes", NULL);
+			vl = TMPL_add_var(vl, "is_admin", "yes", (char *)NULL);
 
 		free_vars(db_row);
 mysql_cleanup:
@@ -675,28 +690,32 @@ mysql_cleanup:
 		mysql_close(conn);
 	} else {
 		vl = TMPL_add_var(vl, "username", get_var(qvars, "email1"),
-								NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "email1", get_var(qvars, "email1"),
-								NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "email2", get_var(qvars, "email2"),
-								NULL);
-		vl = TMPL_add_var(vl, "name", get_var(qvars, "name"), NULL);
+								(char *)NULL);
+		vl = TMPL_add_var(vl, "name", get_var(qvars, "name"),
+								(char *)NULL);
 		if (atoi(get_var(qvars, "enabled")) == 1)
-			vl = TMPL_add_var(vl, "is_enabled", "yes", NULL);
+			vl = TMPL_add_var(vl, "is_enabled", "yes",
+								(char *)NULL);
 		if (atoi(get_var(qvars, "activated")) == 1)
-			vl = TMPL_add_var(vl, "is_activated", "yes", NULL);
+			vl = TMPL_add_var(vl, "is_activated", "yes",
+								(char *)NULL);
 
 		if (atoi(get_var(qvars, "ap_card")) == 1)
-			vl = TMPL_add_var(vl, "ap_card", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_card", "yes", (char *)NULL);
 		if (atoi(get_var(qvars, "ap_cash")) == 1)
-			vl = TMPL_add_var(vl, "ap_cash", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_cash", "yes", (char *)NULL);
 		if (atoi(get_var(qvars, "ap_cheque")) == 1)
-			vl = TMPL_add_var(vl, "ap_cheque", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_cheque", "yes",
+								(char *)NULL);
 		if (atoi(get_var(qvars, "ap_self")) == 1)
-			vl = TMPL_add_var(vl, "ap_self", "yes", NULL);
+			vl = TMPL_add_var(vl, "ap_self", "yes", (char *)NULL);
 
 		if (atoi(get_var(qvars, "is_admin")) == 1)
-			vl = TMPL_add_var(vl, "is_admin", "yes", NULL);
+			vl = TMPL_add_var(vl, "is_admin", "yes", (char *)NULL);
 	}
 
 	send_template("templates/admin_edit_user.tmpl", vl);
@@ -732,9 +751,9 @@ static void admin_pending_activations(void)
 	ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
 	if (user_session.capabilities & APPROVER)
-		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
 
-	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), rpp, &page_no,
@@ -759,18 +778,19 @@ static void admin_pending_activations(void)
 		pages = ceilf((float)nr_rows / (float)rpp);
 
 		if (!(i % 2))
-			vl = TMPL_add_var(NULL, "zebra", "yes", NULL);
+			vl = TMPL_add_var(NULL, "zebra", "yes", (char *)NULL);
 		else
-			vl = TMPL_add_var(NULL, "zebra", "no", NULL);
+			vl = TMPL_add_var(NULL, "zebra", "no", (char *)NULL);
 
-		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
-		vl = TMPL_add_var(vl, "username", get_var(db_row,
-							"user"), NULL);
+		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"),
+								(char *)NULL);
+		vl = TMPL_add_var(vl, "username", get_var(db_row, "user"),
+								(char *)NULL);
 		secs = atol(get_var(db_row, "expires"));
 		if (time(NULL) > secs)
-			vl = TMPL_add_var(vl, "expired", "yes", NULL);
+			vl = TMPL_add_var(vl, "expired", "yes", (char *)NULL);
 		strftime(tbuf, sizeof(tbuf), "%F %H:%M:%S", localtime(&secs));
-		vl = TMPL_add_var(vl, "expires", tbuf, NULL);
+		vl = TMPL_add_var(vl, "expires", tbuf, (char *)NULL);
 
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
@@ -779,14 +799,14 @@ static void admin_pending_activations(void)
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
 			snprintf(page, 10, "%d", page_no - 1);
-			ml = TMPL_add_var(ml, "prev_page", page, NULL);
+			ml = TMPL_add_var(ml, "prev_page", page, (char *)NULL);
 		}
 		if (page_no + 1 <= pages) {
 			snprintf(page, 10, "%d", page_no + 1);
-			ml = TMPL_add_var(ml, "next_page", page, NULL);
+			ml = TMPL_add_var(ml, "next_page", page, (char *)NULL);
 		}
 	} else {
-		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
+		ml = TMPL_add_var(ml, "no_pages", "true", (char *)NULL);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 
@@ -814,7 +834,7 @@ static void activate_user(void)
 	TMPL_varlist *vl = NULL;
 
 	if (!qvars) {
-		vl = TMPL_add_var(vl, "key_error", "yes", NULL);
+		vl = TMPL_add_var(vl, "key_error", "yes", (char *)NULL);
 		goto out2;
 	}
 
@@ -843,20 +863,21 @@ static void activate_user(void)
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	if (mysql_num_rows(res) == 0) {
-		vl = TMPL_add_var(vl, "key_error", "yes", NULL);
+		vl = TMPL_add_var(vl, "key_error", "yes", (char *)NULL);
 		goto out;
 	}
 
 	db_row = get_dbrow(res);
-	vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
+	vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), (char *)NULL);
 
 	/* Check if the activation key has expired. */
 	if (time(NULL) > atol(get_var(db_row, "expires"))) {
-		vl = TMPL_add_var(vl, "expired", "yes", NULL);
-		vl = TMPL_add_var(vl, "email", get_var(db_row, "user"), NULL);
+		vl = TMPL_add_var(vl, "expired", "yes", (char *)NULL);
+		vl = TMPL_add_var(vl, "email", get_var(db_row, "user"),
+								(char *)NULL);
 		goto out;
 	}
-	vl = TMPL_add_var(vl, "key", get_var(qvars, "key"), NULL);
+	vl = TMPL_add_var(vl, "key", get_var(qvars, "key"), (char *)NULL);
 
 	/*
 	 * The user is trying to set a password, do some sanity
@@ -873,14 +894,15 @@ static void activate_user(void)
 				do_activate_user(get_var(db_row, "uid"), key,
 						get_var(qvars, "pass1"));
 				vl = TMPL_add_var(vl, "activated", "yes",
-									NULL);
+								(char *)NULL);
 			} else {
 				vl = TMPL_add_var(vl, "password_error",
-							"mismatch", NULL);
+								"mismatch",
+								(char *)NULL);
 			}
 		} else {
 			vl = TMPL_add_var(vl, "password_error", "length",
-									NULL);
+								(char *)NULL);
 		}
 	}
 
@@ -941,7 +963,7 @@ static void generate_new_key(void)
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
 	free(key);
 
-	vl = TMPL_add_var(vl, "email", email_addr, NULL);
+	vl = TMPL_add_var(vl, "email", email_addr, (char *)NULL);
 
 out:
 	send_template("templates/generate_new_key.tmpl", vl);
@@ -973,7 +995,7 @@ static void forgotten_password(void)
 
 	conn = db_conn();
 
-	vl = TMPL_add_var(vl, "email", get_var(qvars, "email"), NULL);
+	vl = TMPL_add_var(vl, "email", get_var(qvars, "email"), (char *)NULL);
 
 	email_addr = alloca(strlen(get_var(qvars, "email")) * 2 + 1);
 	mysql_real_escape_string(conn, email_addr, get_var(qvars, "email"),
@@ -985,7 +1007,7 @@ static void forgotten_password(void)
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	if (mysql_num_rows(res) == 0) {
-		vl = TMPL_add_var(vl, "user_error", "yes", NULL);
+		vl = TMPL_add_var(vl, "user_error", "yes", (char *)NULL);
 		goto mysql_cleanup;
 	}
 
@@ -1000,7 +1022,7 @@ static void forgotten_password(void)
 
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
 	free(key);
-	vl = TMPL_add_var(vl, "sent", "yes", NULL);
+	vl = TMPL_add_var(vl, "sent", "yes", (char *)NULL);
 
 mysql_cleanup:
 	mysql_free_result(res);
@@ -1021,11 +1043,11 @@ static void prefs(void)
 	TMPL_varlist *vl = NULL;
 
 	if (user_session.capabilities & ADMIN)
-		vl = TMPL_add_var(vl, "admin", "yes", NULL);
+		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
 	if (user_session.capabilities & APPROVER)
-		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	send_template("templates/prefs.tmpl", vl);
 	TMPL_free_varlist(vl);
@@ -1050,98 +1072,104 @@ static void prefs_fmap(void)
 	}
 
 	if (user_session.capabilities & APPROVER)
-		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 	if (user_session.capabilities & ADMIN)
-		vl = TMPL_add_var(vl, "admin", "yes", NULL);
+		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr,
+								(char *)NULL);
 
 	fields = field_names;
 	set_custom_field_names(&fields);
 
 	if (updated)
-		vl = TMPL_add_var(vl, "fields_updated", "yes", NULL);
+		vl = TMPL_add_var(vl, "fields_updated", "yes", (char *)NULL);
 
-	vl = TMPL_add_var(vl, "receipt_date", DFN_RECEIPT_DATE,NULL);
+	vl = TMPL_add_var(vl, "receipt_date", DFN_RECEIPT_DATE, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_receipt_date", !strcmp(DFN_RECEIPT_DATE,
 					fields.receipt_date) ? "":
-					fields.receipt_date, NULL);
+					fields.receipt_date, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "department", DFN_DEPARTMENT, NULL);
+	vl = TMPL_add_var(vl, "department", DFN_DEPARTMENT, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_department",!strcmp(DFN_DEPARTMENT,
 					fields.department) ? "" :
-					fields.department, NULL);
+					fields.department, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "employee_number", DFN_EMPLOYEE_NUMBER, NULL);
+	vl = TMPL_add_var(vl, "employee_number", DFN_EMPLOYEE_NUMBER,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "alt_employee_number",
 					!strcmp(DFN_EMPLOYEE_NUMBER,
 					fields.employee_number) ? "" :
-					fields.employee_number, NULL);
+					fields.employee_number, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "reason", DFN_REASON, NULL);
+	vl = TMPL_add_var(vl, "reason", DFN_REASON, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_reason",!strcmp(DFN_REASON,
 					fields.reason) ? "" :
-					fields.reason, NULL);
+					fields.reason, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "po_num", DFN_PO_NUM, NULL);
+	vl = TMPL_add_var(vl, "po_num", DFN_PO_NUM, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_po_num", !strcmp(DFN_PO_NUM,
 					fields.po_num) ? "" :
-					fields.po_num, NULL);
+					fields.po_num, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "cost_codes", DFN_COST_CODES, NULL);
+	vl = TMPL_add_var(vl, "cost_codes", DFN_COST_CODES, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_cost_codes", !strcmp(DFN_COST_CODES,
 					fields.cost_codes) ? "" :
-					fields.cost_codes, NULL);
+					fields.cost_codes, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "account_codes", DFN_ACCOUNT_CODES, NULL);
+	vl = TMPL_add_var(vl, "account_codes", DFN_ACCOUNT_CODES,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "alt_account_codes", !strcmp(DFN_ACCOUNT_CODES,
 					fields.account_codes) ? "" :
-					fields.account_codes, NULL);
+					fields.account_codes, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "supplier_name", DFN_SUPPLIER_NAME, NULL);
+	vl = TMPL_add_var(vl, "supplier_name", DFN_SUPPLIER_NAME,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "alt_supplier_name", !strcmp(DFN_SUPPLIER_NAME,
 					fields.supplier_name) ? "" :
-					fields.supplier_name, NULL);
+					fields.supplier_name, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "supplier_town", DFN_SUPPLIER_TOWN, NULL);
+	vl = TMPL_add_var(vl, "supplier_town", DFN_SUPPLIER_TOWN,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "alt_supplier_town", !strcmp(DFN_SUPPLIER_TOWN,
 					fields.supplier_town) ? "" :
-					fields.supplier_town, NULL);
+					fields.supplier_town, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "vat_number", DFN_VAT_NUMBER, NULL);
+	vl = TMPL_add_var(vl, "vat_number", DFN_VAT_NUMBER, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_vat_number", !strcmp(DFN_VAT_NUMBER,
 					fields.vat_number) ? "" :
-					fields.vat_number, NULL);
+					fields.vat_number, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "gross_amount", DFN_GROSS_AMOUNT, NULL);
+	vl = TMPL_add_var(vl, "gross_amount", DFN_GROSS_AMOUNT, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_gross_amount", !strcmp(DFN_GROSS_AMOUNT,
 					fields.gross_amount) ? "" :
-					fields.gross_amount, NULL);
+					fields.gross_amount, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "net_amount", DFN_NET_AMOUNT, NULL);
+	vl = TMPL_add_var(vl, "net_amount", DFN_NET_AMOUNT, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_net_amount", !strcmp(DFN_NET_AMOUNT,
 					fields.net_amount) ? "" :
-					fields.net_amount, NULL);
+					fields.net_amount, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "vat_amount", DFN_VAT_AMOUNT, NULL);
+	vl = TMPL_add_var(vl, "vat_amount", DFN_VAT_AMOUNT, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_vat_amount", !strcmp(DFN_VAT_AMOUNT,
 					fields.vat_amount) ? "" :
-					fields.vat_amount, NULL);
+					fields.vat_amount, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "vat_rate", DFN_VAT_RATE, NULL);
+	vl = TMPL_add_var(vl, "vat_rate", DFN_VAT_RATE, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_vat_rate", !strcmp(DFN_VAT_RATE,
 					fields.vat_rate) ? "" :
-					fields.vat_rate, NULL);
+					fields.vat_rate, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "currency", DFN_CURRENCY, NULL);
+	vl = TMPL_add_var(vl, "currency", DFN_CURRENCY, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_currency", !strcmp(DFN_CURRENCY,
 					fields.currency) ? "" :
-					fields.currency, NULL);
+					fields.currency, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "payment_method", DFN_PAYMENT_METHOD, NULL);
+	vl = TMPL_add_var(vl, "payment_method", DFN_PAYMENT_METHOD,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "alt_payment_method", !strcmp(DFN_PAYMENT_METHOD,
 					fields.payment_method) ? "" :
-					fields.payment_method, NULL);
+					fields.payment_method, (char *)NULL);
 
 	send_template("templates/prefs_fmap.tmpl", vl);
 	TMPL_free_varlist(vl);
@@ -1169,13 +1197,14 @@ static void prefs_edit_user(void)
 				strlen(get_var(qvars, "email2")) == 0) ||
 				(strcmp(get_var(qvars, "email1"),
 				get_var(qvars, "email2")) != 0)) {
-			vl = TMPL_add_var(vl, "email_error", "yes", NULL);
+			vl = TMPL_add_var(vl, "email_error", "yes",
+								(char *)NULL);
 			form_err = 1;
 		} else if (strcmp(user_session.username,
 					get_var(qvars,"email1")) != 0) {
 			if (user_already_exists(get_var(qvars,"email1"))) {
 				vl = TMPL_add_var(vl, "user_exists", "yes",
-									NULL);
+								(char *)NULL);
 				form_err = 1;
 			}
 		}
@@ -1183,8 +1212,8 @@ static void prefs_edit_user(void)
 					strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
 					get_var(qvars, "pass2")) != 0) {
-				vl = TMPL_add_var(vl, "pass_error",
-							"mismatch", NULL);
+				vl = TMPL_add_var(vl, "pass_error", "mismatch",
+								(char *)NULL);
 				form_err = 1;
 			}
 		/*
@@ -1193,7 +1222,8 @@ static void prefs_edit_user(void)
 		 */
 		} else if (strlen(get_var(qvars, "pass1")) != 0 &&
 					strlen(get_var(qvars, "pass2")) != 0) {
-			vl = TMPL_add_var(vl, "pass_error", "length", NULL);
+			vl = TMPL_add_var(vl, "pass_error", "length",
+								(char *)NULL);
 			form_err = 1;
 		}
 
@@ -1206,7 +1236,7 @@ static void prefs_edit_user(void)
 		}
 	} else {
 		if (strlen(get_var(qvars, "updated")) > 0)
-			vl = TMPL_add_var(vl, "updated", "yes", NULL);
+			vl = TMPL_add_var(vl, "updated", "yes", (char *)NULL);
 	}
 
 	/*
@@ -1234,32 +1264,34 @@ static void prefs_edit_user(void)
 		db_row = get_dbrow(res);
 
 		vl = TMPL_add_var(vl, "username", get_var(db_row, "username"),
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "email1", get_var(db_row, "username"),
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "email2", get_var(db_row, "username"),
-									NULL);
-		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
+								(char *)NULL);
+		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"),
+								(char *)NULL);
 
 		free_vars(db_row);
 		mysql_free_result(res);
 		mysql_close(conn);
 	} else {
 		vl = TMPL_add_var(vl, "username", get_var(qvars, "email1"),
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "email1", get_var(qvars, "email1"),
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "email2", get_var(qvars, "email2"),
-									NULL);
-		vl = TMPL_add_var(vl, "name", get_var(qvars, "name"), NULL);
+								(char *)NULL);
+		vl = TMPL_add_var(vl, "name", get_var(qvars, "name"),
+								(char *)NULL);
 	}
 
 	if (user_session.capabilities & ADMIN)
-		vl = TMPL_add_var(vl, "admin", "yes", NULL);
+		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
 	if (user_session.capabilities & APPROVER)
-		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	send_template("templates/prefs_edit_user.tmpl", vl);
 	TMPL_free_varlist(vl);
@@ -1301,10 +1333,10 @@ static void extract_data(void)
 	if (!(user_session.capabilities & APPROVER))
 		return;
 	if (user_session.capabilities & ADMIN)
-		vl = TMPL_add_var(vl, "admin", "yes", NULL);
+		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
-	vl = TMPL_add_var(vl, "approver", "yes", NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
+	vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 
 	send_template("templates/extract_data.tmpl", vl);
 	TMPL_free_varlist(vl);
@@ -1582,15 +1614,15 @@ static void approve_receipts(void)
 	res = mysql_store_result(conn);
 
 	if (user_session.capabilities & APPROVER)
-		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
 	if (user_session.capabilities & ADMIN)
-		ml = TMPL_add_var(ml, "admin", "yes", NULL);
+		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
 
-	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
-		ml = TMPL_add_var(ml, "receipts", "no", NULL);
+		ml = TMPL_add_var(ml, "receipts", "no", (char *)NULL);
 		goto out;
 	}
 
@@ -1615,68 +1647,83 @@ static void approve_receipts(void)
 							(float)APPROVER_ROWS);
 
 		vl = TMPL_add_var(NULL, "image_path", get_var(db_row, "path"),
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
-									NULL);
+								(char *)NULL);
 
 		name = username_to_name(get_var(db_row, "username"));
-		vl = TMPL_add_var(vl, "name", name, NULL);
+		vl = TMPL_add_var(vl, "name", name, (char *)NULL);
 		free(name);
 
 		secs = atol(get_var(db_row, "its"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = TMPL_add_var(vl, "images_timestamp", tbuf, NULL);
+		vl = TMPL_add_var(vl, "images_timestamp", tbuf, (char *)NULL);
 
 		secs = atol(get_var(db_row, "tts"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = TMPL_add_var(vl, "tags_timestamp", tbuf, NULL);
+		vl = TMPL_add_var(vl, "tags_timestamp", tbuf, (char *)NULL);
 		vl = TMPL_add_var(vl, "fields.department", fields.department,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "department", get_var(db_row,
-							"department"), NULL);
+								"department"),
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.employee_number",
-						fields.employee_number, NULL);
+							fields.employee_number,
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "employee_number", get_var(db_row,
-						"employee_number"), NULL);
+							"employee_number"),
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "cost_codes", get_var(db_row,
-							"cost_codes"), NULL);
+								"cost_codes"),
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.account_codes",
-						fields.account_codes, NULL);
+							fields.account_codes,
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "account_codes", get_var(db_row,
-						"account_codes"), NULL);
-		vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, NULL);
+							"account_codes"),
+							(char *)NULL);
+		vl = TMPL_add_var(vl, "fields.po_num", fields.po_num,
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "po_num", get_var(db_row, "po_num"),
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.supplier_name",
-						fields.supplier_name, NULL);
+							fields.supplier_name,
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "supplier_name", get_var(db_row,
-						"supplier_name"), NULL);
+							"supplier_name"),
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.supplier_town",
-						fields.supplier_town, NULL);
+							fields.supplier_town,
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "supplier_town", get_var(db_row,
-						"supplier_town"), NULL);
+							"supplier_town"),
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.currency", fields.currency,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "currency", get_var(db_row, "currency"),
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.gross_amount",
-						fields.gross_amount, NULL);
+							fields.gross_amount,
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "gross_amount", get_var(db_row,
-							"gross_amount"), NULL);
+							"gross_amount"),
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "vat_amount", get_var(db_row,
-							"vat_amount"), NULL);
+								"vat_amount"),
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "net_amount", get_var(db_row,
-							"net_amount"), NULL);
+								"net_amount"),
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "vat_rate", get_var(db_row, "vat_rate"),
-									NULL);
+								(char *)NULL);
 
 		/* Sanity check the amounts */
 		gross = strtod(get_var(db_row, "gross_amount"), NULL);
@@ -1685,31 +1732,37 @@ static void approve_receipts(void)
 		vr = strtod(get_var(db_row, "vat_rate"), NULL);
 		ret = check_amounts(gross, net, vat, vr);
 		if (ret < 0)
-			vl = TMPL_add_var(vl, "amnt_err", "yes", NULL);
+			vl = TMPL_add_var(vl, "amnt_err", "yes", (char *)NULL);
 		else
-			vl = TMPL_add_var(vl, "amnt_err", "no", NULL);
+			vl = TMPL_add_var(vl, "amnt_err", "no", (char *)NULL);
 
 		vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "vat_number", get_var(db_row,
-							"vat_number"), NULL);
+								"vat_number"),
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.receipt_date",
-						fields.receipt_date, NULL);
+							fields.receipt_date,
+							(char *)NULL);
 
 		secs = atol(get_var(db_row, "receipt_date"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
+		vl = TMPL_add_var(vl, "receipt_date", tbuf, (char *)NULL);
 		vl = TMPL_add_var(vl, "fields.payment_method",
-						fields.payment_method, NULL);
+							fields.payment_method,
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "payment_method", get_var(db_row,
-						"payment_method"), NULL);
-		vl = TMPL_add_var(vl, "fields.reason", fields.reason, NULL);
+							"payment_method"),
+							(char *)NULL);
+		vl = TMPL_add_var(vl, "fields.reason", fields.reason,
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "reason", get_var(db_row, "reason"),
-									NULL);
-		vl = TMPL_add_var(vl, "id", get_var(db_row, "id"), NULL);
+								(char *)NULL);
+		vl = TMPL_add_var(vl, "id", get_var(db_row, "id"),
+								(char *)NULL);
 
 		snprintf(item, 3, "%lu", i);
-		vl = TMPL_add_var(vl, "item", item, NULL);
+		vl = TMPL_add_var(vl, "item", item, (char *)NULL);
 
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
@@ -1719,14 +1772,14 @@ static void approve_receipts(void)
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
 			snprintf(page, sizeof(page), "%d", page_no - 1);
-			ml = TMPL_add_var(ml, "prev_page", page, NULL);
+			ml = TMPL_add_var(ml, "prev_page", page, (char *)NULL);
 		}
 		if (page_no + 1 <= pages) {
 			snprintf(page, sizeof(page), "%d", page_no + 1);
-			ml = TMPL_add_var(ml, "next_page", page, NULL);
+			ml = TMPL_add_var(ml, "next_page", page, (char *)NULL);
 		}
 	} else {
-		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
+		ml = TMPL_add_var(ml, "no_pages", "true", (char *)NULL);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 
@@ -1769,11 +1822,11 @@ static void reviewed_receipts(void)
 							&page_no, &from);
 
 	if (user_session.capabilities & APPROVER)
-		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
 	if (user_session.capabilities & ADMIN)
-		ml = TMPL_add_var(ml, "admin", "yes", NULL);
+		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
 
-	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM approved "
@@ -1793,14 +1846,14 @@ static void reviewed_receipts(void)
 	res = mysql_store_result(conn);
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
-		ml = TMPL_add_var(ml, "receipts", "no", NULL);
+		ml = TMPL_add_var(ml, "receipts", "no", (char *)NULL);
 		goto out;
 	}
 
 	fields = field_names;
 	set_custom_field_names(&fields);
 
-	ml = TMPL_add_var(ml, "receipts", "yes", NULL);
+	ml = TMPL_add_var(ml, "receipts", "yes", (char *)NULL);
 	/* Draw gallery grid */
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
@@ -1812,36 +1865,41 @@ static void reviewed_receipts(void)
 		pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 							(float)GRID_SIZE);
 
-		vl = TMPL_add_var(NULL, "id", get_var(db_row, "id"), NULL);
+		vl = TMPL_add_var(NULL, "id", get_var(db_row, "id"),
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"),
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "user", get_var(db_row, "user"), NULL);
-		vl = TMPL_add_var(vl, "uid", get_var(db_row, "uid"), NULL);
+		vl = TMPL_add_var(vl, "uid", get_var(db_row, "uid"),
+								(char *)NULL);
 
 		secs = atol(get_var(db_row, "ats"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = TMPL_add_var(vl, "review_date", "Review Date", NULL);
-		vl = TMPL_add_var(vl, "apdate", tbuf, NULL);
+		vl = TMPL_add_var(vl, "review_date", "Review Date",
+								(char *)NULL);
+		vl = TMPL_add_var(vl, "apdate", tbuf, (char *)NULL);
 
 		secs = atol(get_var(db_row, "its"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
 		vl = TMPL_add_var(vl, "receipt_date", fields.receipt_date,
-									NULL);
+								(char *)NULL);
 		loop = TMPL_add_varlist(loop, vl);
-		vl = TMPL_add_var(vl, "rdate", tbuf, NULL);
+		vl = TMPL_add_var(vl, "rdate", tbuf, (char *)NULL);
 
 		if (atoi(get_var(db_row, "status")) == REJECTED)
-			vl = TMPL_add_var(vl, "status", "rejected", NULL);
+			vl = TMPL_add_var(vl, "status", "rejected",
+								(char *)NULL);
 		else
-			vl = TMPL_add_var(vl, "status", "approved", NULL);
+			vl = TMPL_add_var(vl, "status", "approved",
+								(char *)NULL);
 
 		if (c == COL_SIZE && i < nr_rows) { /* Start a new row */
-			vl = TMPL_add_var(vl, "new_row", "yes", NULL);
+			vl = TMPL_add_var(vl, "new_row", "yes", (char *)NULL);
 			c = 0;
 		} else {
-			vl = TMPL_add_var(vl, "new_row", "no", NULL);
+			vl = TMPL_add_var(vl, "new_row", "no", (char *)NULL);
 		}
 		c++;
 
@@ -1853,14 +1911,14 @@ static void reviewed_receipts(void)
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
 			snprintf(page, sizeof(page), "%d", page_no - 1);
-			ml = TMPL_add_var(ml, "prev_page", page, NULL);
+			ml = TMPL_add_var(ml, "prev_page", page, (char *)NULL);
 		}
 		if (page_no + 1 <= pages) {
 			snprintf(page, sizeof(page), "%d", page_no + 1);
-			ml = TMPL_add_var(ml, "next_page", page, NULL);
+			ml = TMPL_add_var(ml, "next_page", page, (char *)NULL);
 		}
 	} else {
-		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
+		ml = TMPL_add_var(ml, "no_pages", "true", (char *)NULL);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 
@@ -1891,14 +1949,14 @@ static void receipt_info(void)
 	TMPL_varlist *vl = NULL;
 
 	if (user_session.capabilities & APPROVER)
-		vl = TMPL_add_var(vl, "approver", "yes", NULL);
+		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 	if (user_session.capabilities & ADMIN)
 		vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, NULL);
+	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	if (!tag_info_allowed(get_var(qvars, "image_id"))) {
-		vl = TMPL_add_var(vl, "show_info", "no", NULL);
+		vl = TMPL_add_var(vl, "show_info", "no", (char *)NULL);
 		goto out;
 	}
 
@@ -1930,7 +1988,7 @@ static void receipt_info(void)
 	res = mysql_store_result(conn);
 
 	if (mysql_num_rows(res) == 0) {
-		vl = TMPL_add_var(vl, "show_info", "no", NULL);
+		vl = TMPL_add_var(vl, "show_info", "no", (char *)NULL);
 		goto out;
 	}
 
@@ -1940,114 +1998,133 @@ static void receipt_info(void)
 	db_row = get_dbrow(res);
 
 	/* image url */
-	vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"), NULL);
-	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"), NULL);
+	vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"),
+								(char *)NULL);
+	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
+								(char *)NULL);
 
-	vl = TMPL_add_var(vl, "r_user", get_var(db_row, "user"), NULL);
-	vl = TMPL_add_var(vl, "r_uid", get_var(db_row, "uid"), NULL);
-	vl = TMPL_add_var(vl, "id", image_id, NULL);
+	vl = TMPL_add_var(vl, "r_user", get_var(db_row, "user"), (char *)NULL);
+	vl = TMPL_add_var(vl, "r_uid", get_var(db_row, "uid"), (char *)NULL);
+	vl = TMPL_add_var(vl, "id", image_id, (char *)NULL);
 
 	/* image upload timestamp */
 	secs = atol(get_var(db_row, "images_timestamp"));
 	strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z", localtime(&secs));
-	vl = TMPL_add_var(vl, "images_timestamp", tbuf, NULL);
+	vl = TMPL_add_var(vl, "images_timestamp", tbuf, (char *)NULL);
 
 	/* image tag timestamp */
 	secs = atol(get_var(db_row, "tags_timestamp"));
 	strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z", localtime(&secs));
-	vl = TMPL_add_var(vl, "tags_timestamp", tbuf, NULL);
+	vl = TMPL_add_var(vl, "tags_timestamp", tbuf, (char *)NULL);
 
-	vl = TMPL_add_var(vl, "fields.department", fields.department, NULL);
+	vl = TMPL_add_var(vl, "fields.department", fields.department,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "department", get_var(db_row, "department"),
-								NULL);
+								(char *)NULL);
 
 	vl = TMPL_add_var(vl, "fields.employee_number", fields.employee_number,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "employee_number", get_var(db_row,
-						"employee_number"), NULL);
+							"employee_number"),
+							(char *)NULL);
 
-	vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes, NULL);
+	vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "cost_codes", get_var(db_row, "cost_codes"),
-									NULL);
+								(char *)NULL);
 
 	vl = TMPL_add_var(vl, "fields.account_codes", fields.account_codes,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "account_codes", get_var(db_row,
-						"account_codes"), NULL);
+							"account_codes"),
+							(char *)NULL);
 
-	vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, NULL);
-	vl = TMPL_add_var(vl, "po_num",get_var(db_row, "po_num"), NULL);
+	vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, (char *)NULL);
+	vl = TMPL_add_var(vl, "po_num",get_var(db_row, "po_num"),
+								(char *)NULL);
 
 	vl = TMPL_add_var(vl, "fields.supplier_name", fields.supplier_name,
-								NULL);
+							(char *)NULL);
 	vl = TMPL_add_var(vl, "supplier_name", get_var(db_row,
-						"supplier_name"), NULL);
+							"supplier_name"),
+							(char *)NULL);
 
 	vl = TMPL_add_var(vl, "fields.supplier_town", fields.supplier_town,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "supplier_town", get_var(db_row,
-						"supplier_town"), NULL);
+							"supplier_town"),
+							(char *)NULL);
 
-	vl = TMPL_add_var(vl, "fields.currency", fields.currency, NULL);
-	vl = TMPL_add_var(vl, "currency", get_var(db_row, "currency"), NULL);
+	vl = TMPL_add_var(vl, "fields.currency", fields.currency,
+							(char *)NULL);
+	vl = TMPL_add_var(vl, "currency", get_var(db_row, "currency"),
+							(char *)NULL);
 
 	vl = TMPL_add_var(vl, "fields.gross_amount", fields.gross_amount,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "gross_amount", get_var(db_row,
-						"gross_amount"), NULL);
+						"gross_amount"), (char *)NULL);
 
-	vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount, NULL);
+	vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "vat_amount", get_var(db_row,
-						"vat_amount"), NULL);
+						"vat_amount"), (char *)NULL);
 
 	vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount, NULL);
-	vl = TMPL_add_var(vl, "net_amount", get_var(db_row,
-						"net_amount"), NULL);
+	vl = TMPL_add_var(vl, "net_amount", get_var(db_row, "net_amount"),
+								(char *)NULL);
 
-	vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate, NULL);
-	vl = TMPL_add_var(vl, "vat_rate", get_var(db_row, "vat_rate"), NULL);
+	vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate,
+								(char *)NULL);
+	vl = TMPL_add_var(vl, "vat_rate", get_var(db_row, "vat_rate"),
+								(char *)NULL);
 
-	vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number, NULL);
-	vl = TMPL_add_var(vl, "vat_number", get_var(db_row,
-							"vat_number"), NULL);
+	vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
+								(char *)NULL);
+	vl = TMPL_add_var(vl, "vat_number", get_var(db_row, "vat_number"),
+								(char *)NULL);
 
-	vl = TMPL_add_var(vl, "fields.reason", fields.reason, NULL);
-	vl = TMPL_add_var(vl, "reason", get_var(db_row, "reason"), NULL);
+	vl = TMPL_add_var(vl, "fields.reason", fields.reason, (char *)NULL);
+	vl = TMPL_add_var(vl, "reason", get_var(db_row, "reason"),
+								(char *)NULL);
 
 	vl = TMPL_add_var(vl, "fields.receipt_date", fields.receipt_date,
-									NULL);
+								(char *)NULL);
 	secs = atol(get_var(db_row, "receipt_date"));
 	strftime(tbuf, sizeof(tbuf), "%a %b %d, %Y", localtime(&secs));
-	vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
+	vl = TMPL_add_var(vl, "receipt_date", tbuf, (char *)NULL);
 
 	vl = TMPL_add_var(vl, "fields.payment_method", fields.payment_method,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "payment_method", get_var(db_row,
-						"payment_method"), NULL);
+							"payment_method"),
+							(char *)NULL);
 
 	if (atoi(get_var(db_row, "approved")) == REJECTED)
-		vl = TMPL_add_var(vl, "approved", "rejected", NULL);
+		vl = TMPL_add_var(vl, "approved", "rejected", (char *)NULL);
 	else if (atoi(get_var(db_row, "approved")) == PENDING)
-		vl = TMPL_add_var(vl, "approved", "pending", NULL);
+		vl = TMPL_add_var(vl, "approved", "pending", (char *)NULL);
 	else
-		vl = TMPL_add_var(vl, "approved", "yes", NULL);
+		vl = TMPL_add_var(vl, "approved", "yes", (char *)NULL);
 
 	/* Only PENDING receipts of the user are editable */
 	if (atoi(get_var(db_row, "approved")) == PENDING &&
 				atoi(get_var(db_row, "uid")) ==
 				user_session.uid) {
-		vl = TMPL_add_var(vl, "showedit", "true", NULL);
+		vl = TMPL_add_var(vl, "showedit", "true", (char *)NULL);
 		if (strcmp(get_var(qvars, "edit"), "true") == 0) {
 			/* Don't show the Edit button when editing */
-			vl = TMPL_add_var(vl, "showedit", "false", NULL);
-			vl = TMPL_add_var(vl, "edit", "true", NULL);
+			vl = TMPL_add_var(vl, "showedit", "false",
+								(char *)NULL);
+			vl = TMPL_add_var(vl, "edit", "true", (char *)NULL);
 			/*
 			 * Put the date into the same format that it should be
 			 * entered by the user (YYYY-MM-DD).
 			 */
 			strftime(tbuf, sizeof(tbuf), "%Y-%m-%d",
 							localtime(&secs));
-			vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
+			vl = TMPL_add_var(vl, "receipt_date", tbuf,
+								(char *)NULL);
 		}
 	} else if (atoi(get_var(db_row, "approved")) == APPROVED ||
 			atoi(get_var(db_row, "approved")) == REJECTED) {
@@ -2059,9 +2136,9 @@ static void receipt_info(void)
 		secs = atol(get_var(db_row, "a_time"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z",
 							localtime(&secs));
-		vl = TMPL_add_var(vl, "a_time", tbuf, NULL);
+		vl = TMPL_add_var(vl, "a_time", tbuf, (char *)NULL);
 		vl = TMPL_add_var(vl, "reject_reason", get_var(db_row,
-							"r_reason"), NULL);
+						"r_reason"), (char *)NULL);
 	}
 
 	free_vars(db_row);
@@ -2101,11 +2178,11 @@ static void tagged_receipts(void)
 							&page_no, &from);
 
 	if (user_session.capabilities & APPROVER)
-		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
 	if (user_session.capabilities & ADMIN)
-		ml = TMPL_add_var(ml, "admin", "yes", NULL);
+		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
 
-	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM tags "
@@ -2129,13 +2206,13 @@ static void tagged_receipts(void)
 
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
-		ml = TMPL_add_var(ml, "receipts", "no", NULL);
+		ml = TMPL_add_var(ml, "receipts", "no", (char *)NULL);
 		goto out;
 	}
 
 	fields = field_names;
 	set_custom_field_names(&fields);
-	ml = TMPL_add_var(ml, "receipts", "yes", NULL);
+	ml = TMPL_add_var(ml, "receipts", "yes", (char *)NULL);
 	/* Draw gallery grid */
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
@@ -2147,42 +2224,48 @@ static void tagged_receipts(void)
 		pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 							(float)GRID_SIZE);
 
-		vl = TMPL_add_var(NULL, "id", get_var(db_row, "id"), NULL);
+		vl = TMPL_add_var(NULL, "id", get_var(db_row, "id"),
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"),
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
-									NULL);
+								(char *)NULL);
 		secs = atol(get_var(db_row, "receipt_date"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
 		vl = TMPL_add_var(vl, "fields.receipt_date",
-						fields.receipt_date, NULL);
-		vl = TMPL_add_var(vl, "receipt_date", tbuf, NULL);
+							fields.receipt_date,
+							(char *)NULL);
+		vl = TMPL_add_var(vl, "receipt_date", tbuf, (char *)NULL);
 		/* If the receipt been reviewed, display its reviewed date */
 		if (strlen(get_var(db_row, "timestamp")) > 0) {
 			secs = atol(get_var(db_row, "timestamp"));
 			strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y",
 							localtime(&secs));
-			vl = TMPL_add_var(vl, "reviewed_date", tbuf, NULL);
+			vl = TMPL_add_var(vl, "reviewed_date", tbuf,
+								(char *)NULL);
 		}
 
 		if (atoi(get_var(db_row, "approved")) == REJECTED)
-			vl = TMPL_add_var(vl, "approved", "rejected", NULL);
+			vl = TMPL_add_var(vl, "approved", "rejected",
+								(char *)NULL);
 		else if (atoi(get_var(db_row, "approved")) == PENDING)
-			vl = TMPL_add_var(vl, "approved", "pending", NULL);
+			vl = TMPL_add_var(vl, "approved", "pending",
+								(char *)NULL);
 		else
-			vl = TMPL_add_var(vl, "approved", "yes", NULL);
+			vl = TMPL_add_var(vl, "approved", "yes", (char *)NULL);
 
 		/* We want a 3 x 3 grid */
 		if (c == COL_SIZE) /* Close off row */
-			vl = TMPL_add_var(vl, "close_row", "yes", NULL);
+			vl = TMPL_add_var(vl, "close_row", "yes",
+								(char *)NULL);
 		else
-			vl = TMPL_add_var(vl, "close_row", "no", NULL);
+			vl = TMPL_add_var(vl, "close_row", "no", (char *)NULL);
 
 		if (c == COL_SIZE && i < nr_rows) { /* Start a new row */
-			vl = TMPL_add_var(vl, "new_row", "yes", NULL);
+			vl = TMPL_add_var(vl, "new_row", "yes", (char *)NULL);
 			c = 0;
 		} else {
-			vl = TMPL_add_var(vl, "new_row", "no", NULL);
+			vl = TMPL_add_var(vl, "new_row", "no", (char *)NULL);
 		}
 		c++;
 
@@ -2194,14 +2277,14 @@ static void tagged_receipts(void)
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
 			snprintf(page, sizeof(page), "%d", page_no - 1);
-			ml = TMPL_add_var(ml, "prev_page", page, NULL);
+			ml = TMPL_add_var(ml, "prev_page", page, (char *)NULL);
 		}
 		if (page_no + 1 <= pages) {
 			snprintf(page, sizeof(page), "%d", page_no + 1);
-			ml = TMPL_add_var(ml, "next_page", page, NULL);
+			ml = TMPL_add_var(ml, "next_page", page, (char *)NULL);
 		}
 	} else {
-		ml = TMPL_add_var(ml, "no_pages", "true", NULL);
+		ml = TMPL_add_var(ml, "no_pages", "true", (char *)NULL);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 
@@ -2263,75 +2346,86 @@ static void process_receipt(void)
 	if (mysql_num_rows(res) == 0)
 		goto out;
 
-	vl = TMPL_add_var(vl, "image_id", get_var(qvars, "image_id"), NULL);
+	vl = TMPL_add_var(vl, "image_id", get_var(qvars, "image_id"),
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "image_path", get_var(qvars, "image_path"),
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "image_name", get_var(qvars, "image_name"),
-									NULL);
+								(char *)NULL);
 	fields = field_names;
 	set_custom_field_names(&fields);
 
 	if (strlen(get_var(qvars, "department")) == 0) {
 		tag_error = 1;
-		vl = TMPL_add_var(vl, "error.department", "1", NULL);
+		vl = TMPL_add_var(vl, "error.department", "1", (char *)NULL);
 	}
-	vl = TMPL_add_var(vl, "fields.department", fields.department, NULL);
+	vl = TMPL_add_var(vl, "fields.department", fields.department,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "department", get_var(qvars, "department"),
-									NULL);
+								(char *)NULL);
 
 	if (strlen(get_var(qvars, "employee_number")) == 0) {
 		tag_error = 1;
-		vl = TMPL_add_var(vl, "error.employee_number", "1", NULL);
+		vl = TMPL_add_var(vl, "error.employee_number", "1",
+								(char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.employee_number", fields.employee_number,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "employee_number", get_var(qvars,
-						"employee_number"), NULL);
+							"employee_number"),
+							(char *)NULL);
 
 	if (strlen(get_var(qvars, "cost_codes")) == 0) {
 		tag_error = 1;
-		vl = TMPL_add_var(vl, "error.cost_codes", "1", NULL);
+		vl = TMPL_add_var(vl, "error.cost_codes", "1", (char *)NULL);
 	}
-	vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes, NULL);
+	vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "cost_codes", get_var(qvars, "cost_codes"),
-									NULL);
+								(char *)NULL);
 
 	if (strlen(get_var(qvars, "account_codes")) == 0) {
 		tag_error = 1;
-		vl = TMPL_add_var(vl, "error.account_codes", "1", NULL);
+		vl = TMPL_add_var(vl, "error.account_codes", "1",
+								(char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.account_codes", fields.account_codes,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "account_codes", get_var(qvars, "account_codes"),
-									NULL);
+								(char *)NULL);
 
 	if (strlen(get_var(qvars, "po_num")) == 0) {
 		tag_error = 1;
-		vl = TMPL_add_var(vl, "error.po_num", "1", NULL);
+		vl = TMPL_add_var(vl, "error.po_num", "1", (char *)NULL);
 	}
-	vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, NULL);
-	vl = TMPL_add_var(vl, "po_num", get_var(qvars, "po_num"), NULL);
+	vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, (char *)NULL);
+	vl = TMPL_add_var(vl, "po_num", get_var(qvars, "po_num"),
+								(char *)NULL);
 
 	if (strlen(get_var(qvars, "supplier_name")) == 0) {
 		tag_error = 1;
-		vl = TMPL_add_var(vl, "error.supplier_name", "1", NULL);
+		vl = TMPL_add_var(vl, "error.supplier_name", "1",
+								(char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.supplier_name", fields.supplier_name,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "supplier_name", get_var(qvars, "supplier_name"),
-									NULL);
+								(char *)NULL);
 
 	if (strlen(get_var(qvars, "supplier_town")) == 0) {
 		tag_error = 1;
-		vl = TMPL_add_var(vl, "error.supplier_town", "1", NULL);
+		vl = TMPL_add_var(vl, "error.supplier_town", "1",
+								(char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.supplier_town", fields.supplier_town,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "supplier_town", get_var(qvars, "supplier_town"),
-									NULL);
+								(char *)NULL);
 
-	vl = TMPL_add_var(vl, "fields.currency", fields.currency, NULL);
-	vl = TMPL_add_var(vl, "currency", get_var(qvars, "currency"), NULL);
+	vl = TMPL_add_var(vl, "fields.currency", fields.currency,
+								(char *)NULL);
+	vl = TMPL_add_var(vl, "currency", get_var(qvars, "currency"),
+								(char *)NULL);
 
 	gross = strtod(get_var(qvars, "gross_amount"), NULL);
 	net = strtod(get_var(qvars, "net_amount"), NULL);
@@ -2340,31 +2434,36 @@ static void process_receipt(void)
 	ret = check_amounts(gross, net, vat, vr);
 	if (ret < 0) {
 		tag_error = 1;
-		vl = TMPL_add_var(vl, "error.amounts", "1", NULL);
+		vl = TMPL_add_var(vl, "error.amounts", "1", (char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.gross_amount", fields.gross_amount,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "gross_amount", get_var(qvars, "gross_amount"),
-									NULL);
-	vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount, NULL);
+								(char *)NULL);
+	vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "net_amount", get_var(qvars, "net_amount"),
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount, NULL);
 	vl = TMPL_add_var(vl, "vat_amount", get_var(qvars, "vat_amount"),
-									NULL);
-	vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate, NULL);
-	vl = TMPL_add_var(vl, "vat_rate", get_var(qvars, "vat_rate"), NULL);
+								(char *)NULL);
+	vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate,
+								(char *)NULL);
+	vl = TMPL_add_var(vl, "vat_rate", get_var(qvars, "vat_rate"),
+								(char *)NULL);
 
 	if (strlen(get_var(qvars, "vat_number")) == 0) {
 		tag_error = 1;
-		vl = TMPL_add_var(vl, "error.vat_number", "1", NULL);
+		vl = TMPL_add_var(vl, "error.vat_number", "1", (char *)NULL);
 	}
-	vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number, NULL);
+	vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "vat_number", get_var(qvars, "vat_number"),
-									NULL);
+								(char *)NULL);
 
-	vl = TMPL_add_var(vl, "fields.reason", fields.reason, NULL);
-	vl = TMPL_add_var(vl, "reason", get_var(qvars, "reason"), NULL);
+	vl = TMPL_add_var(vl, "fields.reason", fields.reason, (char *)NULL);
+	vl = TMPL_add_var(vl, "reason", get_var(qvars, "reason"),
+								(char *)NULL);
 
 	memset(&tm, 0, sizeof(tm));
 	strptime(get_var(qvars, "receipt_date"), "%Y-%m-%d", &tm);
@@ -2372,17 +2471,18 @@ static void process_receipt(void)
 	if (strtol(secs, NULL, 10) < time(NULL) - MAX_RECEIPT_AGE ||
 					strtol(secs, NULL, 10) > time(NULL)) {
 		tag_error = 1;
-		vl = TMPL_add_var(vl, "error.receipt_date", "1", NULL);
+		vl = TMPL_add_var(vl, "error.receipt_date", "1", (char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.receipt_date", fields.receipt_date,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "receipt_date", get_var(qvars, "receipt_date"),
-									NULL);
+								(char *)NULL);
 
 	vl = TMPL_add_var(vl, "fields.payment_method", fields.payment_method,
-									NULL);
+								(char *)NULL);
 	vl = TMPL_add_var(vl, "payment_method", get_var(qvars,
-						"payment_method"), NULL);
+							"payment_method"),
+							(char *)NULL);
 
 	if (!tag_error) {
 		tag_image();
@@ -2427,12 +2527,12 @@ static void receipts(void)
 	char llogin_from[NI_MAXHOST];
 
 	if (user_session.capabilities & APPROVER)
-		ml = TMPL_add_var(ml, "approver", "yes", NULL);
+		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
 	if (user_session.capabilities & ADMIN)
-		ml = TMPL_add_var(ml, "admin", "yes", NULL);
+		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
 
 	/* Display the user's name and UID at the top of the page */
-	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, NULL);
+	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	/*
 	 * Display the users last login time and location, we only show
@@ -2443,10 +2543,12 @@ static void receipts(void)
 		char tbuf[32];
 
 		strftime(tbuf, 32, "%a %b %e %H:%M %Y", localtime(&llogin));
-		ml = TMPL_add_var(ml, "last_login", tbuf, NULL);
-		ml = TMPL_add_var(ml, "last_login_from", llogin_from, NULL);
+		ml = TMPL_add_var(ml, "last_login", tbuf, (char *)NULL);
+		ml = TMPL_add_var(ml, "last_login_from", llogin_from,
+								(char *)NULL);
 	} else {
-		ml = TMPL_add_var(ml, "last_login", "First login", NULL);
+		ml = TMPL_add_var(ml, "last_login", "First login",
+								(char *)NULL);
 	}
 
 	conn = db_conn();
@@ -2461,7 +2563,7 @@ static void receipts(void)
 
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
-		ml = TMPL_add_var(ml, "receipts", "no", NULL);
+		ml = TMPL_add_var(ml, "receipts", "no", (char *)NULL);
 		goto out;
 	}
 
@@ -2478,45 +2580,55 @@ static void receipts(void)
 		 * the last receipt entry.
 		 */
 		vl = TMPL_add_var(NULL, "image_path", get_var(db_row, "path"),
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
-									NULL);
+								(char *)NULL);
 		secs = atol(get_var(db_row, "timestamp"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z",
 							localtime(&secs));
-		vl = TMPL_add_var(vl, "timestamp", tbuf, NULL);
+		vl = TMPL_add_var(vl, "timestamp", tbuf, (char *)NULL);
 		vl = TMPL_add_var(vl, "fields.department", fields.department,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.employee_number",
-						fields.employee_number, NULL);
+							fields.employee_number,
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.account_codes",
-						fields.account_codes, NULL);
-		vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, NULL);
+							fields.account_codes,
+							(char *)NULL);
+		vl = TMPL_add_var(vl, "fields.po_num", fields.po_num,
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.supplier_name",
-						fields.supplier_name, NULL);
+							fields.supplier_name,
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.supplier_town",
-						fields.supplier_town, NULL);
+							fields.supplier_town,
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.currency", fields.currency,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.gross_amount",
-						fields.gross_amount, NULL);
+							fields.gross_amount,
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate,
-									NULL);
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
-									NULL);
-		vl = TMPL_add_var(vl, "fields.reason", fields.reason, NULL);
+								(char *)NULL);
+		vl = TMPL_add_var(vl, "fields.reason", fields.reason,
+								(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.receipt_date",
-						fields.receipt_date, NULL);
+							fields.receipt_date,
+							(char *)NULL);
 		vl = TMPL_add_var(vl, "fields.payment_method",
-						fields.payment_method, NULL);
+							fields.payment_method,
+							(char *)NULL);
 		/* image_id for hidden input field */
-		vl = TMPL_add_var(vl, "id", get_var(db_row, "id"), NULL);
+		vl = TMPL_add_var(vl, "id", get_var(db_row, "id"),
+								(char *)NULL);
 
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
