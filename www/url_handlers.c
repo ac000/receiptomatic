@@ -74,7 +74,7 @@ static void login(void)
 	if (ret == -2)
 		vl = TMPL_add_var(0, "enabled", "no", (char *)NULL);
 
-	send_template("templates/login.tmpl", vl);
+	send_template("templates/login.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 }
 
@@ -114,7 +114,7 @@ static void logout(void)
 	printf("Set-Cookie: session_id=deleted; "
 				"expires=Thu, 01-Jan-1970 00:00:01 GMT; "
 				"path=/; httponly\r\n");
-	send_template("templates/logout.tmpl", NULL);
+	send_template("templates/logout.tmpl", NULL, NULL);
 }
 
 /*
@@ -211,7 +211,7 @@ static void delete_image(void)
 		goto out1;
 	}
 
-	send_template("templates/delete_image.tmpl", vl);
+	send_template("templates/delete_image.tmpl", vl, NULL);
 	headers_sent = 1;
 
 out1:
@@ -343,7 +343,7 @@ static void admin(void)
 
 	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 
-	send_template("templates/admin.tmpl", vl);
+	send_template("templates/admin.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 }
 
@@ -460,7 +460,7 @@ static void admin_list_users(void)
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 
-	send_template("templates/admin_list_users.tmpl", ml);
+	send_template("templates/admin_list_users.tmpl", ml, NULL);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
@@ -555,7 +555,7 @@ static void admin_add_user(void)
 	}
 
 out:
-	send_template("templates/admin_add_user.tmpl", vl);
+	send_template("templates/admin_add_user.tmpl", vl, NULL);
 
 out2:
 	TMPL_free_varlist(vl);
@@ -718,7 +718,7 @@ mysql_cleanup:
 			vl = TMPL_add_var(vl, "is_admin", "yes", (char *)NULL);
 	}
 
-	send_template("templates/admin_edit_user.tmpl", vl);
+	send_template("templates/admin_edit_user.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 }
 
@@ -810,7 +810,7 @@ static void admin_pending_activations(void)
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 
-	send_template("templates/admin_pending_activations.tmpl", ml);
+	send_template("templates/admin_pending_activations.tmpl", ml, NULL);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
@@ -912,7 +912,7 @@ out:
 	mysql_close(conn);
 
 out2:
-	send_template("templates/activate_user.tmpl", vl);
+	send_template("templates/activate_user.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 }
 
@@ -966,7 +966,7 @@ static void generate_new_key(void)
 	vl = TMPL_add_var(vl, "email", email_addr, (char *)NULL);
 
 out:
-	send_template("templates/generate_new_key.tmpl", vl);
+	send_template("templates/generate_new_key.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 
 	mysql_free_result(res);
@@ -1029,7 +1029,7 @@ mysql_cleanup:
 	mysql_close(conn);
 
 out:
-	send_template("templates/forgotten_password.tmpl", vl);
+	send_template("templates/forgotten_password.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 }
 
@@ -1049,7 +1049,7 @@ static void prefs(void)
 
 	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 
-	send_template("templates/prefs.tmpl", vl);
+	send_template("templates/prefs.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 }
 
@@ -1171,7 +1171,7 @@ static void prefs_fmap(void)
 					fields.payment_method) ? "" :
 					fields.payment_method, (char *)NULL);
 
-	send_template("templates/prefs_fmap.tmpl", vl);
+	send_template("templates/prefs_fmap.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 	free_fields(&fields);
 }
@@ -1293,7 +1293,7 @@ static void prefs_edit_user(void)
 
 	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 
-	send_template("templates/prefs_edit_user.tmpl", vl);
+	send_template("templates/prefs_edit_user.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 }
 
@@ -1338,7 +1338,7 @@ static void extract_data(void)
 	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 	vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 
-	send_template("templates/extract_data.tmpl", vl);
+	send_template("templates/extract_data.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 }
 
@@ -1784,7 +1784,7 @@ static void approve_receipts(void)
 	ml = TMPL_add_loop(ml, "table", loop);
 
 out:
-	send_template("templates/approve_receipts.tmpl", ml);
+	send_template("templates/approve_receipts.tmpl", ml, NULL);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
@@ -1923,7 +1923,7 @@ static void reviewed_receipts(void)
 	ml = TMPL_add_loop(ml, "table", loop);
 
 out:
-	send_template("templates/reviewed_receipts.tmpl", ml);
+	send_template("templates/reviewed_receipts.tmpl", ml, NULL);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
@@ -2147,7 +2147,7 @@ static void receipt_info(void)
 	mysql_close(conn);
 
 out:
-	send_template("templates/receipt_info.tmpl", vl);
+	send_template("templates/receipt_info.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 }
 
@@ -2289,7 +2289,7 @@ static void tagged_receipts(void)
 	ml = TMPL_add_loop(ml, "table", loop);
 
 out:
-	send_template("templates/tagged_receipts.tmpl", ml);
+	send_template("templates/tagged_receipts.tmpl", ml, NULL);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);
@@ -2494,7 +2494,7 @@ static void process_receipt(void)
 	} else {
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
 			vl = TMPL_add_var(vl, "from", "receipt_info");
-		send_template("templates/process_receipt.tmpl", vl);
+		send_template("templates/process_receipt.tmpl", vl, NULL);
 		TMPL_free_varlist(vl);
 	}
 	free_fields(&fields);
@@ -2637,7 +2637,7 @@ static void receipts(void)
 	free_fields(&fields);
 
 out:
-	send_template("templates/receipts.tmpl", ml);
+	send_template("templates/receipts.tmpl", ml, NULL);
 	TMPL_free_varlist(ml);
 	mysql_free_result(res);
 	mysql_close(conn);

@@ -28,6 +28,7 @@ int do_add_user(unsigned char capabilities);
 void do_update_user(void);
 void do_edit_user(void);
 void do_activate_user(char *uid, char *key, char *password);
-void send_template(char *template, TMPL_varlist *varlist);
+void send_template(char *template, TMPL_varlist *varlist,
+						TMPL_fmtlist *fmtlist);
 
 #endif /* _URLHELPERS_H_ */

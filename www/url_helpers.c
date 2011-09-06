@@ -1233,10 +1233,11 @@ void do_activate_user(char *uid, char *key, char *password)
 /*
  * Send the specified template to the user.
  */
-void send_template(char *template, TMPL_varlist *varlist)
+void send_template(char *template, TMPL_varlist *varlist,
+						TMPL_fmtlist *fmtlist)
 {
 	printf("Cache-Control: private\r\n");
 	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write(template, NULL, NULL, varlist, stdout, error_log);
+	TMPL_write(template, NULL, fmtlist, varlist, stdout, error_log);
 	fflush(error_log);
 }
