@@ -354,6 +354,8 @@ int main(int argc, char **argv)
 
 	/* Set the log paths and open them */
 	init_logs();
+	/* Make stderr point to the error_log */
+	dup2(fileno(error_log), STDERR_FILENO);
 
 	mysql_library_init(0, NULL, NULL);
 
