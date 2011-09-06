@@ -770,3 +770,45 @@ void get_page_pagination(char *req_page_no, int rpp, int *page_no, int *from)
 		*from = *page_no * rpp - rpp;
 	}
 }
+
+/*
+ * Simple anti-xss mechanism.
+ *
+ * Escape the HTML characters listed here: https://www.owasp.org/index.php/XSS_%28Cross_Site_Scripting%29_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
+ *
+ * This is run as an output filter in libctemplate.
+ *
+ * We don't use TMPL_encode_entity from libctemplate, as we do some
+ * different things and it saves messing with the external library.
+ *
+ * I'm taking the, 'Be generous in what you accept, but strict in
+ * what you send.', philosophy.
+ */
+void de_xss(const char *value, FILE *out)
+{
+	for (; *value != 0; value++) {
+		switch (*value) {
+		case '&':
+			fputs("&amp;", out);
+			break;
+		case '<':
+			fputs("&lt;", out);
+			break;
+		case '>':
+			fputs("&gt;", out);
+			break;
+		case '"':
+			fputs("&quot;", out);
+			break;
+		case '\'':
+			fputs("&#x27;", out);
+			break;
+		case '/':
+			fputs("&#x2F;", out);
+			break;
+		default:
+			fputc(*value, out);
+			break;
+		}
+	}
+}

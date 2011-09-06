@@ -25,5 +25,6 @@ char *generate_password_hash(int hash_type, char *password);
 void delete_user_session(unsigned int uid);
 int user_already_exists(char *username);
 void get_page_pagination(char *req_page_no, int rpp, int *page_no, int *from);
+void de_xss(const char *value, FILE *out);
 
 #endif /* _UTILS_H_ */
