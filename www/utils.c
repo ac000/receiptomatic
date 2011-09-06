@@ -314,6 +314,7 @@ static void process_vars(char *query)
 	char *token;
 	char *saveptr1 = NULL;
 	char *string;
+	int avars = 0;
 
 	string = strdupa(query);
 	for (;;) {
@@ -321,14 +322,16 @@ static void process_vars(char *query)
 		if (token == NULL)
 			break;
 
-		if (strstr(token, "%5D="))
+		if (strstr(token, "%5D=")) {
 			add_avar(token, 0);
-		else
+			avars = 1;
+		} else {
 			add_var(token);
-
+		}
 		string = NULL;
 	}
-	add_avar(NULL, 1);
+	if (avars)
+		add_avar(NULL, 1);
 }
 
 /*
