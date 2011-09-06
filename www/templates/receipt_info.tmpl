@@ -46,77 +46,77 @@
 		<td> : <tmpl_var name = "tags_timestamp" /></td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.department" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.department" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "department" value = "<tmpl_var name = 'department' />">
+			<input type = "text" name = "department" value = "<tmpl_var name = 'department' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "department" />
+			<tmpl_var name = "department" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.employee_number" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.employee_number" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "employee_number" value = "<tmpl_var name = 'employee_number' />">
+			<input type = "text" name = "employee_number" value = "<tmpl_var name = 'employee_number' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "employee_number" />
+			<tmpl_var name = "employee_number" fmt = 'de_xss' />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.cost_codes" /> </span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.cost_codes" fmt = "de_xss" /> </span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "cost_codes" value = "<tmpl_var name = 'cost_codes' />">
+			<input type = "text" name = "cost_codes" value = "<tmpl_var name = 'cost_codes' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "cost_codes" />
+			<tmpl_var name = "cost_codes" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.account_codes" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.account_codes" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "account_codes" value = "<tmpl_var name = 'account_codes' />">
+			<input type = "text" name = "account_codes" value = "<tmpl_var name = 'account_codes' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "account_codes" />
+			<tmpl_var name = "account_codes" fmt = 'de_xss' />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.po_num" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.po_num" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "po_num" value = "<tmpl_var name = 'po_num' />">
+			<input type = "text" name = "po_num" value = "<tmpl_var name = 'po_num' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "po_num" />
+			<tmpl_var name = "po_num" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.supplier_name" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.supplier_name" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "supplier_name" value = "<tmpl_var name = 'supplier_name' />">
+			<input type = "text" name = "supplier_name" value = "<tmpl_var name = 'supplier_name' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "supplier_name" />
+			<tmpl_var name = "supplier_name" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.supplier_town" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.supplier_town" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "supplier_town" value = "<tmpl_var name = 'supplier_town' />">
+			<input type = "text" name = "supplier_town" value = "<tmpl_var name = 'supplier_town' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "supplier_town" />
+			<tmpl_var name = "supplier_town" fmt = "de_xss"/>
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.currency" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.currency" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
 			<select name = "currency">
@@ -125,81 +125,81 @@
 			<option value = "EUR" <tmpl_if name = "currency" value = "EUR">selected</tmpl_if>>EUR</option>
 			</select>
 		<tmpl_else>
-			<tmpl_var name = "currency" />
+			<tmpl_var name = "currency" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.gross_amount" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.gross_amount" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "gross_amount" value = "<tmpl_var name = 'gross_amount' />">
+			<input type = "text" name = "gross_amount" value = "<tmpl_var name = 'gross_amount' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "gross_amount" />
+			<tmpl_var name = "gross_amount" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_amount" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_amount" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "vat_amount" value = "<tmpl_var name = 'vat_amount' />">
+			<input type = "text" name = "vat_amount" value = "<tmpl_var name = 'vat_amount' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "vat_amount" />
+			<tmpl_var name = "vat_amount" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.net_amount" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.net_amount" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "net_amount" value = "<tmpl_var name = 'net_amount' />">
+			<input type = "text" name = "net_amount" value = "<tmpl_var name = 'net_amount' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "net_amount" />
+			<tmpl_var name = "net_amount" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_rate" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_rate" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "vat_rate" value = "<tmpl_var name = 'vat_rate' />">
+			<input type = "text" name = "vat_rate" value = "<tmpl_var name = 'vat_rate' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "vat_rate" />
+			<tmpl_var name = "vat_rate" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_number" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_number" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "vat_number" value = "<tmpl_var name = 'vat_number' />">
+			<input type = "text" name = "vat_number" value = "<tmpl_var name = 'vat_number' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "vat_number" />
+			<tmpl_var name = "vat_number" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.reason" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.reason" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "reason" value = "<tmpl_var name = 'reason' />">
+			<input type = "text" name = "reason" value = "<tmpl_var name = 'reason' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "reason" />
+			<tmpl_var name = "reason" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.receipt_date" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.receipt_date" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "receipt_date" value = "<tmpl_var name = 'receipt_date' />">
+			<input type = "text" name = "receipt_date" value = "<tmpl_var name = 'receipt_date' fmt = 'de_xss' />">
 		<tmpl_else>
-			<tmpl_var name = "receipt_date" />
+			<tmpl_var name = "receipt_date" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.payment_method" /></span></big></td>
+		<td><big><span class = "lighter"><tmpl_var name = "fields.payment_method" fmt = "de_xss" /></span></big></td>
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
 			<select name = "payment_method">
@@ -208,7 +208,7 @@
 			<option value = "Cheque" <tmpl_if name = "payment_method" value = "Cheque">selected</tmpl_if>>Cheque</option>
 			</select>
 		<tmpl_else>
-			<tmpl_var name = "payment_method" />
+			<tmpl_var name = "payment_method" fmt = "de_xss" />
 		</tmpl_if>
 		</td>
 	</tr>
@@ -230,7 +230,7 @@
 		<tmpl_if name = "reject_reason">
 			<td><big><span class = "lighter">Reject Reason</span></big></td>
 			<td> :&nbsp;
-			<tmpl_var name = "reject_reason" />
+			<tmpl_var name = "reject_reason" fmt = "de_xss" />
 			</td>
 		</tmpl_if>
 	</tr>

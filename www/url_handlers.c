@@ -1947,6 +1947,7 @@ static void receipt_info(void)
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
 	TMPL_varlist *vl = NULL;
+	TMPL_fmtlist *fmtlist;
 
 	if (user_session.capabilities & APPROVER)
 		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
@@ -2147,8 +2148,10 @@ static void receipt_info(void)
 	mysql_close(conn);
 
 out:
-	send_template("templates/receipt_info.tmpl", vl, NULL);
+	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	send_template("templates/receipt_info.tmpl", vl, fmtlist);
 	TMPL_free_varlist(vl);
+	TMPL_free_fmtlist(fmtlist);
 }
 
 /*
