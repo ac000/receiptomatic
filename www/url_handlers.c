@@ -1822,6 +1822,7 @@ static void reviewed_receipts(void)
 	TMPL_varlist *vl = NULL;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
+	TMPL_fmtlist *fmtlist;
 
 	if (!(user_session.capabilities & APPROVER))
 		return;
@@ -1932,8 +1933,10 @@ static void reviewed_receipts(void)
 	ml = TMPL_add_loop(ml, "table", loop);
 
 out:
-	send_template("templates/reviewed_receipts.tmpl", ml, NULL);
+	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	send_template("templates/reviewed_receipts.tmpl", ml, fmtlist);
 	TMPL_free_varlist(ml);
+	TMPL_free_fmtlist(fmtlist);
 	mysql_free_result(res);
 	mysql_close(conn);
 }
