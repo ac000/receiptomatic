@@ -32,8 +32,8 @@
 	<tr>
 </tmpl_if>
 		<td><tmpl_var name = "uid" /></td>
-		<td><tmpl_var name = "username" /></td>
-		<td><tmpl_var name = "name" /></td>
+		<td><tmpl_var name = "username" fmt = "de_xss" /></td>
+		<td><tmpl_var name = "name" fmt = "de_xss" /></td>
 		<td><tmpl_var name = "capabilities" /></td>
 	<tmpl_if name = "activated" value = "yes">
 		<td>&nbsp;&nbsp;</td>
