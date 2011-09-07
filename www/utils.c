@@ -812,3 +812,75 @@ void de_xss(const char *value, FILE *out)
 		}
 	}
 }
+
+/*
+ * A function similar to de_xss, but returns a dynamically allocated
+ * string that must be free'd.
+ */
+char *xss_safe_string(const char *string)
+{
+	char *safe_string;
+
+	safe_string = malloc(1);
+	memset(safe_string, 0, 1);
+
+	for (; *string != '\0'; string++) {
+		switch (*string) {
+		case '&':
+			safe_string = realloc(safe_string, strlen(safe_string)
+									+ 6);
+			if (!safe_string)
+				goto out_fail;
+			strcat(safe_string, "&amp;");
+			break;
+		case '<':
+			safe_string = realloc(safe_string, strlen(safe_string)
+									+ 5);
+			if (!safe_string)
+				goto out_fail;
+			strcat(safe_string, "&lt;");
+			break;
+		case '>':
+			safe_string = realloc(safe_string, strlen(safe_string)
+									+ 5);
+			if (!safe_string)
+				goto out_fail;
+			strcat(safe_string, "&gt;");
+			break;
+		case '"':
+			safe_string = realloc(safe_string, strlen(safe_string)
+									+ 7);
+			if (!safe_string)
+				goto out_fail;
+			strcat(safe_string, "&quot;");
+			break;
+		case '\'':
+			safe_string = realloc(safe_string, strlen(safe_string)
+									+ 7);
+			if (!safe_string)
+				goto out_fail;
+			strcat(safe_string, "&#x27;");
+			break;
+		case '/':
+			safe_string = realloc(safe_string, strlen(safe_string)
+									+ 7);
+			if (!safe_string)
+				goto out_fail;
+			strcat(safe_string, "&#x2F;");
+			break;
+		default:
+			safe_string = realloc(safe_string, strlen(safe_string)
+									+ 2);
+			if (!safe_string)
+				goto out_fail;
+			strncat(safe_string, string, 1);
+			break;
+		}
+	}
+
+	return safe_string;
+
+out_fail:
+	d_fprintf(error_log, "%s: Could not realloc(). Exiting.\n", __FUNCTION__);
+	_exit(EXIT_FAILURE);
+}

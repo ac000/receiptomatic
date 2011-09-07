@@ -294,6 +294,7 @@ void set_user_session(void)
 	char restrict_ip[2];
 	char capabilities[4];
 	char user_hdr[1025];
+	char *xss_string;
 	const char *rbuf;
 
 	/*
@@ -339,10 +340,11 @@ void set_user_session(void)
 	 * Set the user header banner, which displays the users name, uid and
 	 * whether they are an Approver and or Admin.
 	 */
+	xss_string = xss_safe_string(user_session.name);
 	snprintf(user_hdr, sizeof(user_hdr), "<big><big> %s</big></big><small>"
 				"<span class = \"lighter\"> (%d) </span>"
-				"</small>", user_session.name,
-				user_session.uid);
+				"</small>", xss_string, user_session.uid);
+	free(xss_string);
 	if (user_session.capabilities & APPROVER &&
 					user_session.capabilities & ADMIN)
 		strncat(user_hdr, "<span class = \"t_red\">(Approver / Admin)"
