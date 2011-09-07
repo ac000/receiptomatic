@@ -29,8 +29,8 @@
 <tmpl_else>
 	<tr>
 </tmpl_if>
-		<td><tmpl_var name = "name" /></td>
-		<td><tmpl_var name = "username" /></td>
+		<td><tmpl_var name = "name" fmt = "de_xss" /></td>
+		<td><tmpl_var name = "username" fmt = "de_xss" /></td>
 		<td>
 		<tmpl_if name = "expired">
 			<span class = t_red>
