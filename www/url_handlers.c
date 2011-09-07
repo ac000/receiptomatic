@@ -1068,6 +1068,7 @@ static void prefs_fmap(void)
 	struct field_names fields;
 	int updated = 0;
 	TMPL_varlist *vl = NULL;
+	TMPL_fmtlist *fmtlist;
 
 	if (qvars) {
 		update_fmap();
@@ -1174,8 +1175,10 @@ static void prefs_fmap(void)
 					fields.payment_method) ? "" :
 					fields.payment_method, (char *)NULL);
 
-	send_template("templates/prefs_fmap.tmpl", vl, NULL);
+	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	send_template("templates/prefs_fmap.tmpl", vl, fmtlist);
 	TMPL_free_varlist(vl);
+	TMPL_free_fmtlist(fmtlist);
 	free_fields(&fields);
 }
 
