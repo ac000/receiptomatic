@@ -481,6 +481,7 @@ static void admin_add_user(void)
 	unsigned char capabilities = 0;
 	int form_err = 0;
 	TMPL_varlist *vl = NULL;
+	TMPL_fmtlist *fmtlist;
 
 	if (!(user_session.capabilities & ADMIN))
 		return;
@@ -558,7 +559,9 @@ static void admin_add_user(void)
 	}
 
 out:
-	send_template("templates/admin_add_user.tmpl", vl, NULL);
+	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	send_template("templates/admin_add_user.tmpl", vl, fmtlist);
+	TMPL_free_fmtlist(fmtlist);
 
 out2:
 	TMPL_free_varlist(vl);
