@@ -27,65 +27,65 @@
 <tmpl_loop name = "table">
 	<tr>
 		<td><small><span class = "lighter">User</span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.department" /></span></small></td>
-                <td><small><span class = "lighter"><tmpl_var name = "fields.employee_number" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.department" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.employee_number" fmt = "de_xss" /></span></small></td>
 		<td><small><span class = "lighter">Uploaded at</span></small></td>
 		<td><small><span class = "lighter">Tagged at</span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.receipt_date" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.receipt_date" fmt = "de_xss" /></span></small></td>
 		<td width = "5%"></td>
 		<td rowspan = "8">
 		<a href = "/full_image/<tmpl_var name = 'image_path' />/<tmpl_var name = 'image_name' />"><img src = "/get_image/<tmpl_var name = 'image_path' />/small/<tmpl_var name = 'image_name' />" width = "145" height = "145" /></a>
 		</td>
 	</tr>
 	<tr>
-		<td><small><tmpl_var name = "name" /><small></td>
-		<td><small><tmpl_var name = "department" /></small></td>
-		<td><small><tmpl_var name = "employee_number" /></small></td>
-		<td><small><tmpl_var name = "images_timestamp" /></small></td>
-		<td><small><tmpl_var name = "tags_timestamp" /></small></td>
-		<td><small><tmpl_var name = "receipt_date" /></small></td>
+		<td><small><tmpl_var name = "name" fmt = "de_xss" /><small></td>
+		<td><small><tmpl_var name = "department" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "employee_number" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "images_timestamp" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "tags_timestamp" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "receipt_date" fmt = "de_xss" /></small></td>
 	</tr>
 	<tr>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.cost_codes" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.account_codes" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.po_num" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.cost_codes" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.account_codes" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.po_num" fmt = "de_xss" /></span></small></td>
 	</tr>
 	<tr>
-		<td><small><tmpl_var name = "cost_codes" /></small></td>
-		<td><small><tmpl_var name = "account_codes" /></small></td>
-		<td><small><tmpl_var name = "po_num" /></small></td>
+		<td><small><tmpl_var name = "cost_codes" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "account_codes" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "po_num" fmt = "de_xss" /></small></td>
 	</tr>
 	<tr>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.gross_amount" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_amount" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.net_amount" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_rate" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.currency" /></span><small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.payment_method" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.gross_amount" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_amount" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.net_amount" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_rate" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.currency" fmt = "de_xss" /></span><small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.payment_method" fmt = "de_xss" /></span></small></td>
 	</tr>
 	<tmpl_if name = "amnt_err" value = "no">
 	<tr style = "background-color: rgb(210, 250, 200);">
 	<tmpl_else>
 	<tr style = "background-color: rgb(240, 180, 175);">
 	</tmpl_if>
-		<td><small><tmpl_var name = "gross_amount" /></small></td>
-		<td><small><tmpl_var name = "vat_amount" /></small></td>
-		<td><small><tmpl_var name = "net_amount" /></small></td>
-		<td><small><tmpl_var name = "vat_rate" /></small></td>
-		<td><small><tmpl_var name = "currency" /></small></td>
-		<td><small><tmpl_var name = "payment_method" /></small></td>
+		<td><small><tmpl_var name = "gross_amount" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "vat_amount" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "net_amount" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "vat_rate" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "currency" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "payment_method" fmt = "de_xss" /></small></td>
 	</tr>
 	<tr>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.supplier_name" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.supplier_town" /></span></small></td>	
-		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_number" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.reason" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.supplier_name" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.supplier_town" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_number" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter"><tmpl_var name = "fields.reason" fmt = "de_xss" /></span></small></td>
 	</tr>
 	<tr>
-		<td><small><tmpl_var name = "supplier_name" /></small></td>
-		<td><small><tmpl_var name = "supplier_town" /></small></td>
-		<td><small><tmpl_var name = "vat_number" /></small></td>
-		<td><small><tmpl_var name = "reason" /></small></td>
+		<td><small><tmpl_var name = "supplier_name" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "supplier_town" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "vat_number" fmt = "de_xss" /></small></td>
+		<td><small><tmpl_var name = "reason" fmt = "de_xss" /></small></td>
 	</tr>
 	<tr>
 		<td colspan = "6">
