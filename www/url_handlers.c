@@ -573,6 +573,7 @@ static void admin_edit_user(void)
 	unsigned int uid;
 	int form_err = 0;
 	TMPL_varlist *vl = NULL;
+	TMPL_fmtlist *fmtlist;
 
 	if (!(user_session.capabilities & ADMIN))
 		return;
@@ -718,8 +719,10 @@ mysql_cleanup:
 			vl = TMPL_add_var(vl, "is_admin", "yes", (char *)NULL);
 	}
 
-	send_template("templates/admin_edit_user.tmpl", vl, NULL);
+	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	send_template("templates/admin_edit_user.tmpl", vl, fmtlist);
 	TMPL_free_varlist(vl);
+	TMPL_free_fmtlist(fmtlist);
 }
 
 /*
