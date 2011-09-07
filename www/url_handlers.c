@@ -2526,6 +2526,7 @@ static void receipts(void)
 	TMPL_varlist *vl = NULL;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
+	TMPL_fmtlist *fmtlist;
 	time_t llogin;
 	char llogin_from[NI_MAXHOST];
 
@@ -2640,8 +2641,10 @@ static void receipts(void)
 	free_fields(&fields);
 
 out:
-	send_template("templates/receipts.tmpl", ml, NULL);
+	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	send_template("templates/receipts.tmpl", ml, fmtlist);
 	TMPL_free_varlist(ml);
+	TMPL_free_fmtlist(fmtlist);
 	mysql_free_result(res);
 	mysql_close(conn);
 }
