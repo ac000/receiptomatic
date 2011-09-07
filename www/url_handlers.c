@@ -1202,6 +1202,7 @@ static void prefs_edit_user(void)
 {
 	int form_err = 0;
 	TMPL_varlist *vl = NULL;
+	TMPL_fmtlist *fmtlist;
 
 	/*
 	 * If we got POST data, update the users settings before
@@ -1308,8 +1309,10 @@ static void prefs_edit_user(void)
 
 	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 
-	send_template("templates/prefs_edit_user.tmpl", vl, NULL);
+	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	send_template("templates/prefs_edit_user.tmpl", vl, fmtlist);
 	TMPL_free_varlist(vl);
+	TMPL_free_fmtlist(fmtlist);
 }
 
 /*

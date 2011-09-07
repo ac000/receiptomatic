@@ -22,7 +22,7 @@
 </tmpl_if>
 
 	<form action = "/prefs/edit_user/" method = "POST">
-	Name: <input type = "text" name = "name" value = "<tmpl_var name = 'name' />" size = "40" maxlength = "255" class = "
+	Name: <input type = "text" name = "name" value = "<tmpl_var name = 'name' fmt = 'de_xss' />" size = "40" maxlength = "255" class = "
 		<tmpl_if name = 'name_error'>
 			input_error
 		</tmpl_if>
@@ -34,13 +34,13 @@
 	<big><span class = "t_red">Username already exists</span></big><br />
 </tmpl_if>
 	<big><span class = "lighter">Username should be your email address</span></big><br/ >
-	Username: <input type = "text" name = "email1" value = "<tmpl_var name = 'email1' />" size = "40" maxlength = "255" class = "
+	Username: <input type = "text" name = "email1" value = "<tmpl_var name = 'email1' fmt = 'de_xss' />" size = "40" maxlength = "255" class = "
 		<tmpl_if name = 'email_error'>
 			input_error
 		</tmpl_if>
 		" />
 	<br />
-	Username: <input type = "text" name = "email2" value = "<tmpl_var name = 'email2' />" size = "40" maxlength = "255" class = "
+	Username: <input type = "text" name = "email2" value = "<tmpl_var name = 'email2' fmt = 'de_xss' />" size = "40" maxlength = "255" class = "
 		<tmpl_if name = 'email_error'>
 			input_error
 		</tmpl_if>
