@@ -2332,6 +2332,7 @@ static void process_receipt(void)
 	double vr;
 	struct field_names fields;
 	TMPL_varlist *vl = NULL;
+	TMPL_fmtlist *fmtlist;
 	MYSQL *conn;
 	MYSQL_RES *res;
 
@@ -2506,8 +2507,10 @@ static void process_receipt(void)
 	} else {
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
 			vl = TMPL_add_var(vl, "from", "receipt_info");
-		send_template("templates/process_receipt.tmpl", vl, NULL);
+		fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+		send_template("templates/process_receipt.tmpl", vl, fmtlist);
 		TMPL_free_varlist(vl);
+		TMPL_free_fmtlist(fmtlist);
 	}
 	free_fields(&fields);
 

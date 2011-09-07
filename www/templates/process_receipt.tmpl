@@ -31,8 +31,8 @@
 	<img src = '/get_image/<tmpl_var name = "image_path" />/medium/<tmpl_var name = "image_name" />' width = "300" height = "300" />
 	</a>
 	</td>
-	<td><span class = "lighter"><tmpl_var name = "fields.department" /></span></td>
-	<td> : <input type = "text" name = "department" value = "<tmpl_var name = 'department' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.department" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "department" value = "<tmpl_var name = 'department' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.department'>
 			input_error
@@ -41,8 +41,8 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.employee_number" /></span></td>
-	<td> : <input type = "text" name = "employee_number" value = "<tmpl_var name = 'employee_number' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.employee_number" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "employee_number" value = "<tmpl_var name = 'employee_number' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.employee_number'>
 			input_error
@@ -51,8 +51,8 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.cost_codes" /></span></td>
-	<td> : <input type = "text" name = "cost_codes" value = "<tmpl_var name = 'cost_codes' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.cost_codes" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "cost_codes" value = "<tmpl_var name = 'cost_codes' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.cost_codes'>
 			input_error
@@ -61,8 +61,8 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.account_codes" /></span></td>
-	<td> : <input type = "text" name = "account_codes" value = "<tmpl_var name = 'account_codes' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.account_codes" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "account_codes" value = "<tmpl_var name = 'account_codes' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.account_codes'>
 			input_error
@@ -71,8 +71,8 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.po_num" /></span></td>
-	<td> : <input type = "text" name = "po_num" value = "<tmpl_var name = 'po_num' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.po_num" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "po_num" value = "<tmpl_var name = 'po_num' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.po_num'>
 			input_error
@@ -81,8 +81,8 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.supplier_name" /></span></td>
-	<td> : <input type = "text" name = "supplier_name" value = "<tmpl_var name = 'supplier_name' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.supplier_name" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "supplier_name" value = "<tmpl_var name = 'supplier_name' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.supplier_name'>
 			input_error
@@ -91,8 +91,8 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.supplier_town" /></span></td>
-	<td> : <input type = "text" name = "supplier_town" value = "<tmpl_var name = 'supplier_town' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.supplier_town" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "supplier_town" value = "<tmpl_var name = 'supplier_town' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.supplier_town'>
 			input_error
@@ -101,13 +101,13 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.currency" /></span></td>
-	<input type = "hidden" name = "currency" value = "<tmpl_var name = 'currency' />" />
-	<td> : <tmpl_var name = "currency" />
+	<td><span class = "lighter"><tmpl_var name = "fields.currency" fmt = "de_xss" /></span></td>
+	<input type = "hidden" name = "currency" value = "<tmpl_var name = 'currency' fmt = 'de_xss' />" />
+	<td> : <tmpl_var name = "currency" fmt = "de_xss" />
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.gross_amount" /></span></td>
-	<td> : <input type = "text" name = "gross_amount" value = "<tmpl_var name = 'gross_amount' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.gross_amount" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "gross_amount" value = "<tmpl_var name = 'gross_amount' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.amounts'>
 			input_error
@@ -116,8 +116,8 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.vat_amount" /></span></td>
-	<td> : <input type = "text" name = "vat_amount" value = "<tmpl_var name = 'vat_amount' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.vat_amount" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "vat_amount" value = "<tmpl_var name = 'vat_amount' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.amounts'>
 			input_error
@@ -126,8 +126,8 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.net_amount" /></span></td>
-	<td> : <input type = "text" name = "net_amount" value = "<tmpl_var name = 'net_amount' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.net_amount" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "net_amount" value = "<tmpl_var name = 'net_amount' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.amounts'>
 			input_error
@@ -136,8 +136,8 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.vat_rate" /></span></td>
-	<td> : <input type = "text" name = "vat_rate" value = "<tmpl_var name = 'vat_rate' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.vat_rate" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "vat_rate" value = "<tmpl_var name = 'vat_rate' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.amounts'>
 			input_error
@@ -146,8 +146,8 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.vat_number" /></span></td>
-	<td> : <input type = "text" name = "vat_number" value = "<tmpl_var name = 'vat_number' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.vat_number" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "vat_number" value = "<tmpl_var name = 'vat_number' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.vat_number'>
 			input_error
@@ -156,12 +156,12 @@
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.reason" /></span></td>
-	<td> : <input type = "text" name = "reason" value = "<tmpl_var name = 'reason' />" /></td>
+	<td><span class = "lighter"><tmpl_var name = "fields.reason" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "reason" value = "<tmpl_var name = 'reason' fmt = 'de_xss' />" /></td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.receipt_date" /></span></td>
-	<td> : <input type = "text" name = "receipt_date" value = "<tmpl_var name = 'receipt_date' />"
+	<td><span class = "lighter"><tmpl_var name = "fields.receipt_date" fmt = "de_xss" /></span></td>
+	<td> : <input type = "text" name = "receipt_date" value = "<tmpl_var name = 'receipt_date' fmt = 'de_xss' />"
 		class = "
 		<tmpl_if name = 'error.receipt_date'>
 			input_error
@@ -169,9 +169,9 @@
 		" />
 	</td>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.payment_method" /></span></td>
-	<input type = "hidden" name = "payment_method" value = "<tmpl_var name = 'payment_method' />" />
-	<td> : <tmpl_var name = "payment_method" />
+	<td><span class = "lighter"><tmpl_var name = "fields.payment_method" fmt = "de_xss" /></span></td>
+	<input type = "hidden" name = "payment_method" value = "<tmpl_var name = 'payment_method' fmt = 'de_xss' />" />
+	<td> : <tmpl_var name = "payment_method" fmt = "de_xss" />
 </tr>
 
 </tbody>
