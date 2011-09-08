@@ -1376,6 +1376,10 @@ static void process_receipt_approval(void)
 	if (!(user_session.capabilities & APPROVER))
 		return;
 
+	/* Prevent CSRF attack */
+	if (strcmp(get_var(qvars, "csrf_token"), user_session.csrf_token) != 0)
+		return;
+
 	if (!avars)
 		return;
 
@@ -1531,6 +1535,7 @@ static void approve_receipts(void)
 	static const char *card = "'card'";
 	static const char *cheque = "'cheque'";
 	char join[5];
+	char *csrf_token;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	unsigned long i;
@@ -1787,6 +1792,10 @@ static void approve_receipts(void)
 		free_vars(db_row);
 	}
 	free_fields(&fields);
+
+	csrf_token = generate_csrf_token();
+	ml = TMPL_add_var(ml, "csrf_token", csrf_token, (char *)NULL);
+	free(csrf_token);
 
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
