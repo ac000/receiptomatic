@@ -18,6 +18,7 @@ int tag_info_allowed(char *image_id);
 int image_access_allowed(char *path);
 void set_user_session(void);
 char *create_session_id(void);
+char *generate_csrf_token(void);
 void create_session(unsigned int sid);
 int check_amounts(double gross, double net, double vat, double vr);
 void set_default_field_names(struct field_names *fields);

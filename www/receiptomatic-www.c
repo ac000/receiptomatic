@@ -191,6 +191,8 @@ static void dump_session_state(void)
 								"client_id"));
 		fprintf(debug_log, "\tsession_id   : %s\n", tcmapget2(cols,
 								"session_id"));
+		fprintf(debug_log, "\tcsrf_token   : %s\n", tcmapget2(cols,
+								"csrf_token"));
 		fprintf(debug_log, "\trestrict_ip  : %s\n\n", tcmapget2(cols,
 							"restrict_ip"));
 		tcmapdel(cols);

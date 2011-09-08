@@ -2877,6 +2877,7 @@ out:
 	free(user_session.origin_ip);
 	free(user_session.client_id);
 	free(user_session.session_id);
+	free(user_session.csrf_token);
 	free(user_session.user_hdr);
 
 out2:

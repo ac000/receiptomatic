@@ -86,6 +86,7 @@ struct session {
 	char *origin_ip;
 	char *client_id;
 	char *session_id;
+	char *csrf_token;
 	unsigned int restrict_ip;
 	char *user_hdr;
 };

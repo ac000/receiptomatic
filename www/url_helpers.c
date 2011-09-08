@@ -329,6 +329,7 @@ void set_user_session(void)
 	user_session.origin_ip = strdup(tcmapget2(cols, "origin_ip"));
 	user_session.client_id = strdup(tcmapget2(cols, "client_id"));
 	user_session.session_id = strdup(tcmapget2(cols, "session_id"));
+	user_session.csrf_token = strdup(tcmapget2(cols, "csrf_token"));
 	user_session.restrict_ip = atoi(tcmapget2(cols, "restrict_ip"));
 	user_session.capabilities = atoi(tcmapget2(cols, "capabilities"));
 
@@ -382,14 +383,17 @@ void set_user_session(void)
 						user_session.restrict_ip);
 	snprintf(capabilities, sizeof(capabilities), "%d",
 						user_session.capabilities);
-	cols = tcmapnew3("sid", sid, "uid", uid, "username",
-				user_session.username, "name",
-				user_session.name, "login_at",
-				login_at, "last_seen", last_seen, "origin_ip",
-				user_session.origin_ip, "client_id",
-				user_session.client_id, "session_id",
-				user_session.session_id, "restrict_ip",
-				restrict_ip, "capabilities", capabilities,
+	cols = tcmapnew3("sid", sid, "uid", uid,
+				"username", user_session.username,
+				"name", user_session.name,
+				"login_at", login_at,
+				"last_seen", last_seen,
+				"origin_ip", user_session.origin_ip,
+				"client_id", user_session.client_id,
+				"session_id", user_session.session_id,
+				"csrf_token", user_session.csrf_token,
+				"restrict_ip", restrict_ip,
+				"capabilities", capabilities,
 				NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
 
@@ -441,6 +445,78 @@ char *create_session_id(void)
 	free(hash);
 
 	return strdup(shash);
+}
+
+/*
+ * This will create a SHA-256 token for use in forms to help prevent
+ * against CSRF attacks.
+ */
+char *generate_csrf_token(void)
+{
+	TCTDB *tdb;
+	TDBQRY *qry;
+	TCLIST *res;
+	TCMAP *cols;
+	int rsize;
+	int primary_key_size;
+	char pkbuf[256];
+	char login_at[21];
+	char last_seen[21];
+	char uid[11];
+	char sid[11];
+	char restrict_ip[2];
+	char capabilities[4];
+	const char *rbuf;
+	char *csrf_token = create_session_id();
+
+	/*
+	 * We want to set a new CSRF token in the users session.
+	 * This entails removing the old session first then storing
+	 * the new updated session.
+	 */
+	tdb = tctdbnew();
+	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
+
+	qry = tctdbqrynew(tdb);
+	tctdbqryaddcond(qry, "session_id", TDBQCSTREQ,
+						user_session.session_id);
+	res = tctdbqrysearch(qry);
+	rbuf = tclistval(res, 0, &rsize);
+	tctdbout(tdb, rbuf, strlen(rbuf));
+
+	tclistdel(res);
+	tctdbqrydel(qry);
+
+	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
+	snprintf(login_at, sizeof(login_at), "%ld", user_session.login_at);
+	snprintf(last_seen, sizeof(last_seen), "%ld",
+						user_session.last_seen);
+	snprintf(uid, sizeof(uid), "%u", user_session.uid);
+	snprintf(sid, sizeof(sid), "%u", user_session.sid);
+	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
+						user_session.restrict_ip);
+	snprintf(capabilities, sizeof(capabilities), "%d",
+						user_session.capabilities);
+	cols = tcmapnew3("sid", sid, "uid", uid,
+				"username", user_session.username,
+				"name", user_session.name,
+				"login_at", login_at,
+				"last_seen", last_seen,
+				"origin_ip", user_session.origin_ip,
+				"client_id", user_session.client_id,
+				"session_id", user_session.session_id,
+				"csrf_token", csrf_token,
+				"restrict_ip", restrict_ip,
+				"capabilities", capabilities,
+				NULL);
+	tctdbput(tdb, pkbuf, primary_key_size, cols);
+
+	tcmapdel(cols);
+
+	tctdbclose(tdb);
+	tctdbdel(tdb);
+
+	return csrf_token;
 }
 
 /*
@@ -498,6 +574,7 @@ void create_session(unsigned int sid)
 					env_vars.http_x_forwarded_for,
 					"client_id", env_vars.http_user_agent,
 					"session_id", session_id,
+					"csrf_token", "\0",
 					"restrict_ip", restrict_ip,
 					"capabilities", get_var(db_row,
 					"capabilities"), NULL);
