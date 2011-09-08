@@ -118,6 +118,7 @@
 		</form>
 		<form action = "/delete_image/" method = "POST">
 		<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'id' />" />
+		<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
 		<input type = "submit" value = "Delete" />
 		</form>
 		</td>

@@ -1965,6 +1965,7 @@ static void receipt_info(void)
 	char sql[SQL_MAX];
 	char tbuf[60];
 	char *image_id;
+	char *csrf_token;
 	struct field_names fields;
 	time_t secs;
 	MYSQL *conn;
@@ -2166,6 +2167,10 @@ static void receipt_info(void)
 						"r_reason"), (char *)NULL);
 	}
 
+	csrf_token = generate_csrf_token();
+	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
+	free(csrf_token);
+
 	free_vars(db_row);
 	free_fields(&fields);
 	mysql_free_result(res);
@@ -2355,6 +2360,10 @@ static void process_receipt(void)
 	MYSQL_RES *res;
 
 	if (!qvars)
+		return;
+
+	/* Prevent CSRF attack */
+	if (strcmp(get_var(qvars, "csrf_token"), user_session.csrf_token) != 0)
 		return;
 
 	/* Prevent users from tagging other users receipts */
@@ -2550,6 +2559,8 @@ static void receipts(void)
 	unsigned long i;
 	unsigned long nr_rows;
 	char sql[SQL_MAX];
+	char llogin_from[NI_MAXHOST];
+	char *csrf_token;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
@@ -2558,7 +2569,6 @@ static void receipts(void)
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
 	time_t llogin;
-	char llogin_from[NI_MAXHOST];
 
 	if (user_session.capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
@@ -2669,6 +2679,10 @@ static void receipts(void)
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 	free_fields(&fields);
+
+	csrf_token = generate_csrf_token();
+	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
+	free(csrf_token);
 
 out:
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
