@@ -134,6 +134,7 @@ static void delete_image(void)
 	char image_path[PATH_MAX];
 	char uidir[PATH_MAX];
 	char *image_id;
+	char *csrf_token;
 	int headers_sent = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -181,6 +182,10 @@ static void delete_image(void)
 		goto out1;
 
 	if (strcmp(get_var(qvars, "confirm"), "yes") == 0) {
+		if (strcmp(get_var(qvars, "csrf_token"),
+						user_session.csrf_token) != 0)
+			goto out1;
+
 		/* remove the full image */
 		unlink(image_path);
 
@@ -210,6 +215,10 @@ static void delete_image(void)
 		/* We don't want to display the delete_image page again */
 		goto out1;
 	}
+
+	csrf_token = generate_csrf_token();
+	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
+	free(csrf_token);
 
 	send_template("templates/delete_image.tmpl", vl, NULL);
 	headers_sent = 1;
