@@ -1109,10 +1109,15 @@ static void prefs_fmap(void)
 {
 	struct field_names fields;
 	int updated = 0;
+	char *csrf_token;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
 	if (qvars) {
+		if (strcmp(get_var(qvars, "csrf_token"),
+						user_session.csrf_token) != 0)
+			return;
+
 		update_fmap();
 		updated = 1;
 	}
@@ -1216,6 +1221,10 @@ static void prefs_fmap(void)
 	vl = TMPL_add_var(vl, "alt_payment_method", !strcmp(DFN_PAYMENT_METHOD,
 					fields.payment_method) ? "" :
 					fields.payment_method, (char *)NULL);
+
+	csrf_token = generate_csrf_token();
+	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
+	free(csrf_token);
 
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
 	send_template("templates/prefs_fmap.tmpl", vl, fmtlist);
