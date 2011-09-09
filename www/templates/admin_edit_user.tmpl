@@ -87,6 +87,7 @@
 	<span class = "lighter">Reason account is disabled: </span><input type = "text" name = "d_reason" value = "<tmpl_var name = 'd_reason' fmt = 'de_xss' />" size = "60" maxlength = "250" />
 	<p />
 	<input type = "hidden" name = "uid" value = "<tmpl_var name = 'uid' />" />
+	<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
 	<input type = "submit" value = "Update" />
 	</form>
 

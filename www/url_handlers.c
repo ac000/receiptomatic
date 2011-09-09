@@ -587,6 +587,7 @@ static void admin_edit_user(void)
 {
 	unsigned int uid;
 	int form_err = 0;
+	char *csrf_token;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
@@ -605,6 +606,10 @@ static void admin_edit_user(void)
 
 	/* If we got a POST, update user settings before showing them. */
 	if (strcmp(env_vars.request_method, "POST") == 0) {
+		if (strcmp(get_var(qvars, "csrf_token"),
+						user_session.csrf_token) != 0)
+			goto out_csrf;
+
 		if ((strlen(get_var(qvars, "email1")) == 0 &&
 				strlen(get_var(qvars, "email2")) == 0) ||
 				(strcmp(get_var(qvars, "email1"),
@@ -734,10 +739,17 @@ mysql_cleanup:
 			vl = TMPL_add_var(vl, "is_admin", "yes", (char *)NULL);
 	}
 
+	csrf_token = generate_csrf_token();
+	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
+	free(csrf_token);
+
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
 	send_template("templates/admin_edit_user.tmpl", vl, fmtlist);
-	TMPL_free_varlist(vl);
 	TMPL_free_fmtlist(fmtlist);
+
+out_csrf:
+	TMPL_free_varlist(vl);
+
 }
 
 /*
