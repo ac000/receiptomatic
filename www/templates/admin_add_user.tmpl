@@ -53,6 +53,7 @@
 	<p />
 	User is an admin: <input type = "checkbox" name = "is_admin" value = "true" <tmpl_if name = 'is_admin'>checked</tmpl_if> />
 	<p />
+	<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
 	<input type = "submit" value = "Add" />
 	</form>
 
