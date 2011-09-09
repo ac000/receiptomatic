@@ -2796,7 +2796,6 @@ void handle_request(void)
 	set_env_vars();
 	set_vars();
 	request_uri = strdupa(env_vars.request_uri);
-	d_fprintf(debug_log, "Cookies: %s\n", env_vars.http_cookie);
 
 	/*
 	 * Some routes need to come before the login / session stuff as
