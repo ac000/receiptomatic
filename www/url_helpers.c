@@ -1272,6 +1272,7 @@ void do_edit_user(void)
 				"origin_ip", user_session.origin_ip,
 				"client_id", user_session.client_id,
 				"session_id", user_session.session_id,
+				"csrf_token", user_session.csrf_token,
 				"restrict_ip", restrict_ip,
 				"capabilities", capabilities, NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);

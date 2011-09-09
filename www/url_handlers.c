@@ -1243,6 +1243,7 @@ static void prefs_fmap(void)
 static void prefs_edit_user(void)
 {
 	int form_err = 0;
+	char *csrf_token;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
@@ -1251,6 +1252,10 @@ static void prefs_edit_user(void)
 	 * showing them.
 	 */
 	if (strcmp(env_vars.request_method, "POST") == 0) {
+		if (strcmp(get_var(qvars, "csrf_token"),
+						user_session.csrf_token) != 0)
+			return;
+
 		if ((strlen(get_var(qvars, "email1")) == 0 &&
 				strlen(get_var(qvars, "email2")) == 0) ||
 				(strcmp(get_var(qvars, "email1"),
@@ -1350,6 +1355,10 @@ static void prefs_edit_user(void)
 		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 
 	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
+
+	csrf_token = generate_csrf_token();
+	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
+	free(csrf_token);
 
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
 	send_template("templates/prefs_edit_user.tmpl", vl, fmtlist);
