@@ -31,7 +31,7 @@ For array variables. e.g
     form1[name]
     form1[age]
 
-This how they should look in the html. The numbering is used to group them
+This is how they should look in the html. The numbering is used to group them
 into same GHashTables which are then added into a GList.
 
 You can mix array and non-array variables in the same request.
