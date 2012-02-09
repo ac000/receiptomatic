@@ -40,18 +40,18 @@
 #define APPROVER_SELF		(1 << 1)	/*   2 */
 #define APPROVER_CASH		(1 << 2)	/*   4 */
 #define APPROVER_CARD		(1 << 3)	/*   8 */
-#define APPROVER_CHEQUE 	(1 << 4)	/*  16 */
+#define APPROVER_CHEQUE		(1 << 4)	/*  16 */
 #define ADMIN			(1 << 7)	/* 128 */
 
 #define BUF_SIZE	4096
 #define SQL_MAX		8192
 
 #define REJECTED	0
-#define PENDING 	1
+#define PENDING		1
 #define APPROVED	2
 
-#define SHA256 		 5
-#define SHA512 		10
+#define SHA256		 5
+#define SHA512		10
 
 /*
  * Wrapper around fprintf(). It will prepend the text passed it with
