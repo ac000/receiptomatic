@@ -67,7 +67,7 @@
 		struct timeval tv; \
 		gettimeofday(&tv, NULL); \
 		fprintf(stream, "%ld.%ld %d %s: " fmt, tv.tv_sec, tv.tv_usec, \
-				getpid(), __FUNCTION__, ##__VA_ARGS__); \
+					getpid(), __func__, ##__VA_ARGS__); \
 		fflush(stream); \
 	} while (0)
 
