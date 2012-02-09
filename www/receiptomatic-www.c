@@ -299,10 +299,9 @@ static void init_clear_session_timer(void)
 	struct itimerspec its;
 	struct sigaction action;
 
-	memset(&action, 0, sizeof(&action));
+	sigemptyset(&action.sa_mask);
 	action.sa_flags = SA_RESTART;
 	action.sa_sigaction = sh_clear_old_sessions;
-	sigemptyset(&action.sa_mask);
 	sigaction(SIGRTMIN, &action, NULL);
 
 	sev.sigev_notify = SIGEV_SIGNAL;
@@ -365,7 +364,6 @@ int main(int argc, char **argv)
 	signal(SIGHUP, SIG_IGN);
 
 	/* Setup signal handler for USR1 to dump session state */
-	memset(&action, 0, sizeof(&action));
 	sigemptyset(&action.sa_mask);
 	action.sa_handler = sh_dump_session_state;
 	action.sa_flags = SA_RESTART;
@@ -375,18 +373,18 @@ int main(int argc, char **argv)
 	 * Setup a signal handler for SIGTERM to terminate all the
 	 * child processes.
 	 */
-	memset(&action, 0, sizeof(&action));
 	sigemptyset(&action.sa_mask);
 	action.sa_handler = terminate;
+	action.sa_flags = 0;
 	sigaction(SIGTERM, &action, NULL);
 
 	/*
 	 * Setup a signal handler for SIGCHLD to handle child
 	 * process terminations.
 	 */
-	memset(&action, 0, sizeof(&action));
 	sigemptyset(&action.sa_mask);
 	action.sa_handler = reaper;
+	action.sa_flags = 0;
 	sigaction(SIGCHLD, &action, NULL);
 
 	init_clear_session_timer();
