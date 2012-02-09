@@ -28,9 +28,9 @@
 extern char **environ;
 static char **rargv;
 
-static volatile sig_atomic_t create_new_server = 0;
-static volatile sig_atomic_t dump_sessions = 0;
-static volatile sig_atomic_t clear_sessions = 0;
+static volatile sig_atomic_t create_new_server;
+static volatile sig_atomic_t dump_sessions;
+static volatile sig_atomic_t clear_sessions;
 
 char *log_dir = "/tmp";
 static char access_log_path[PATH_MAX];
