@@ -1138,11 +1138,11 @@ static void prefs_fmap(void)
 
 	vl = TMPL_add_var(vl, "receipt_date", DFN_RECEIPT_DATE, (char *)NULL);
 	vl = TMPL_add_var(vl, "alt_receipt_date", !strcmp(DFN_RECEIPT_DATE,
-					fields.receipt_date) ? "":
+					fields.receipt_date) ? "" :
 					fields.receipt_date, (char *)NULL);
 
 	vl = TMPL_add_var(vl, "department", DFN_DEPARTMENT, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_department",!strcmp(DFN_DEPARTMENT,
+	vl = TMPL_add_var(vl, "alt_department", !strcmp(DFN_DEPARTMENT,
 					fields.department) ? "" :
 					fields.department, (char *)NULL);
 
@@ -1154,7 +1154,7 @@ static void prefs_fmap(void)
 					fields.employee_number, (char *)NULL);
 
 	vl = TMPL_add_var(vl, "reason", DFN_REASON, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_reason",!strcmp(DFN_REASON,
+	vl = TMPL_add_var(vl, "alt_reason", !strcmp(DFN_REASON,
 					fields.reason) ? "" :
 					fields.reason, (char *)NULL);
 
@@ -1264,8 +1264,8 @@ static void prefs_edit_user(void)
 								(char *)NULL);
 			form_err = 1;
 		} else if (strcmp(user_session.username,
-					get_var(qvars,"email1")) != 0) {
-			if (user_already_exists(get_var(qvars,"email1"))) {
+					get_var(qvars, "email1")) != 0) {
+			if (user_already_exists(get_var(qvars, "email1"))) {
 				vl = TMPL_add_var(vl, "user_exists", "yes",
 								(char *)NULL);
 				form_err = 1;
@@ -1455,7 +1455,7 @@ static void process_receipt_approval(void)
 						strlen(get_avar(i, "id")));
 
 		if (get_avar(i, "reason")) {
-			reason = alloca(strlen(get_avar(i,"reason")) * 2 + 1);
+			reason = alloca(strlen(get_avar(i, "reason")) * 2 + 1);
 
 			mysql_real_escape_string(conn, reason,
 						get_avar(i, "reason"),
@@ -2126,7 +2126,7 @@ static void receipt_info(void)
 							(char *)NULL);
 
 	vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, (char *)NULL);
-	vl = TMPL_add_var(vl, "po_num",get_var(db_row, "po_num"),
+	vl = TMPL_add_var(vl, "po_num", get_var(db_row, "po_num"),
 								(char *)NULL);
 
 	vl = TMPL_add_var(vl, "fields.supplier_name", fields.supplier_name,
