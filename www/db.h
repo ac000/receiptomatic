@@ -18,7 +18,17 @@
 #include <libgen.h>
 
 /* MySQL */
+
+/*
+ * The FCGI printf function seemed to be causing a conflict here, under F16
+ * with GCC 4.6.2
+ *
+ * Just undef printf for the my_global stuff and then define it back again.
+ */
+#undef printf
 #include <my_global.h>
+#define printf FCGI_printf
+
 #include <mysql.h>
 
 MYSQL *db_conn(void);
