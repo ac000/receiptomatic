@@ -249,7 +249,7 @@ static void add_avar(char *qvar, int finalize)
 		query_values = g_hash_table_new_full(g_str_hash, g_str_equal,
 							g_free, g_free);
 	}
-	strncpy(lidx, idx, sizeof(lidx) -1);
+	strncpy(lidx, idx, sizeof(lidx) - 1);
 	token = NULL;
 
 	token = strtok(token, "=");
