@@ -21,7 +21,7 @@ void free_fields(struct field_names *fields);
 void set_env_vars(void);
 char *generate_activation_key(char *email_addr);
 void send_activation_mail(char *name, char *address, char *key);
-char *generate_password_hash(int hash_type, char *password);
+char *generate_password_hash(int hash_type, const char *password);
 void delete_user_session(unsigned int uid);
 int user_already_exists(char *username);
 void get_page_pagination(char *req_page_no, int rpp, int *page_no, int *from);

@@ -13,9 +13,9 @@
 char *username_to_name(char *username);
 int is_logged_in(void);
 int check_auth(void);
-int is_users_receipt(char *id);
-int tag_info_allowed(char *image_id);
-int image_access_allowed(char *path);
+int is_users_receipt(const char *id);
+int tag_info_allowed(const char *image_id);
+int image_access_allowed(const char *path);
 void set_user_session(void);
 char *create_session_id(void);
 char *generate_csrf_token(void);
@@ -28,8 +28,8 @@ void tag_image(void);
 int do_add_user(unsigned char capabilities);
 void do_update_user(void);
 void do_edit_user(void);
-void do_activate_user(char *uid, char *key, char *password);
-void send_template(char *template, TMPL_varlist *varlist,
-						TMPL_fmtlist *fmtlist);
+void do_activate_user(const char *uid, const char *key, const char *password);
+void send_template(const char *template, TMPL_varlist *varlist,
+							TMPL_fmtlist *fmtlist);
 
 #endif /* _URLHELPERS_H_ */

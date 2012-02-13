@@ -660,7 +660,7 @@ void send_activation_mail(char *name, char *address, char *key)
 /*
  * Hash a given password using either the SHA256 or SHA512 alogorithm.
  */
-char *generate_password_hash(int hash_type, char *password)
+char *generate_password_hash(int hash_type, const char *password)
 {
 	static const char salt_chars[64] =
 	"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";

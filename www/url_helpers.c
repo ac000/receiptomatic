@@ -186,7 +186,7 @@ out:
 /*
  * Checks that an image/receipt id belongs to a specified user.
  */
-int is_users_receipt(char *id)
+int is_users_receipt(const char *id)
 {
 	char sql[SQL_MAX];
 	char *s_id;
@@ -217,7 +217,7 @@ int is_users_receipt(char *id)
 /*
  * Checks the users permission to access receipt tag information.
  */
-int tag_info_allowed(char *image_id)
+int tag_info_allowed(const char *image_id)
 {
 	char sql[SQL_MAX];
 	char *s_image_id;
@@ -256,7 +256,7 @@ out:
  * Determine if access to an image is allowed. It checks for /UID/ at the
  * start of the image path after IMAGE_PATH.
  */
-int image_access_allowed(char *path)
+int image_access_allowed(const char *path)
 {
 	int ret = 0;
 	char uidir[PATH_MAX];
@@ -1286,7 +1286,7 @@ void do_edit_user(void)
 /*
  * Activate a users account in the system.
  */
-void do_activate_user(char *uid, char *key, char *password)
+void do_activate_user(const char *uid, const char *key, const char *password)
 {
 	char sql[SQL_MAX];
 	char *hash;
@@ -1313,7 +1313,7 @@ void do_activate_user(char *uid, char *key, char *password)
 /*
  * Send the specified template to the user.
  */
-void send_template(char *template, TMPL_varlist *varlist,
+void send_template(const char *template, TMPL_varlist *varlist,
 						TMPL_fmtlist *fmtlist)
 {
 	printf("Cache-Control: private\r\n");
