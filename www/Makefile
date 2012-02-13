@@ -25,7 +25,7 @@ utils.o: common.h utils.h utils.c
 db.o: common.h db.h db.c
 	$(CC) $(CFLAGS) -c db.c -D_RECEIPTOMATIC_WWW_ ${INCS}
 
-get_config.o: common.h get_config.c
+get_config.o: common.h get_config.c get_config.h
 	$(CC) $(CFLAGS) -c get_config.c -D_RECEIPTOMATIC_WWW_ ${INCS}
 
 audit.o: common.h audit.h audit.c
