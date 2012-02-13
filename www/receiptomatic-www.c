@@ -77,7 +77,7 @@ static void accept_request(void)
  *
  * Based on code from; nginx
  */
-static void set_proc_title(char *title)
+static void set_proc_title(const char *title)
 {
 	size_t size = 0;
 	int i;
