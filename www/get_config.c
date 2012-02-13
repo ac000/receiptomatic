@@ -14,7 +14,7 @@
 #include "receiptomatic_config.h"
 #include "common.h"
 
-int get_config(char *filename)
+int get_config(const char *filename)
 {
 	FILE *fp;
 	char buf[BUF_SIZE];

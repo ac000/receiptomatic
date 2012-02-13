@@ -10,6 +10,6 @@
 #ifndef _GET_CONFIG_H_
 #define _GET_CONFIG_H_
 
-int get_config(char *filename);
+int get_config(const char *filename);
 
 #endif /* _GET_CONFIG_H_ */
