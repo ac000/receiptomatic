@@ -11,7 +11,7 @@ All of this data ends up in three data structures:
 
     qvars   - For simple GET and POST data.
     avars   - For array variables.
-    u_files - Inforamtion pertaining to uploaded files.
+    u_files - Information pertaining to uploaded files.
 
 
 qvars
