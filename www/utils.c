@@ -66,9 +66,8 @@ static char from_hex(char ch)
  *
  * IMPORTANT: be sure to free() the returned string after use
  */
-static char *url_decode(char *str)
+static char *url_decode(const char *str)
 {
-	char *pstr = str;
 	char *buf;
 	char *pbuf;
 
@@ -79,19 +78,19 @@ static char *url_decode(char *str)
 	}
 	pbuf = buf;
 
-	while (*pstr) {
-		if (*pstr == '%') {
-			if (pstr[1] && pstr[2]) {
-				*pbuf++ = from_hex(pstr[1]) << 4 |
-							from_hex(pstr[2]);
-				pstr += 2;
+	while (*str) {
+		if (*str == '%') {
+			if (str[1] && str[2]) {
+				*pbuf++ = from_hex(str[1]) << 4 |
+							from_hex(str[2]);
+				str += 2;
 			}
-		} else if (*pstr == '+') {
+		} else if (*str == '+') {
 			*pbuf++ = ' ';
 		} else {
-			*pbuf++ = *pstr;
+			*pbuf++ = *str;
 		}
-		pstr++;
+		str++;
 	}
 	*pbuf = '\0';
 
