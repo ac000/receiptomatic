@@ -243,7 +243,7 @@ out2:
 static void get_image(void)
 {
 	int fd;
-	ssize_t bytes_read = 1;
+	ssize_t bytes_read;
 	char buf[BUF_SIZE];
 	char path[PATH_MAX];
 	char image_path[PATH_MAX];
@@ -277,10 +277,11 @@ static void get_image(void)
 	printf("Content-Length: %ld\r\n\r\n", sb.st_size);
 	d_fprintf(debug_log, "Sending image: %s\n", env_vars.request_uri);
 
-	while (bytes_read > 0) {
+	do {
 		bytes_read = read(fd, &buf, BUF_SIZE);
 		fwrite(buf, bytes_read, 1, stdout);
-	}
+	} while (bytes_read > 0);
+
 	magic_close(cookie);
 	close(fd);
 }
@@ -294,7 +295,7 @@ static void get_image(void)
 static void full_image(void)
 {
 	int fd;
-	ssize_t bytes_read = 1;
+	ssize_t bytes_read;
 	char buf[BUF_SIZE];
 	char path[PATH_MAX];
 	char image_path[PATH_MAX];
@@ -324,10 +325,11 @@ static void full_image(void)
 	printf("Content-Disposition: filename = %s\r\n\r\n",
 							basename(image_path));
 
-	while (bytes_read > 0) {
+	do {
 		bytes_read = read(fd, &buf, BUF_SIZE);
 		fwrite(buf, bytes_read, 1, stdout);
-	}
+	} while (bytes_read > 0);
+
 	close(fd);
 }
 
