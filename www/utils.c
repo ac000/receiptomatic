@@ -421,7 +421,7 @@ static void process_mime(void)
 
 	fd = mkstemp(temp_name);
 	ofp = fdopen(fd, "w");
-	fprintf(ofp, "Content-Type: %s\r\n", getenv("CONTENT_TYPE"));
+	fprintf(ofp, "Content-Type: %s\r\n", env_vars.content_type);
 	while (!feof(stdin)) {
 		memset(buf, 0, BUF_SIZE);
 		fread(buf, BUF_SIZE, 1, stdin);
