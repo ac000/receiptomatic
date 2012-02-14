@@ -25,7 +25,7 @@
 
 void send_receipt_data(int fd)
 {
-	ssize_t bytes_read = 1;
+	ssize_t bytes_read;
 	char buf[BUF_SIZE];
 	struct stat sb;
 
@@ -37,10 +37,10 @@ void send_receipt_data(int fd)
 								"\r\n\r\n");
 
 	lseek(fd, 0, SEEK_SET);
-	while (bytes_read > 0) {
+	do {
 		bytes_read = read(fd, &buf, BUF_SIZE);
 		fwrite(buf, bytes_read, 1, stdout);
-	}
+	} while (bytes_read > 0);
 }
 
 void extract_data_now(int fd)
