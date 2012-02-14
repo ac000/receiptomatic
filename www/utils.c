@@ -160,7 +160,8 @@ void free_u_files(void)
  * Once your done, call this function with NULL and 1 as its arguments,
  * this will ensure that the last GHashTable is added to the GList.
  */
-static void add_multipart_avar(const char *name, char *value, int finalize)
+static void add_multipart_avar(const char *name, const char *value,
+								int finalize)
 {
 	char *token;
 	char *idx;
@@ -204,7 +205,7 @@ static void add_multipart_avar(const char *name, char *value, int finalize)
  * This data is _not_ % encoded and does not require to be run
  * through url_decode.
  */
-static void add_multipart_var(const char *name, char *value)
+static void add_multipart_var(const char *name, const char *value)
 {
 	d_fprintf(debug_log, "Adding key: %s with value: %s\n", name, value);
 	if (!qvars)
@@ -222,7 +223,7 @@ static void add_multipart_var(const char *name, char *value)
  * Once your done, call this function with NULL and 1 as its arguments,
  * this will ensure that the last GHashTable is added to the GList.
  */
-static void add_avar(char *qvar, int finalize)
+static void add_avar(const char *qvar, int finalize)
 {
 	char *token;
 	char *idx;
@@ -272,7 +273,7 @@ static void add_avar(char *qvar, int finalize)
  * Add's a name=value pair to the GHashTable (qvars) of name=value
  * pairs of data from GET or POST (x-www-form-urlencoded)
  */
-static void add_var(char *qvar)
+static void add_var(const char *qvar)
 {
 	char *string;
 	char *token;
@@ -308,7 +309,7 @@ static void add_var(char *qvar)
  * Array variables go to avars.
  * Non array variables go to qvars.
  */
-static void process_vars(char *query)
+static void process_vars(const char *query)
 {
 	char *token;
 	char *saveptr1 = NULL;
@@ -507,7 +508,7 @@ GHashTable *get_dbrow(MYSQL_RES *res)
  * Given an index and a key, return the coresponding value from
  * the hash table contained within the avars GList.
  */
-char *get_avar(int index, char *key)
+char *get_avar(int index, const char *key)
 {
 	char *val;
 	GHashTable *vars;
@@ -521,7 +522,7 @@ char *get_avar(int index, char *key)
 /*
  * Given a key name, return its value from the given hash table.
  */
-char *get_var(GHashTable *vars, char *key)
+char *get_var(GHashTable *vars, const char *key)
 {
 	char *val;
 
@@ -606,7 +607,7 @@ void free_fields(struct field_names *fields)
  *
  *	email_addr|getpid()-tv_sec.tv_usec
  */
-char *generate_activation_key(char *email_addr)
+char *generate_activation_key(const char *email_addr)
 {
 	unsigned char *hash;
 	char hash_src[384];
@@ -638,7 +639,8 @@ char *generate_activation_key(char *email_addr)
 /*
  * Send an account activation email to the required user.
  */
-void send_activation_mail(char *name, char *address, char *key)
+void send_activation_mail(const char *name, const char *address,
+							const char *key)
 {
 	FILE *fp = popen(MAIL_CMD, "w");
 
@@ -725,7 +727,7 @@ void delete_user_session(unsigned int uid)
  * 0 - not exists
  * 1 - exists
  */
-int user_already_exists(char *username)
+int user_already_exists(const char *username)
 {
 	char sql[SQL_MAX];
 	char *user;
@@ -757,7 +759,8 @@ int user_already_exists(char *username)
  *
  * This is used in the results pagination code.
  */
-void get_page_pagination(char *req_page_no, int rpp, int *page_no, int *from)
+void get_page_pagination(const char *req_page_no, int rpp, int *page_no,
+								int *from)
 {
 	*page_no = atoi(req_page_no);
 
