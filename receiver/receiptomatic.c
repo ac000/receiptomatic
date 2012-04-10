@@ -1,8 +1,9 @@
 /*
  * receiptomatic.c
  *
- * Copyright (C) 2011 OpenTech Labs, Andrew Clayton <andrew@opentechlabs.co.uk>
- * Released under the GNU General Public License (GPL) version 3.
+ * Copyright (C) 2011-2012	OpenTech Labs
+ * 				Andrew Clayton <andrew@opentechlabs.co.uk>
+ * Released under the GNU Affero General Public License version 3.
  * See COPYING
  */
 
