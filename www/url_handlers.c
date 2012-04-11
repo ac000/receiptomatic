@@ -491,7 +491,7 @@ static void admin_list_users(void)
 static void admin_add_user(void)
 {
 	unsigned char capabilities = 0;
-	int form_err = 0;
+	bool form_err = false;
 	char *csrf_token;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -517,7 +517,7 @@ static void admin_add_user(void)
 		goto out;
 
 	if (strlen(get_var(qvars, "name")) == 0) {
-		form_err = 1;
+		form_err = true;
 		vl = TMPL_add_var(vl, "name_error", "yes", (char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "name", get_var(qvars, "name"), (char *)NULL);
@@ -526,7 +526,7 @@ static void admin_add_user(void)
 				strlen(get_var(qvars, "email2")) == 0) ||
 				(strcmp(get_var(qvars, "email1"),
 				get_var(qvars, "email2")) != 0)) {
-		form_err = 1;
+		form_err = true;
 		vl = TMPL_add_var(vl, "email_error", "yes", (char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "email1", get_var(qvars, "email1"),
