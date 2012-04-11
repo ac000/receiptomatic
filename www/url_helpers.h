@@ -7,8 +7,8 @@
  * See COPYING
  */
 
-#ifndef _URLHELPERS_H_
-#define _URLHELPERS_H_
+#ifndef _URL_HELPERS_H_
+#define _URL_HELPERS_H_
 
 char *username_to_name(char *username);
 bool is_logged_in(void);
@@ -32,4 +32,4 @@ void do_activate_user(const char *uid, const char *key, const char *password);
 void send_template(const char *template, TMPL_varlist *varlist,
 							TMPL_fmtlist *fmtlist);
 
-#endif /* _URLHELPERS_H_ */
+#endif /* _URL_HELPERS_H_ */
