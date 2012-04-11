@@ -13,7 +13,7 @@
 char *username_to_name(char *username);
 bool is_logged_in(void);
 int check_auth(void);
-int is_users_receipt(const char *id);
+bool is_users_receipt(const char *id);
 int tag_info_allowed(const char *image_id);
 int image_access_allowed(const char *path);
 void set_user_session(void);

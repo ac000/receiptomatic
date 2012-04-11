@@ -187,13 +187,13 @@ out:
 /*
  * Checks that an image/receipt id belongs to a specified user.
  */
-int is_users_receipt(const char *id)
+bool is_users_receipt(const char *id)
 {
 	char sql[SQL_MAX];
 	char *s_id;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	int ret = 0;
+	bool users_recpt = false;
 
 	conn = db_conn();
 
@@ -207,12 +207,12 @@ int is_users_receipt(const char *id)
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	if (mysql_num_rows(res) > 0)
-		ret = 1;
+		users_recpt = true;
 
 	mysql_free_result(res);
 	mysql_close(conn);
 
-	return ret;
+	return users_recpt;
 }
 
 /*
