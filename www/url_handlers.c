@@ -875,7 +875,7 @@ static void activate_user(void)
 {
 	char sql[SQL_MAX];
 	char *key;
-	int post = 0;
+	bool post = false;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
@@ -894,7 +894,7 @@ static void activate_user(void)
 	 * the account activation.
 	 */
 	if (strcmp(env_vars.request_method, "POST") == 0)
-		post = 1;
+		post = true;
 
 	conn = db_conn();
 
