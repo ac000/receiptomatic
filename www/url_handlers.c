@@ -2411,7 +2411,7 @@ static void process_receipt(void)
 	char *image_id;
 	char *csrf_token;
 	struct tm tm;
-	int tag_error = 0;
+	bool tag_error = false;
 	int ret;
 	double gross;
 	double net;
@@ -2460,7 +2460,7 @@ static void process_receipt(void)
 	set_custom_field_names(&fields);
 
 	if (strlen(get_var(qvars, "department")) == 0) {
-		tag_error = 1;
+		tag_error = true;
 		vl = TMPL_add_var(vl, "error.department", "1", (char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.department", fields.department,
@@ -2469,7 +2469,7 @@ static void process_receipt(void)
 								(char *)NULL);
 
 	if (strlen(get_var(qvars, "employee_number")) == 0) {
-		tag_error = 1;
+		tag_error = true;
 		vl = TMPL_add_var(vl, "error.employee_number", "1",
 								(char *)NULL);
 	}
@@ -2480,7 +2480,7 @@ static void process_receipt(void)
 							(char *)NULL);
 
 	if (strlen(get_var(qvars, "cost_codes")) == 0) {
-		tag_error = 1;
+		tag_error = true;
 		vl = TMPL_add_var(vl, "error.cost_codes", "1", (char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes,
@@ -2489,7 +2489,7 @@ static void process_receipt(void)
 								(char *)NULL);
 
 	if (strlen(get_var(qvars, "account_codes")) == 0) {
-		tag_error = 1;
+		tag_error = true;
 		vl = TMPL_add_var(vl, "error.account_codes", "1",
 								(char *)NULL);
 	}
@@ -2499,7 +2499,7 @@ static void process_receipt(void)
 								(char *)NULL);
 
 	if (strlen(get_var(qvars, "po_num")) == 0) {
-		tag_error = 1;
+		tag_error = true;
 		vl = TMPL_add_var(vl, "error.po_num", "1", (char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, (char *)NULL);
@@ -2507,7 +2507,7 @@ static void process_receipt(void)
 								(char *)NULL);
 
 	if (strlen(get_var(qvars, "supplier_name")) == 0) {
-		tag_error = 1;
+		tag_error = true;
 		vl = TMPL_add_var(vl, "error.supplier_name", "1",
 								(char *)NULL);
 	}
@@ -2517,7 +2517,7 @@ static void process_receipt(void)
 								(char *)NULL);
 
 	if (strlen(get_var(qvars, "supplier_town")) == 0) {
-		tag_error = 1;
+		tag_error = true;
 		vl = TMPL_add_var(vl, "error.supplier_town", "1",
 								(char *)NULL);
 	}
@@ -2537,7 +2537,7 @@ static void process_receipt(void)
 	vr = strtod(get_var(qvars, "vat_rate"), NULL);
 	ret = check_amounts(gross, net, vat, vr);
 	if (ret < 0) {
-		tag_error = 1;
+		tag_error = true;
 		vl = TMPL_add_var(vl, "error.amounts", "1", (char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.gross_amount", fields.gross_amount,
@@ -2557,7 +2557,7 @@ static void process_receipt(void)
 								(char *)NULL);
 
 	if (strlen(get_var(qvars, "vat_number")) == 0) {
-		tag_error = 1;
+		tag_error = true;
 		vl = TMPL_add_var(vl, "error.vat_number", "1", (char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
@@ -2574,7 +2574,7 @@ static void process_receipt(void)
 	strftime(secs, sizeof(secs), "%s", &tm);
 	if (strtol(secs, NULL, 10) < time(NULL) - MAX_RECEIPT_AGE ||
 					strtol(secs, NULL, 10) > time(NULL)) {
-		tag_error = 1;
+		tag_error = true;
 		vl = TMPL_add_var(vl, "error.receipt_date", "1", (char *)NULL);
 	}
 	vl = TMPL_add_var(vl, "fields.receipt_date", fields.receipt_date,
