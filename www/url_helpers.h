@@ -15,7 +15,7 @@ bool is_logged_in(void);
 int check_auth(void);
 bool is_users_receipt(const char *id);
 bool tag_info_allowed(const char *image_id);
-int image_access_allowed(const char *path);
+bool image_access_allowed(const char *path);
 void set_user_session(void);
 char *create_session_id(void);
 char *generate_csrf_token(void);

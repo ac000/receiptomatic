@@ -257,9 +257,9 @@ out:
  * Determine if access to an image is allowed. It checks for /UID/ at the
  * start of the image path after IMAGE_PATH.
  */
-int image_access_allowed(const char *path)
+bool image_access_allowed(const char *path)
 {
-	int ret = 0;
+	bool access_allowed = false;
 	char uidir[PATH_MAX];
 
 	memset(uidir, 0, sizeof(uidir));
@@ -267,11 +267,11 @@ int image_access_allowed(const char *path)
 
 	/* Approvers can see all images */
 	if (user_session.capabilities & APPROVER)
-		ret = 1;
+		access_allowed = true;
 	else if (strncmp(path + strlen(IMAGE_PATH), uidir, strlen(uidir)) == 0)
-		ret = 1;
+		access_allowed = true;
 
-	return ret;
+	return access_allowed;
 }
 
 /*
