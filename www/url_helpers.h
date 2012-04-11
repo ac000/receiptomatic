@@ -11,7 +11,7 @@
 #define _URLHELPERS_H_
 
 char *username_to_name(char *username);
-int is_logged_in(void);
+bool is_logged_in(void);
 int check_auth(void);
 int is_users_receipt(const char *id);
 int tag_info_allowed(const char *image_id);

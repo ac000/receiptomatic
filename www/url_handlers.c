@@ -2790,7 +2790,7 @@ static void env(void)
  */
 void handle_request(void)
 {
-	int logged_in = 0;
+	bool logged_in = false;
 	char *request_uri;
 	struct timeval stv;
 	struct timeval etv;

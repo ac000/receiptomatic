@@ -80,7 +80,7 @@ char *username_to_name(char *username)
  * If any of these checks fail, the request is denied and the user is
  * punted to the login screen.
  */
-int is_logged_in(void)
+bool is_logged_in(void)
 {
 	char session_id[65];
 	TCTDB *tdb;
@@ -88,8 +88,9 @@ int is_logged_in(void)
 	TCLIST *res;
 	TCMAP *cols;
 	int rsize;
-	int ret = 0;
 	const char *rbuf;
+	bool login_ok = false;
+
 
 	if (!env_vars.http_cookie)
 		goto out3;
@@ -123,7 +124,7 @@ int is_logged_in(void)
 		goto out;
 
 	/* We got here, all checks are OK */
-	ret = 1;
+	login_ok = true;
 
 out:
 	tcmapdel(cols);
@@ -133,7 +134,7 @@ out2:
 	tctdbclose(tdb);
 	tctdbdel(tdb);
 out3:
-	return ret;
+	return login_ok;
 }
 
 /*
