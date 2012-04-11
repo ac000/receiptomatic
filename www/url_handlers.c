@@ -601,7 +601,7 @@ out2:
 static void admin_edit_user(void)
 {
 	unsigned int uid;
-	int form_err = 0;
+	bool form_err = false;
 	char *csrf_token;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -631,7 +631,7 @@ static void admin_edit_user(void)
 					get_var(qvars, "email2")) != 0)) {
 			vl = TMPL_add_var(vl, "email_error", "yes",
 								(char *)NULL);
-			form_err = 1;
+			form_err = true;
 		}
 		if (strlen(get_var(qvars, "pass1")) > 7 &&
 					strlen(get_var(qvars, "pass2")) > 7) {
@@ -639,7 +639,7 @@ static void admin_edit_user(void)
 					get_var(qvars, "pass2")) != 0) {
 				vl = TMPL_add_var(vl, "pass_error", "mismatch",
 								(char *)NULL);
-				form_err = 1;
+				form_err = true;
 			}
 		/*
 		 * If the password fields are > 0 in length, then we tried
@@ -649,7 +649,7 @@ static void admin_edit_user(void)
 					strlen(get_var(qvars, "pass2")) != 0) {
 			vl = TMPL_add_var(vl, "pass_error", "length",
 								(char *)NULL);
-			form_err = 1;
+			form_err = true;
 		}
 
 		if (!form_err) {
