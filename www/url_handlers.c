@@ -1111,7 +1111,7 @@ static void prefs(void)
 static void prefs_fmap(void)
 {
 	struct field_names fields;
-	int updated = 0;
+	bool updated = false;
 	char *csrf_token;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -1122,7 +1122,7 @@ static void prefs_fmap(void)
 			return;
 
 		update_fmap();
-		updated = 1;
+		updated = true;
 	}
 
 	if (user_session.capabilities & APPROVER)
