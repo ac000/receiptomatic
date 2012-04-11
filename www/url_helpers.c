@@ -218,17 +218,17 @@ bool is_users_receipt(const char *id)
 /*
  * Checks the users permission to access receipt tag information.
  */
-int tag_info_allowed(const char *image_id)
+bool tag_info_allowed(const char *image_id)
 {
 	char sql[SQL_MAX];
 	char *s_image_id;
-	int ret = 0;
+	bool tag_allowed = false;
 	MYSQL *conn;
 	MYSQL_RES *res;
 
 	/* Approvers can see all tags */
 	if (user_session.capabilities & APPROVER) {
-		ret = 1;
+		tag_allowed = true;
 		goto out;
 	}
 
@@ -244,13 +244,13 @@ int tag_info_allowed(const char *image_id)
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	if (mysql_num_rows(res) > 0)
-		ret = 1;
+		tag_allowed = true;
 
 	mysql_free_result(res);
 	mysql_close(conn);
 
 out:
-	return ret;
+	return tag_allowed;
 }
 
 /*
