@@ -22,6 +22,7 @@
 #include <time.h>
 #include <alloca.h>
 #include <netdb.h>
+#include <stdbool.h>
 
 #include <mhash.h>
 
@@ -135,7 +136,7 @@ static void delete_image(void)
 	char uidir[PATH_MAX];
 	char *image_id;
 	char *csrf_token;
-	int headers_sent = 0;
+	bool headers_sent = false;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
@@ -221,7 +222,7 @@ static void delete_image(void)
 	free(csrf_token);
 
 	send_template("templates/delete_image.tmpl", vl, NULL);
-	headers_sent = 1;
+	headers_sent = true;
 
 out1:
 	mysql_free_result(res);
