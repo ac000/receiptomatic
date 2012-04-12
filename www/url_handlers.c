@@ -2421,7 +2421,7 @@ static void process_receipt(void)
 		return;
 
 	/* Prevent CSRF attack */
-	if (strcmp(get_var(qvars, "csrf_token"), user_session.csrf_token) != 0)
+	if (!valid_csrf_token())
 		return;
 
 	/* Prevent users from tagging other users receipts */
