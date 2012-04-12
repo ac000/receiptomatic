@@ -500,8 +500,7 @@ static void admin_add_user(void)
 
 	/* Prevent CSRF attack */
 	if (strcmp(env_vars.request_method, "POST") == 0) {
-		if (strcmp(get_var(qvars, "csrf_token"),
-						user_session.csrf_token) != 0)
+		if (!valid_csrf_token())
 			return;
 	}
 
