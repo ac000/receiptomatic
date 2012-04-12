@@ -521,6 +521,22 @@ char *generate_csrf_token(void)
 }
 
 /*
+ * Checks if a valid csrf token has been presented.
+ *
+ * Returns:
+ * 	true, for yes
+ * 	false, for no
+ */
+bool valid_csrf_token(void)
+{
+	if (strcmp(get_var(qvars, "csrf_token"),
+				user_session.csrf_token) == 0)
+		return true;
+	else
+		return false;
+}
+
+/*
  * Create a new user session. This is done upon each successful login.
  */
 void create_session(unsigned int sid)
