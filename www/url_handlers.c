@@ -1250,8 +1250,7 @@ static void prefs_edit_user(void)
 	 * showing them.
 	 */
 	if (strcmp(env_vars.request_method, "POST") == 0) {
-		if (strcmp(get_var(qvars, "csrf_token"),
-						user_session.csrf_token) != 0)
+		if (!valid_csrf_token())
 			return;
 
 		if ((strlen(get_var(qvars, "email1")) == 0 &&
