@@ -763,7 +763,6 @@ mysql_cleanup:
 
 out_csrf:
 	TMPL_free_varlist(vl);
-
 }
 
 /*
