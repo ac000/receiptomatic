@@ -183,8 +183,7 @@ static void delete_image(void)
 		goto out1;
 
 	if (strcmp(get_var(qvars, "confirm"), "yes") == 0) {
-		if (strcmp(get_var(qvars, "csrf_token"),
-						user_session.csrf_token) != 0)
+		if (!valid_csrf_token())
 			goto out1;
 
 		/* remove the full image */
