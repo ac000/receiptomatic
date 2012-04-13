@@ -1338,3 +1338,42 @@ void send_template(const char *template, TMPL_varlist *varlist,
 	TMPL_write(template, NULL, fmtlist, varlist, stdout, error_log);
 	fflush(error_log);
 }
+
+/*
+ * Given a request URI and the URI we are checking for.
+ * Return:
+ *     true for a match and
+ *     false for no match.
+ */
+bool match_uri(const char *request_uri, const char *match)
+{
+	int rlen;
+	int mlen = strlen(match);
+	const char *request;
+	char *req = strdupa(request_uri);
+
+	/*
+	 * Handle URLs in the form /something/?key=value by stripping
+	 * everything from the ? onwards and matching on the initial part.
+	 */
+	if (strchr(request_uri, '?'))
+		request = strtok(req, "?");
+	else
+		request = request_uri;
+
+	rlen = strlen(request);
+
+	/*
+	 * The image URLs are a bit different, we only want to match on
+	 * the first /.../ part and they don't contain a ?.
+	 */
+	if (strstr(request, "/get_image/") && strstr(match, "/get_image/"))
+		return true;
+	else if (strstr(request, "/full_image/") &&
+						strstr(match, "/full_image/"))
+		return true;
+	else if (strncmp(request, match, mlen) == 0 && rlen == mlen)
+		return true;
+	else
+		return false;
+}

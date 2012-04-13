@@ -2803,23 +2803,23 @@ void handle_request(void)
 	 * Some routes need to come before the login / session stuff as
 	 * they can't be logged in and have no session.
 	 */
-	if (strncmp(request_uri, "/activate_user/", 15) == 0) {
+	if (match_uri(request_uri, "/activate_user/")) {
 		activate_user();
 		goto out2;
 	}
 
-	if (strncmp(request_uri, "/generate_new_key/", 18) == 0) {
+	if (match_uri(request_uri, "/generate_new_key/")) {
 		generate_new_key();
 		goto out2;
 	}
 
-	if (strncmp(request_uri, "/forgotten_password/", 20) == 0) {
+	if (match_uri(request_uri, "/forgotten_password/")) {
 		forgotten_password();
 		goto out2;
 	}
 
 	memset(&user_session, 0, sizeof(user_session));
-	if (strncmp(request_uri, "/login/", 7) == 0) {
+	if (match_uri(request_uri, "/login/")) {
 		login();
 		goto out;
 	}
@@ -2833,112 +2833,112 @@ void handle_request(void)
 
 	/* Add new url handlers after here */
 
-	if (strncmp(request_uri, "/receipts/", 10) == 0) {
+	if (match_uri(request_uri, "/receipts/")) {
 		receipts();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/process_receipt/", 17) == 0) {
+	if (match_uri(request_uri, "/process_receipt/")) {
 		process_receipt();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/tagged_receipts/", 16) == 0) {
+	if (match_uri(request_uri, "/tagged_receipts/")) {
 		tagged_receipts();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/receipt_info/", 14) == 0) {
+	if (match_uri(request_uri, "/receipt_info/")) {
 		receipt_info();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/approve_receipts/", 18) == 0) {
+	if (match_uri(request_uri, "/approve_receipts/")) {
 		approve_receipts();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/process_receipt_approval/", 26) == 0) {
+	if (match_uri(request_uri, "/process_receipt_approval/")) {
 		process_receipt_approval();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/reviewed_receipts/", 19) == 0) {
+	if (match_uri(request_uri, "/reviewed_receipts/")) {
 		reviewed_receipts();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/extract_data/", 14) == 0) {
+	if (match_uri(request_uri, "/extract_data/")) {
 		extract_data();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/do_extract_data/", 17) == 0) {
+	if (match_uri(request_uri, "/do_extract_data/")) {
 		do_extract_data();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/get_image/", 11) == 0) {
+	if (match_uri(request_uri, "/get_image/")) {
 		get_image();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/full_image/", 12) == 0) {
+	if (match_uri(request_uri, "/full_image/")) {
 		full_image();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/delete_image/", 14) == 0) {
+	if (match_uri(request_uri, "/delete_image/")) {
 		delete_image();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/env/", 5) == 0) {
+	if (match_uri(request_uri, "/env/")) {
 		env();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/prefs/fmap/", 11) == 0) {
+	if (match_uri(request_uri, "/prefs/fmap/")) {
 		prefs_fmap();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/prefs/edit_user/", 17) == 0) {
+	if (match_uri(request_uri, "/prefs/edit_user/")) {
 		prefs_edit_user();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/prefs/", 7) == 0) {
+	if (match_uri(request_uri, "/prefs/")) {
 		prefs();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/admin/list_users/", 18) == 0) {
+	if (match_uri(request_uri, "/admin/list_users/")) {
 		admin_list_users();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/admin/add_user/", 16) == 0) {
+	if (match_uri(request_uri, "/admin/add_user/")) {
 		admin_add_user();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/admin/edit_user/", 17) == 0) {
+	if (match_uri(request_uri, "/admin/edit_user/")) {
 		admin_edit_user();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/admin/pending_activations/", 27) == 0) {
+	if (match_uri(request_uri, "/admin/pending_activations/")) {
 		admin_pending_activations();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/admin/", 7) == 0) {
+	if (match_uri(request_uri, "/admin/")) {
 		admin();
 		goto out;
 	}
 
-	if (strncmp(request_uri, "/logout/", 8) == 0) {
+	if (match_uri(request_uri, "/logout/")) {
 		logout();
 		goto out;
 	}
