@@ -19,7 +19,7 @@ unsigned int db_port_num = 3306;
 unsigned int db_flags = 0;
 
 /*
- * Opens a up a MySQL connection and returns the connection handle.
+ * Opens up a MySQL connection and returns the connection handle.
  */
 MYSQL *db_conn(void)
 {
