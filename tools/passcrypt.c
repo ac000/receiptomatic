@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	}
 
 	for (i = 3; i < 19; i++) {
-		int r;
+		long r;
 		struct timeval tv;
 
 		gettimeofday(&tv, NULL);
