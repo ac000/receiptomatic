@@ -1347,8 +1347,8 @@ void send_template(const char *template, TMPL_varlist *varlist,
  */
 bool match_uri(const char *request_uri, const char *match)
 {
-	int rlen;
-	int mlen = strlen(match);
+	size_t rlen;
+	size_t mlen = strlen(match);
 	const char *request;
 	char *req = strdupa(request_uri);
 
