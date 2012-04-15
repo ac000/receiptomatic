@@ -1,5 +1,5 @@
 passcrypt: passcrypt.c
-	gcc -Wall -o passcrypt passcrypt.c -lcrypt
+	gcc -Wall -std=c99 -O2 -o passcrypt passcrypt.c -lcrypt
 
 clean:
 	rm passcrypt
