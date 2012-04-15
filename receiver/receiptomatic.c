@@ -16,6 +16,7 @@
 #include <dirent.h>
 #include <time.h>
 #include <fcntl.h>
+#include <stdbool.h>
 
 #include <mhash.h>
 
@@ -67,7 +68,7 @@ out:
 
 static void send_error_email(char *email_addr)
 {
-	static int sent_email = 0;
+	static bool sent_email = false;
 
 	/* We only want to send one error email per received email */
 	if (sent_email)
@@ -86,7 +87,7 @@ static void send_error_email(char *email_addr)
 	fputs("Your image has not been stored.\n", fp);
 
 	pclose(fp);
-	sent_email = 1;
+	sent_email = true;
 }
 
 /*
