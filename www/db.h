@@ -23,11 +23,17 @@
  * The FCGI printf function seemed to be causing a conflict here, under F16
  * with GCC 4.6.2
  *
- * Just undef printf for the my_global stuff and then define it back again.
+ * Just undef printf for the my_global stuff and then define it back again,
+ * but only when building receiptomatic-www. For the receiver part
+ * 'receiptomatic' we need to keep printf as printf.
  */
+#ifdef _RECEIPTOMATIC_WWW_
 #undef printf
 #include <my_global.h>
 #define printf FCGI_printf
+#else
+#include <my_global.h>
+#endif
 
 #include <mysql.h>
 
