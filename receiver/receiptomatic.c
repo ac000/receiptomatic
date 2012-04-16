@@ -176,7 +176,7 @@ static char *create_image_id(char *path, char *filename)
 	return strdup(shash);
 }
 
-static void resize_image(char *path, char *filename, int size)
+static void resize_image(const char *path, const char *filename, int size)
 {
 	ExceptionInfo exception;
 	Image *image;
