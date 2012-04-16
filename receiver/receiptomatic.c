@@ -228,7 +228,8 @@ out:
 /*
  * Save the attached image to the filesystem
  */
-static void save_image(GMimeObject *part, char *path, char *filename)
+static void save_image(GMimeObject *part, const char *path,
+							const char *filename)
 {
 	int fd;
 	int dirfd;
