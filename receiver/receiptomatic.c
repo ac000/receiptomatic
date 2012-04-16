@@ -364,7 +364,7 @@ out:
 /*
  * Process a mail message, passed on by sendmail
  */
-static void process_message(int dirfd, char *filename)
+static void process_message(int dirfd, const char *filename)
 {
 	GMimeMessage *message;
 	GMimeStream *stream;
