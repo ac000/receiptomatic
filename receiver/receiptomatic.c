@@ -101,7 +101,7 @@ static void send_error_email(char *email_addr)
  *
  * 	j.doe@example.com
  */
-static char *get_from_addr(char *addr)
+static char *get_from_addr(const char *addr)
 {
 	char *from;
 
