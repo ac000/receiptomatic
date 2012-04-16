@@ -142,7 +142,7 @@ static char *create_image_id(char *path, char *filename)
 {
 	int fd;
 	int dirfd;
-	ssize_t bytes_read = 1;
+	ssize_t bytes_read;
 	int i;
 	int hbs;
 	char buf[BUF_SIZE];
@@ -154,10 +154,10 @@ static char *create_image_id(char *path, char *filename)
 	td = mhash_init(MHASH_SHA256);
 	dirfd = open(path, O_RDONLY);
 	fd = openat(dirfd, filename, O_RDONLY);
-	while (bytes_read > 0) {
+	do {
 		bytes_read = read(fd, &buf, BUF_SIZE);
 		mhash(td, &buf, bytes_read);
-	}
+	} while (bytes_read > 0);
 	close(fd);
 	close(dirfd);
 	hash = mhash_end(td);
