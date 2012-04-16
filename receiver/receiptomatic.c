@@ -66,7 +66,7 @@ out:
 	return ret;
 }
 
-static void send_error_email(char *email_addr)
+static void send_error_email(const char *email_addr)
 {
 	static bool sent_email = false;
 
