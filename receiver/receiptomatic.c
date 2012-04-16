@@ -399,7 +399,7 @@ int main(int argc, char **argv)
 {
 	int fd;
 	int dirfd;
-	ssize_t bytes_read = 1;
+	ssize_t bytes_read;
 	ssize_t bytes_wrote;
 	char buf[BUF_SIZE];
 	char temp_name[] = "receiptomatic-XXXXXX";
@@ -429,12 +429,12 @@ int main(int argc, char **argv)
 	 * (illegal seek).
 	 */
 	fd = mkstemp(temp_name);
-	while (bytes_read > 0) {
+	do {
 		bytes_read = read(STDIN_FILENO, &buf, BUF_SIZE);
 		bytes_wrote = write(fd, buf, bytes_read);
 		if (bytes_wrote != bytes_read)
 			exit(EXIT_FAILURE);
-	}
+	} while (bytes_read > 0);
 	close(fd);
 
 	umask(0007);
