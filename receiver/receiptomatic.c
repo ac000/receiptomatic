@@ -430,6 +430,8 @@ int main(int argc, char **argv)
 	 * (illegal seek).
 	 */
 	fd = mkstemp(temp_name);
+	if (fd == -1)
+		exit(EXIT_FAILURE);
 	do {
 		bytes_read = read(STDIN_FILENO, &buf, BUF_SIZE);
 		bytes_wrote = write(fd, buf, bytes_read);
