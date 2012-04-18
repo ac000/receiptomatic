@@ -342,19 +342,15 @@ int main(int argc, char **argv)
 	/* Used by set_proc_title() */
 	rargv = argv;
 
-	ret = get_config(argv[1]);
-	if (ret == -1) {
-		snprintf(error_log_path, PATH_MAX,
-					"%s/receiptomatic-www.error.log",
-					LOG_DIR);
-		error_log = fopen(ERROR_LOG, "w");
-		d_fprintf(error_log, "config: could not open %s\n", argv[1]);
-		fclose(error_log);
-		exit(EXIT_FAILURE);
-	}
-
 	/* Set the log paths and open them */
 	init_logs();
+
+	ret = get_config(argv[1]);
+	if (ret == -1) {
+		d_fprintf(error_log, "config: could not open %s\n", argv[1]);
+		goto close_logs;
+	}
+
 	/* Make stderr point to the error_log */
 	dup2(fileno(error_log), STDERR_FILENO);
 
@@ -417,10 +413,13 @@ int main(int argc, char **argv)
 	}
 
 	mysql_library_end();
+
+close_logs:
 	fclose(access_log);
 	fclose(error_log);
 	fclose(sql_log);
 	fclose(debug_log);
 
-	exit(EXIT_SUCCESS);
+	/* We shouldn't run through to here */
+	exit(EXIT_FAILURE);
 }
