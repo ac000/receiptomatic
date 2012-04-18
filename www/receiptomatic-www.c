@@ -354,7 +354,11 @@ int main(int argc, char **argv)
 	/* Make stderr point to the error_log */
 	dup2(fileno(error_log), STDERR_FILENO);
 
-	mysql_library_init(0, NULL, NULL);
+	ret = mysql_library_init(0, NULL, NULL);
+	if (ret) {
+		d_fprintf(error_log, "mysql: could not initialise library.\n");
+		goto close_logs;
+	}
 
 	/* Ignore SIGHUP for now */
 	signal(SIGHUP, SIG_IGN);
