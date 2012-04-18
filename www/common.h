@@ -89,8 +89,7 @@ struct session {
 	char *csrf_token;
 	unsigned int restrict_ip;
 	char *user_hdr;
-};
-
+} session;
 extern struct session user_session;
 
 struct field_names {
