@@ -1226,7 +1226,6 @@ static void prefs_fmap(void)
 static void prefs_edit_user(void)
 {
 	bool form_err = false;
-	char *csrf_token;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
@@ -1338,10 +1337,7 @@ static void prefs_edit_user(void)
 
 	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
 
-	csrf_token = generate_csrf_token();
-	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
-	free(csrf_token);
-
+	add_csrf_token(vl);
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
 	send_template("templates/prefs_edit_user.tmpl", vl, fmtlist);
 	TMPL_free_varlist(vl);
