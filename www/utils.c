@@ -676,7 +676,7 @@ char *generate_password_hash(int hash_type, const char *password)
 		strcpy(salt, "$6$");
 
 	for (i = 3; i < 19; i++) {
-		int r;
+		long r;
 		struct timeval tv;
 
 		gettimeofday(&tv, NULL);
