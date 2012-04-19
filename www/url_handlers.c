@@ -135,7 +135,6 @@ static void delete_image(void)
 	char image_path[PATH_MAX];
 	char uidir[PATH_MAX];
 	char *image_id;
-	char *csrf_token;
 	bool headers_sent = false;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -216,10 +215,7 @@ static void delete_image(void)
 		goto out1;
 	}
 
-	csrf_token = generate_csrf_token();
-	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
-	free(csrf_token);
-
+	add_csrf_token(vl);
 	send_template("templates/delete_image.tmpl", vl, NULL);
 	headers_sent = true;
 
