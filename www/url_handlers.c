@@ -2188,9 +2188,8 @@ static void tagged_receipts(void)
 	unsigned long i;
 	int c = 1;		/* column number */
 	int from = 0;
-	int page_no = 1;
-	int pages = 0;
-	char page[10];
+	int page = 1;
+	int nr_pages = 0;
 	char sql[SQL_MAX];
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -2202,7 +2201,7 @@ static void tagged_receipts(void)
 
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), GRID_SIZE,
-							&page_no, &from);
+							&page, &from);
 
 	if (user_session.capabilities & APPROVER)
 		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
@@ -2248,7 +2247,7 @@ static void tagged_receipts(void)
 
 		db_row = get_dbrow(res);
 
-		pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 							(float)GRID_SIZE);
 
 		vl = TMPL_add_var(NULL, "id", get_var(db_row, "id"),
@@ -2300,20 +2299,8 @@ static void tagged_receipts(void)
 		free_vars(db_row);
 	}
 	free_fields(&fields);
-
-	if (pages > 1) {
-		if (page_no - 1 > 0) {
-			snprintf(page, sizeof(page), "%d", page_no - 1);
-			ml = TMPL_add_var(ml, "prev_page", page, (char *)NULL);
-		}
-		if (page_no + 1 <= pages) {
-			snprintf(page, sizeof(page), "%d", page_no + 1);
-			ml = TMPL_add_var(ml, "next_page", page, (char *)NULL);
-		}
-	} else {
-		ml = TMPL_add_var(ml, "no_pages", "true", (char *)NULL);
-	}
 	ml = TMPL_add_loop(ml, "table", loop);
+	do_pagination(ml, page, nr_pages);
 
 out:
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
