@@ -750,12 +750,11 @@ out_csrf:
 static void admin_pending_activations(void)
 {
 	char sql[SQL_MAX];
-	char page[10];
 	int rpp = 15;	/* Rows Per Page to display */
 	unsigned long nr_rows;
 	unsigned long i;
-	int pages = 0;
-	int page_no = 1;
+	int nr_pages = 0;
+	int page = 1;
 	int from = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -775,14 +774,14 @@ static void admin_pending_activations(void)
 	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	if (qvars)
-		get_page_pagination(get_var(qvars, "page_no"), rpp, &page_no,
+		get_page_pagination(get_var(qvars, "page_no"), rpp, &page,
 									&from);
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT name, user, expires FROM activations "
-					"INNER JOIN passwd ON "
-					"(activations.user = passwd.username) "
-					"LIMIT %d, %d", from, rpp);
+	snprintf(sql, SQL_MAX, "SELECT COUNT(*) AS nrows, name, user, expires "
+				"FROM activations INNER JOIN passwd ON "
+				"(activations.user = passwd.username) LIMIT "
+				"%d, %d", from, rpp);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
@@ -794,7 +793,19 @@ static void admin_pending_activations(void)
 		GHashTable *db_row = NULL;
 
 		db_row = get_dbrow(res);
-		pages = ceilf((float)nr_rows / (float)rpp);
+		/*
+		 * Due to the SQL above always returning at least one row,
+		 * we need to see if we got a NULL value for one of the
+		 * fields, which would indicate there aren't any pending
+		 * activations.
+		 */
+		if (strlen(get_var(db_row, "name")) == 0) {
+			free_vars(db_row);
+			break;
+		}
+
+		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+								(float)rpp);
 
 		if (!(i % 2))
 			vl = TMPL_add_var(NULL, "zebra", "yes", (char *)NULL);
@@ -814,20 +825,8 @@ static void admin_pending_activations(void)
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
-
-	if (pages > 1) {
-		if (page_no - 1 > 0) {
-			snprintf(page, 10, "%d", page_no - 1);
-			ml = TMPL_add_var(ml, "prev_page", page, (char *)NULL);
-		}
-		if (page_no + 1 <= pages) {
-			snprintf(page, 10, "%d", page_no + 1);
-			ml = TMPL_add_var(ml, "next_page", page, (char *)NULL);
-		}
-	} else {
-		ml = TMPL_add_var(ml, "no_pages", "true", (char *)NULL);
-	}
 	ml = TMPL_add_loop(ml, "table", loop);
+	do_pagination(ml, page, nr_pages);
 
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
 	send_template("templates/admin_pending_activations.tmpl", ml, fmtlist);
