@@ -2378,7 +2378,6 @@ static void process_receipt(void)
 	char sql[SQL_MAX];
 	char secs[11];
 	char *image_id;
-	char *csrf_token;
 	struct tm tm;
 	bool tag_error = false;
 	int ret;
@@ -2557,10 +2556,6 @@ static void process_receipt(void)
 							"payment_method"),
 							(char *)NULL);
 
-	csrf_token = generate_csrf_token();
-	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
-	free(csrf_token);
-
 	if (!tag_error) {
 		tag_image();
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
@@ -2571,6 +2566,7 @@ static void process_receipt(void)
 	} else {
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
 			vl = TMPL_add_var(vl, "from", "receipt_info");
+		add_csrf_token(vl);
 		fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
 		send_template("templates/process_receipt.tmpl", vl, fmtlist);
 		TMPL_free_varlist(vl);
