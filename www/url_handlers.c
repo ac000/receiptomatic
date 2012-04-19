@@ -2022,7 +2022,6 @@ static void receipt_info(void)
 	char sql[SQL_MAX];
 	char tbuf[60];
 	char *image_id;
-	char *csrf_token;
 	struct field_names fields;
 	time_t secs;
 	MYSQL *conn;
@@ -2223,10 +2222,8 @@ static void receipt_info(void)
 		vl = TMPL_add_var(vl, "reject_reason", get_var(db_row,
 						"r_reason"), (char *)NULL);
 	}
-
-	csrf_token = generate_csrf_token();
-	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
-	free(csrf_token);
+	/* Only need to add the token if the receipt info is editable */
+	add_csrf_token(vl);
 
 	free_vars(db_row);
 	free_fields(&fields);
