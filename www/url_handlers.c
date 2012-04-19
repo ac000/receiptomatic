@@ -1564,7 +1564,6 @@ static void approve_receipts(void)
 	static const char *card = "'card'";
 	static const char *cheque = "'cheque'";
 	char join[5];
-	char *csrf_token;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	unsigned long i;
@@ -1822,10 +1821,6 @@ static void approve_receipts(void)
 	}
 	free_fields(&fields);
 
-	csrf_token = generate_csrf_token();
-	ml = TMPL_add_var(ml, "csrf_token", csrf_token, (char *)NULL);
-	free(csrf_token);
-
 	if (pages > 1) {
 		if (page_no - 1 > 0) {
 			snprintf(page, sizeof(page), "%d", page_no - 1);
@@ -1839,6 +1834,8 @@ static void approve_receipts(void)
 		ml = TMPL_add_var(ml, "no_pages", "true", (char *)NULL);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
+	/* Only use csrf if there is receipts to process */
+	add_csrf_token(ml);
 
 out:
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
