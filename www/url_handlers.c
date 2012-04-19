@@ -2593,7 +2593,6 @@ static void receipts(void)
 	unsigned long nr_rows;
 	char sql[SQL_MAX];
 	char llogin_from[NI_MAXHOST];
-	char *csrf_token;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
@@ -2712,10 +2711,8 @@ static void receipts(void)
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 	free_fields(&fields);
-
-	csrf_token = generate_csrf_token();
-	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
-	free(csrf_token);
+	/* Only use csrf if there are receipts to process */
+	add_csrf_token(vl);
 
 out:
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
