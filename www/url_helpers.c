@@ -521,6 +521,19 @@ char *generate_csrf_token(void)
 }
 
 /*
+ * Given a template varlist, this will add a csrf token variable.
+ */
+void add_csrf_token(TMPL_varlist *varlist)
+{
+	char *csrf_token;
+
+	csrf_token = generate_csrf_token();
+	varlist = TMPL_add_var(varlist, "csrf_token", csrf_token,
+							(char *)NULL);
+	free(csrf_token);
+}
+
+/*
  * Checks if a valid csrf token has been presented.
  *
  * Returns:

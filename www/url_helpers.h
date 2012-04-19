@@ -19,6 +19,7 @@ bool image_access_allowed(const char *path);
 void set_user_session(void);
 char *create_session_id(void);
 char *generate_csrf_token(void);
+void add_csrf_token(TMPL_varlist *varlist);
 bool valid_csrf_token(void);
 void create_session(unsigned int sid);
 int check_amounts(double gross, double net, double vat, double vr);
