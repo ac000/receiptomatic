@@ -80,13 +80,13 @@
 <tmpl_if name = "no_pages">
 <tmpl_else>
 	<tmpl_if name = "prev_page">
-		<a href = "/admin/user_list/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
+		<a href = "/admin/list_users/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
 	<tmpl_else>
 		<span class = "lighter">Prev Page</span>
 	</tmpl_if>
 	&nbsp;::&nbsp;
 	<tmpl_if name = "next_page">
-		<a href = "/admin/user_list/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
+		<a href = "/admin/list_users/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
 	<tmpl_else>
 		<span class = "lighter">Next Page</span>
 	</tmpl_if>
