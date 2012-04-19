@@ -1546,7 +1546,6 @@ static void approve_receipts(void)
 	char sql[SQL_MAX];
 	char pmsql[128];
 	char assql[512];
-	char page[10];
 	static const char *pm = "tags.payment_method = ";
 	static const char *cash = "'cash'";
 	static const char *card = "'card'";
@@ -1557,8 +1556,8 @@ static void approve_receipts(void)
 	unsigned long i;
 	unsigned long nr_rows;
 	int from = 0;
-	int page_no = 1;
-	int pages = 0;
+	int page = 1;
+	int nr_pages = 0;
 	struct field_names fields;
 	TMPL_varlist *ml = NULL;
 	TMPL_varlist *vl = NULL;
@@ -1614,7 +1613,7 @@ static void approve_receipts(void)
 
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), APPROVER_ROWS,
-							&page_no, &from);
+							&page, &from);
 
 	conn = db_conn();
 
@@ -1683,7 +1682,7 @@ static void approve_receipts(void)
 
 		db_row = get_dbrow(res);
 
-		pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 							(float)APPROVER_ROWS);
 
 		vl = TMPL_add_var(NULL, "image_path", get_var(db_row, "path"),
@@ -1808,20 +1807,8 @@ static void approve_receipts(void)
 		free_vars(db_row);
 	}
 	free_fields(&fields);
-
-	if (pages > 1) {
-		if (page_no - 1 > 0) {
-			snprintf(page, sizeof(page), "%d", page_no - 1);
-			ml = TMPL_add_var(ml, "prev_page", page, (char *)NULL);
-		}
-		if (page_no + 1 <= pages) {
-			snprintf(page, sizeof(page), "%d", page_no + 1);
-			ml = TMPL_add_var(ml, "next_page", page, (char *)NULL);
-		}
-	} else {
-		ml = TMPL_add_var(ml, "no_pages", "true", (char *)NULL);
-	}
 	ml = TMPL_add_loop(ml, "table", loop);
+	do_pagination(ml, page, nr_pages);
 	/* Only use csrf if there is receipts to process */
 	add_csrf_token(ml);
 
