@@ -487,7 +487,6 @@ static void admin_add_user(void)
 {
 	unsigned char capabilities = 0;
 	bool form_err = false;
-	char *csrf_token;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
@@ -573,10 +572,7 @@ static void admin_add_user(void)
 	}
 
 out:
-	csrf_token = generate_csrf_token();
-	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
-	free(csrf_token);
-
+	add_csrf_token(vl);
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
 	send_template("templates/admin_add_user.tmpl", vl, fmtlist);
 	TMPL_free_fmtlist(fmtlist);
