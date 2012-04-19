@@ -1096,7 +1096,6 @@ static void prefs_fmap(void)
 {
 	struct field_names fields;
 	bool updated = false;
-	char *csrf_token;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
@@ -1208,10 +1207,8 @@ static void prefs_fmap(void)
 					fields.payment_method) ? "" :
 					fields.payment_method, (char *)NULL);
 
-	csrf_token = generate_csrf_token();
-	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
-	free(csrf_token);
 
+	add_csrf_token(vl);
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
 	send_template("templates/prefs_fmap.tmpl", vl, fmtlist);
 	TMPL_free_varlist(vl);
