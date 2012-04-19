@@ -23,6 +23,9 @@
 
 #include <mhash.h>
 
+/* HTML template library */
+#include <ctemplate.h>
+
 #include "common.h"
 #include "utils.h"
 
@@ -770,6 +773,27 @@ void get_page_pagination(const char *req_page_no, int rpp, int *page_no,
 		*from = 0;
 	} else {
 		*from = *page_no * rpp - rpp;
+	}
+}
+
+void do_pagination(TMPL_varlist *varlist, int page, int nr_pages)
+{
+	char page_no[10];
+
+	if (IS_MULTI_PAGE(nr_pages)) {
+		if (!IS_FIRST_PAGE(page)) {
+			snprintf(page_no, sizeof(page_no), "%d", page - 1);
+			varlist = TMPL_add_var(varlist, "prev_page", page_no,
+								(char *)NULL);
+		}
+		if (!IS_LAST_PAGE(page, nr_pages)) {
+			snprintf(page_no, sizeof(page_no), "%d", page + 1);
+			varlist = TMPL_add_var(varlist, "next_page", page_no,
+								(char *)NULL);
+		}
+	} else {
+		varlist = TMPL_add_var(varlist, "no_pages", "true",
+								(char *)NULL);
 	}
 }
 

@@ -10,6 +10,11 @@
 #ifndef _UTILS_H_
 #define _UTILS_H_
 
+/* Pagination macro's */
+#define IS_MULTI_PAGE(nr_pages)		(((nr_pages) > 1) ? 1 : 0)
+#define IS_FIRST_PAGE(page)		(((page) == 1) ? 1 : 0)
+#define IS_LAST_PAGE(page, nr_pages)	(((page) == (nr_pages)) ? 1 : 0)
+
 void free_avars(void);
 void free_vars(GHashTable *vars);
 void free_u_files(void);
@@ -27,6 +32,7 @@ void delete_user_session(unsigned int uid);
 int user_already_exists(const char *username);
 void get_page_pagination(const char *req_page_no, int rpp, int *page_no,
 								int *from);
+void do_pagination(TMPL_varlist *varlist, int page, int nr_pages);
 void de_xss(const char *value, FILE *out);
 char *xss_safe_string(const char *string);
 
