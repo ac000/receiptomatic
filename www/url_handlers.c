@@ -364,12 +364,11 @@ static void admin(void)
 static void admin_list_users(void)
 {
 	char sql[SQL_MAX];
-	char page[10];
 	int rpp = 15;	/* Rows Per Page to display */
 	unsigned long nr_rows;
 	unsigned long i;
-	int pages = 0;
-	int page_no = 1;
+	int nr_pages = 0;
+	int page = 1;
 	int from = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -389,11 +388,12 @@ static void admin_list_users(void)
 	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
 
 	if (qvars)
-		get_page_pagination(get_var(qvars, "page_no"), rpp, &page_no,
+		get_page_pagination(get_var(qvars, "page_no"), rpp, &page,
 									&from);
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT uid, username, name, capabilities, "
+	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM passwd) AS nrows,"
+					" uid, username, name, capabilities, "
 					"enabled, activated FROM passwd LIMIT "
 					"%d, %d", from, rpp);
 	d_fprintf(sql_log, "%s\n", sql);
@@ -406,7 +406,8 @@ static void admin_list_users(void)
 		GHashTable *db_row = NULL;
 
 		db_row = get_dbrow(res);
-		pages = ceilf((float)nr_rows / (float)rpp);
+		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+								(float)rpp);
 
 		if (!(i % 2))
 			vl = TMPL_add_var(NULL, "zebra", "yes", (char *)NULL);
@@ -453,20 +454,8 @@ static void admin_list_users(void)
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
-
-	if (pages > 1) {
-		if (page_no - 1 > 0) {
-			snprintf(page, sizeof(page), "%d", page_no - 1);
-			ml = TMPL_add_var(ml, "prev_page", page, (char *)NULL);
-		}
-		if (page_no + 1 <= pages) {
-			snprintf(page, sizeof(page), "%d", page_no + 1);
-			ml = TMPL_add_var(ml, "next_page", page, (char *)NULL);
-		}
-	} else {
-		ml = TMPL_add_var(ml, "no_pages", "true", (char *)NULL);
-	}
 	ml = TMPL_add_loop(ml, "table", loop);
+	do_pagination(ml, page, nr_pages);
 
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
 	send_template("templates/admin_list_users.tmpl", ml, fmtlist);
