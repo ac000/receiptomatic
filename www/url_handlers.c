@@ -592,7 +592,6 @@ static void admin_edit_user(void)
 {
 	unsigned int uid;
 	bool form_err = false;
-	char *csrf_token;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
@@ -743,10 +742,7 @@ mysql_cleanup:
 			vl = TMPL_add_var(vl, "is_admin", "yes", (char *)NULL);
 	}
 
-	csrf_token = generate_csrf_token();
-	vl = TMPL_add_var(vl, "csrf_token", csrf_token, (char *)NULL);
-	free(csrf_token);
-
+	add_csrf_token(vl);
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
 	send_template("templates/admin_edit_user.tmpl", vl, fmtlist);
 	TMPL_free_fmtlist(fmtlist);
