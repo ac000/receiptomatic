@@ -2569,9 +2569,9 @@ static void process_receipt(void)
 		add_csrf_token(vl);
 		fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
 		send_template("templates/process_receipt.tmpl", vl, fmtlist);
-		TMPL_free_varlist(vl);
 		TMPL_free_fmtlist(fmtlist);
 	}
+	TMPL_free_varlist(vl);
 	free_fields(&fields);
 
 out:
