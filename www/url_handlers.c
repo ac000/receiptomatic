@@ -1367,7 +1367,7 @@ static void extract_data(void)
 
 	if (!IS_APPROVER())
 		return;
-	if (user_session.capabilities & ADMIN)
+	if (IS_ADMIN())
 		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
 
 	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
