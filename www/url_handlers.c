@@ -763,7 +763,7 @@ static void admin_pending_activations(void)
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
 
-	if (!(user_session.capabilities & ADMIN))
+	if (!IS_ADMIN())
 		return;
 
 	ml = TMPL_add_var(ml, "admin", "yes", NULL);
