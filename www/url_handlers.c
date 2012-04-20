@@ -768,7 +768,7 @@ static void admin_pending_activations(void)
 
 	ml = TMPL_add_var(ml, "admin", "yes", NULL);
 
-	if (user_session.capabilities & APPROVER)
+	if (IS_APPROVER())
 		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
