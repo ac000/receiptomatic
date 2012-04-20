@@ -584,7 +584,7 @@ static void admin_edit_user(void)
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
-	if (!(user_session.capabilities & ADMIN))
+	if (!IS_ADMIN())
 		return;
 
 	if (!qvars)
