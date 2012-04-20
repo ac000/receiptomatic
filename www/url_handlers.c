@@ -2203,7 +2203,7 @@ static void tagged_receipts(void)
 		get_page_pagination(get_var(qvars, "page_no"), GRID_SIZE,
 							&page, &from);
 
-	if (user_session.capabilities & APPROVER)
+	if (IS_APPROVER())
 		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
 	if (user_session.capabilities & ADMIN)
 		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
