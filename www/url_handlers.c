@@ -2551,7 +2551,7 @@ static void receipts(void)
 	TMPL_fmtlist *fmtlist;
 	time_t llogin;
 
-	if (user_session.capabilities & APPROVER)
+	if (IS_APPROVER())
 		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
 	if (user_session.capabilities & ADMIN)
 		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
