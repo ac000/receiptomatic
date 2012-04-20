@@ -347,13 +347,13 @@ void set_user_session(void)
 				"<span class = \"lighter\"> (%d) </span>"
 				"</small>", xss_string, user_session.uid);
 	free(xss_string);
-	if (IS_APPROVER() && user_session.capabilities & ADMIN)
+	if (IS_APPROVER() && IS_ADMIN())
 		strncat(user_hdr, "<span class = \"t_red\">(Approver / Admin)"
 					"</span>", 1024 - strlen(user_hdr));
 	else if (IS_APPROVER())
 		strncat(user_hdr, "<span class = \"t_red\">(Approver)"
 					"</span>", 1024 - strlen(user_hdr));
-	else if (user_session.capabilities & ADMIN)
+	else if (IS_ADMIN())
 		strncat(user_hdr, "<span class = \"t_red\">(Admin)"
 					"</span>", 1024 - strlen(user_hdr));
 	strncat(user_hdr, "&nbsp;", 1024 - strlen(user_hdr));
