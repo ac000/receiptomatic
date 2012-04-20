@@ -1972,7 +1972,7 @@ static void receipt_info(void)
 
 	if (IS_APPROVER())
 		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
-	if (user_session.capabilities & ADMIN)
+	if (IS_ADMIN())
 		vl = TMPL_add_var(vl, "admin", "yes", NULL);
 
 	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
