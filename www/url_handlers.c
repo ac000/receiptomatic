@@ -1064,7 +1064,7 @@ static void prefs(void)
 
 	if (user_session.capabilities & ADMIN)
 		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
-	if (user_session.capabilities & APPROVER)
+	if (IS_APPROVER())
 		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 
 	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
