@@ -1340,7 +1340,7 @@ static void do_extract_data(void)
 	int fd;
 	char temp_name[] = "/tmp/receiptomatic-www-XXXXXX";
 
-	if (!(user_session.capabilities & APPROVER))
+	if (!IS_APPROVER())
 		return;
 
 	fd = mkstemp(temp_name);
