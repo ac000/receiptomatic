@@ -2553,7 +2553,7 @@ static void receipts(void)
 
 	if (IS_APPROVER())
 		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
-	if (user_session.capabilities & ADMIN)
+	if (IS_ADMIN())
 		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
 
 	/* Display the user's name and UID at the top of the page */
