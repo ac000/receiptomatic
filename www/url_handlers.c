@@ -1848,14 +1848,13 @@ static void reviewed_receipts(void)
 	if (!IS_APPROVER())
 		return;
 
+	ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
+	if (IS_ADMIN())
+		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
+
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), GRID_SIZE,
 							&page, &from);
-
-	if (IS_APPROVER())
-		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
-	if (IS_ADMIN())
-		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
 
