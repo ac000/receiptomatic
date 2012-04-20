@@ -1390,7 +1390,7 @@ static void process_receipt_approval(void)
 	unsigned int i;
 	MYSQL *conn;
 
-	if (!(user_session.capabilities & APPROVER))
+	if (!IS_APPROVER())
 		return;
 
 	/* Prevent CSRF attack */
