@@ -1652,8 +1652,7 @@ static void approve_receipts(void)
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
 
-	if (IS_APPROVER())
-		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
+	ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
 	if (IS_ADMIN())
 		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
 
