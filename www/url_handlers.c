@@ -1970,7 +1970,7 @@ static void receipt_info(void)
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
-	if (user_session.capabilities & APPROVER)
+	if (IS_APPROVER())
 		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 	if (user_session.capabilities & ADMIN)
 		vl = TMPL_add_var(vl, "admin", "yes", NULL);
