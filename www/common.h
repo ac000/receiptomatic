@@ -56,6 +56,9 @@
 #define SHA256		 5
 #define SHA512		10
 
+/* Macro to check if the user is an approver */
+#define IS_APPROVER()	(((user_session.capabilities) & (APPROVER)) ? 1 : 0)
+
 /*
  * Wrapper around fprintf(). It will prepend the text passed it with
  * seconds.microseconds pid function:
