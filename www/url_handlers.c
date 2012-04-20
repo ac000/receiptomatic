@@ -1095,7 +1095,7 @@ static void prefs_fmap(void)
 		updated = true;
 	}
 
-	if (user_session.capabilities & APPROVER)
+	if (IS_APPROVER())
 		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
 	if (user_session.capabilities & ADMIN)
 		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
