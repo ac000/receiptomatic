@@ -1564,7 +1564,7 @@ static void approve_receipts(void)
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
 
-	if (!(user_session.capabilities & APPROVER))
+	if (!IS_APPROVER())
 		return;
 
 	memset(pmsql, 0, sizeof(pmsql));
@@ -1652,7 +1652,7 @@ static void approve_receipts(void)
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
 
-	if (user_session.capabilities & APPROVER)
+	if (IS_APPROVER())
 		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
 	if (user_session.capabilities & ADMIN)
 		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
