@@ -27,6 +27,9 @@
 
 #include <glib.h>
 
+/* HTML template library */
+#include <ctemplate.h>
+
 #include "receiptomatic_config.h"
 #include "db.h"
 
