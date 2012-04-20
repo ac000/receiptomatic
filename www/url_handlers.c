@@ -479,7 +479,7 @@ static void admin_add_user(void)
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
-	if (!(user_session.capabilities & ADMIN))
+	if (!IS_ADMIN())
 		return;
 
 	/* Prevent CSRF attack */
