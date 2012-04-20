@@ -266,7 +266,7 @@ bool image_access_allowed(const char *path)
 	snprintf(uidir, sizeof(uidir), "/%d/", user_session.uid);
 
 	/* Approvers can see all images */
-	if (user_session.capabilities & APPROVER)
+	if (IS_APPROVER())
 		access_allowed = true;
 	else if (strncmp(path + strlen(IMAGE_PATH), uidir, strlen(uidir)) == 0)
 		access_allowed = true;
