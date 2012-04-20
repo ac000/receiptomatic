@@ -2205,7 +2205,7 @@ static void tagged_receipts(void)
 
 	if (IS_APPROVER())
 		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
-	if (user_session.capabilities & ADMIN)
+	if (IS_ADMIN())
 		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
 
 	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
