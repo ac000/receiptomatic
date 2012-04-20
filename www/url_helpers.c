@@ -227,7 +227,7 @@ bool tag_info_allowed(const char *image_id)
 	MYSQL_RES *res;
 
 	/* Approvers can see all tags */
-	if (user_session.capabilities & APPROVER) {
+	if (IS_APPROVER()) {
 		tag_allowed = true;
 		goto out;
 	}
