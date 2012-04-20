@@ -58,6 +58,8 @@
 
 /* Macro to check if the user is an approver */
 #define IS_APPROVER()	(((user_session.capabilities) & (APPROVER)) ? 1 : 0)
+/* Macro to check if the user is an admin */
+#define IS_ADMIN()	(((user_session.capabilities) & (ADMIN)) ? 1 : 0)
 
 /*
  * Wrapper around fprintf(). It will prepend the text passed it with
