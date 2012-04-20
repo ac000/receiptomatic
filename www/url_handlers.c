@@ -1062,7 +1062,7 @@ static void prefs(void)
 {
 	TMPL_varlist *vl = NULL;
 
-	if (user_session.capabilities & ADMIN)
+	if (IS_ADMIN())
 		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
 	if (IS_APPROVER())
 		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
