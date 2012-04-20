@@ -340,7 +340,7 @@ static void admin(void)
 {
 	TMPL_varlist *vl = NULL;
 
-	if (!(user_session.capabilities & ADMIN))
+	if (!IS_ADMIN())
 		return;
 
 	vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
