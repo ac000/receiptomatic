@@ -63,7 +63,7 @@ unsigned int log_login(void)
 		addr = (struct sockaddr *)&addr6;
 		addr_len = sizeof(addr6);
 	}
-	getnameinfo(addr, addr_len, host, sizeof(host), NULL, 0, 0);
+	getnameinfo(addr, addr_len, host, NI_MAXHOST, NULL, 0, 0);
 
 	conn = db_conn();
 
