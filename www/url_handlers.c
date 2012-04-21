@@ -57,7 +57,7 @@ struct env_vars env_vars;
 static void login(void)
 {
 	int ret = 1;
-	int sid;
+	unsigned long long sid;
 	TMPL_varlist *vl = NULL;
 
 	if (qvars) {

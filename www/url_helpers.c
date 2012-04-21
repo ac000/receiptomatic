@@ -291,7 +291,7 @@ void set_user_session(void)
 	char login_at[21];
 	char last_seen[21];
 	char uid[11];
-	char sid[11];
+	char sid[21];
 	char restrict_ip[2];
 	char capabilities[4];
 	char user_hdr[1025];
@@ -321,7 +321,7 @@ void set_user_session(void)
 	cols = tctdbget(tdb, rbuf, rsize);
 	tcmapiterinit(cols);
 
-	user_session.sid = atoi(tcmapget2(cols, "sid"));
+	user_session.sid = strtoull(tcmapget2(cols, "sid"), NULL, 10);
 	user_session.uid = atoi(tcmapget2(cols, "uid"));
 	user_session.username = strdup(tcmapget2(cols, "username"));
 	user_session.name = strdup(tcmapget2(cols, "name"));
@@ -378,7 +378,7 @@ void set_user_session(void)
 	snprintf(last_seen, sizeof(last_seen), "%ld",
 						user_session.last_seen);
 	snprintf(uid, sizeof(uid), "%u", user_session.uid);
-	snprintf(sid, sizeof(sid), "%u", user_session.sid);
+	snprintf(sid, sizeof(sid), "%llu", user_session.sid);
 	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
 						user_session.restrict_ip);
 	snprintf(capabilities, sizeof(capabilities), "%d",
@@ -463,7 +463,7 @@ char *generate_csrf_token(void)
 	char login_at[21];
 	char last_seen[21];
 	char uid[11];
-	char sid[11];
+	char sid[21];
 	char restrict_ip[2];
 	char capabilities[4];
 	const char *rbuf;
@@ -492,7 +492,7 @@ char *generate_csrf_token(void)
 	snprintf(last_seen, sizeof(last_seen), "%ld",
 						user_session.last_seen);
 	snprintf(uid, sizeof(uid), "%u", user_session.uid);
-	snprintf(sid, sizeof(sid), "%u", user_session.sid);
+	snprintf(sid, sizeof(sid), "%llu", user_session.sid);
 	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
 						user_session.restrict_ip);
 	snprintf(capabilities, sizeof(capabilities), "%d",
@@ -551,14 +551,14 @@ bool valid_csrf_token(void)
 /*
  * Create a new user session. This is done upon each successful login.
  */
-void create_session(unsigned int sid)
+void create_session(unsigned long long sid)
 {
 	char *session_id;
 	char restrict_ip[2] = "0\0";
 	char sql[SQL_MAX];
 	char pkbuf[256];
 	char timestamp[21];
-	char ssid[11];
+	char ssid[21];
 	char *username;
 	int primary_key_size;
 	MYSQL *conn;
@@ -594,7 +594,7 @@ void create_session(unsigned int sid)
 	tctdbopen(tdb, SESSION_DB, TDBOWRITER | TDBOCREAT);
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
 	snprintf(timestamp, sizeof(timestamp), "%ld", (long)time(NULL));
-	snprintf(ssid, sizeof(ssid), "%u", sid);
+	snprintf(ssid, sizeof(ssid), "%llu", sid);
 	cols = tcmapnew3("sid", ssid, "uid", get_var(db_row, "uid"),
 					"username", get_var(qvars, "username"),
 					"name", get_var(db_row, "name"),
@@ -1216,7 +1216,7 @@ void do_edit_user(void)
 	char login_at[21];
 	char last_seen[21];
 	char uid[11];
-	char sid[11];
+	char sid[21];
 	char restrict_ip[2];
 	char capabilities[4];
 	char *hash;
@@ -1284,7 +1284,7 @@ void do_edit_user(void)
 	tctdbqrydel(qry);
 
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
-	snprintf(sid, sizeof(sid), "%u", user_session.sid);
+	snprintf(sid, sizeof(sid), "%llu", user_session.sid);
 	snprintf(login_at, sizeof(login_at), "%ld", user_session.login_at);
 	snprintf(last_seen, sizeof(last_seen), "%ld", time(NULL));
 	snprintf(restrict_ip, sizeof(restrict_ip), "%d",

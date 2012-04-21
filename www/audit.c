@@ -29,7 +29,7 @@
  * We log the time (seconds.microseconds), uid, username, ip address,
  * hostname and the session id that was assigned to this session.
  */
-unsigned int log_login(void)
+unsigned long long log_login(void)
 {
 	char sql[SQL_MAX];
 	char *username;
@@ -40,7 +40,7 @@ unsigned int log_login(void)
 	struct sockaddr_in addr4;
 	struct sockaddr_in6 addr6;
 	struct sockaddr *addr = (struct sockaddr *)&addr4;
-	unsigned int sid;
+	unsigned long long sid;
 	unsigned int uid;
 	socklen_t addr_len = sizeof(addr4);
 	MYSQL *conn;
@@ -93,10 +93,10 @@ unsigned int log_login(void)
 	res = mysql_store_result(conn);
 	row = mysql_fetch_row(res);
 
-	sid = atoi(row[0]) + 1;
+	sid = strtoull(row[0], NULL, 10) + 1;
 
 	snprintf(sql, SQL_MAX, "INSERT INTO utmp VALUES (%ld.%ld, %u, '%s', "
-					"'%s', '%s', %u)",
+					"'%s', '%s', %llu)",
 					login_at.tv_sec, login_at.tv_usec,
 					uid, username, ip_addr, hostname, sid);
 	d_fprintf(sql_log, "%s\n", sql);
