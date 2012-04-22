@@ -29,7 +29,7 @@ void send_activation_mail(const char *name, const char *address,
 							const char *key);
 char *generate_password_hash(int hash_type, const char *password);
 void delete_user_session(unsigned int uid);
-int user_already_exists(const char *username);
+bool user_already_exists(const char *username);
 void get_page_pagination(const char *req_page_no, int rpp, int *page_no,
 								int *from);
 void do_pagination(TMPL_varlist *varlist, int page, int nr_pages);

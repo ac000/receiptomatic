@@ -726,15 +726,12 @@ void delete_user_session(unsigned int uid)
 
 /*
  * Given a username, check if an account for it already exists.
- *
- * 0 - not exists
- * 1 - exists
  */
-int user_already_exists(const char *username)
+bool user_already_exists(const char *username)
 {
 	char sql[SQL_MAX];
 	char *user;
-	int ret = 0;
+	bool ret = false;
 	MYSQL *conn;
 	MYSQL_RES *res;
 
@@ -748,7 +745,7 @@ int user_already_exists(const char *username)
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	if (mysql_num_rows(res) > 0)
-		ret = 1;
+		ret = true;
 
 	mysql_free_result(res);
 	mysql_close(conn);
