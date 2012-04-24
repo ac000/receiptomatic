@@ -795,11 +795,10 @@ static void admin_pending_activations(void)
 		db_row = get_dbrow(res);
 		/*
 		 * Due to the SQL above always returning at least one row,
-		 * we need to see if we got a NULL value for one of the
-		 * fields, which would indicate there aren't any pending
-		 * activations.
+		 * we need to see if nrows is 0, which would indicate there
+		 * aren't any pending activations.
 		 */
-		if (strlen(get_var(db_row, "name")) == 0) {
+		if (strcmp(get_var(db_row, "nrows"), "0") == 0) {
 			free_vars(db_row);
 			break;
 		}
