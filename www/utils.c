@@ -773,6 +773,9 @@ void get_page_pagination(const char *req_page_no, int rpp, int *page_no,
 	}
 }
 
+/*
+ * Create the next / prev page navigation links.
+ */
 void do_pagination(TMPL_varlist *varlist, int page, int nr_pages)
 {
 	char page_no[10];
