@@ -802,11 +802,7 @@ static void admin_pending_activations(void)
 		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 								(float)rpp);
 
-		if (!(i % 2))
-			vl = TMPL_add_var(NULL, "zebra", "yes", (char *)NULL);
-		else
-			vl = TMPL_add_var(NULL, "zebra", "no", (char *)NULL);
-
+		vl = do_zebra(NULL, i);
 		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"),
 								(char *)NULL);
 		vl = TMPL_add_var(vl, "username", get_var(db_row, "user"),
