@@ -798,6 +798,24 @@ void do_pagination(TMPL_varlist *varlist, int page, int nr_pages)
 }
 
 /*
+ * Create a zebra list with alternating highlighted rows.
+ *
+ * If varlist is NULL it returns a _new_ varlist otherwise
+ * it returns _the_ varlist.
+ */
+TMPL_varlist *do_zebra(TMPL_varlist *varlist, unsigned long row)
+{
+	TMPL_varlist *vlist = NULL;
+
+	if (!(row % 2))
+		vlist = TMPL_add_var(varlist, "zebra", "yes", (char *)NULL);
+	else
+		vlist = TMPL_add_var(varlist, "zebra", "no", (char *)NULL);
+
+	return vlist;
+}
+
+/*
  * Simple anti-xss mechanism.
  *
  * Escape the HTML characters listed here: https://www.owasp.org/index.php/XSS_%28Cross_Site_Scripting%29_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content

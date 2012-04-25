@@ -33,6 +33,7 @@ bool user_already_exists(const char *username);
 void get_page_pagination(const char *req_page_no, int rpp, int *page_no,
 								int *from);
 void do_pagination(TMPL_varlist *varlist, int page, int nr_pages);
+TMPL_varlist *do_zebra(TMPL_varlist *varlist, unsigned long row);
 void de_xss(const char *value, FILE *out);
 char *xss_safe_string(const char *string);
 
