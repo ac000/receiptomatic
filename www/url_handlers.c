@@ -372,7 +372,6 @@ static void admin_list_users(void)
 	int from = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	TMPL_varlist *vl = NULL;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -380,12 +379,12 @@ static void admin_list_users(void)
 	if (!IS_ADMIN())
 		return;
 
-	ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
+	ml = add_html_var(ml, "admin", "yes");
 
 	if (IS_APPROVER())
-		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
+		ml = add_html_var(ml, "approver", "yes");
 
-	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
+	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), rpp, &page,
@@ -404,19 +403,16 @@ static void admin_list_users(void)
 	for (i = 0; i < nr_rows; i++) {
 		char caps[33] = "\0";
 		GHashTable *db_row = NULL;
+		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
 		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 								(float)rpp);
 
-		vl = do_zebra(NULL, i);
-		vl = TMPL_add_var(vl, "uid", get_var(db_row, "uid"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "username", get_var(db_row,
-							"username"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"),
-								(char *)NULL);
+		vl = do_zebra(vl, i);
+		vl = add_html_var(vl, "uid", get_var(db_row, "uid"));
+		vl = add_html_var(vl, "username", get_var(db_row, "username"));
+		vl = add_html_var(vl, "name", get_var(db_row, "name"));
 
 		/* Pretty print the set of capabilities */
 		if (atoi(get_var(db_row, "capabilities")) & APPROVER)
@@ -429,23 +425,22 @@ static void admin_list_users(void)
 			strcat(caps, " Cheque");
 		if (atoi(get_var(db_row, "capabilities")) & APPROVER_SELF)
 			strcat(caps, " Self");
-		vl = TMPL_add_var(vl, "capabilities", caps, (char *)NULL);
+		vl = add_html_var(vl, "capabilities", caps);
 
 		if (atoi(get_var(db_row, "capabilities")) & ADMIN)
-			vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
+			vl = add_html_var(vl, "admin", "yes");
 		else
-			vl = TMPL_add_var(vl, "admin", "no", (char *)NULL);
+			vl = add_html_var(vl, "admin", "no");
 
 		if (atoi(get_var(db_row, "enabled")) == 1)
-			vl = TMPL_add_var(vl, "enabled", "yes", (char *)NULL);
+			vl = add_html_var(vl, "enabled", "yes");
 		else
-			vl = TMPL_add_var(vl, "enabled", "no", (char *)NULL);
+			vl = add_html_var(vl, "enabled", "no");
 
 		if (atoi(get_var(db_row, "activated")) == 1)
-			vl = TMPL_add_var(vl, "activated", "yes",
-								(char *)NULL);
+			vl = add_html_var(vl, "activated", "yes");
 		else
-			vl = TMPL_add_var(vl, "activated", "no", (char *)NULL);
+			vl = add_html_var(vl, "activated", "no");
 
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
