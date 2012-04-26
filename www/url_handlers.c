@@ -71,9 +71,9 @@ static void login(void)
 	}
 
 	if (ret == -1)
-		vl = TMPL_add_var(0, "logged_in", "no", (char *)NULL);
+		vl = add_html_var(vl, "logged_in", "no");
 	if (ret == -2)
-		vl = TMPL_add_var(0, "enabled", "no", (char *)NULL);
+		vl = add_html_var(vl, "enabled", "no");
 
 	send_template("templates/login.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
