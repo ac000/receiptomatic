@@ -815,6 +815,15 @@ TMPL_varlist *do_zebra(TMPL_varlist *varlist, unsigned long row)
 	return vlist;
 }
 
+TMPL_varlist *add_html_var(TMPL_varlist *varlist, const char *name,
+							const char *value)
+{
+	TMPL_varlist *vlist = NULL;
+
+	vlist = TMPL_add_var(varlist, name, value, (char *)NULL);
+	return vlist;
+}
+
 /*
  * Simple anti-xss mechanism.
  *
