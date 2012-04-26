@@ -581,12 +581,12 @@ static void admin_edit_user(void)
 	if (!qvars)
 		return;
 
-	vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
+	vl = add_html_var(vl, "admin", "yes");
 
 	if (IS_APPROVER())
-		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
+		vl = add_html_var(vl, "approver", "yes");
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
+	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 
 	/* If we got a POST, update user settings before showing them. */
 	if (strcmp(env_vars.request_method, "POST") == 0) {
@@ -597,16 +597,15 @@ static void admin_edit_user(void)
 				strlen(get_var(qvars, "email2")) == 0) ||
 				(strcmp(get_var(qvars, "email1"),
 					get_var(qvars, "email2")) != 0)) {
-			vl = TMPL_add_var(vl, "email_error", "yes",
-								(char *)NULL);
+			vl = add_html_var(vl, "email_error", "yes");
 			form_err = true;
 		}
 		if (strlen(get_var(qvars, "pass1")) > 7 &&
 					strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
 					get_var(qvars, "pass2")) != 0) {
-				vl = TMPL_add_var(vl, "pass_error", "mismatch",
-								(char *)NULL);
+				vl = add_html_var(vl, "pass_error",
+								"mismatch");
 				form_err = true;
 			}
 		/*
@@ -615,18 +614,17 @@ static void admin_edit_user(void)
 		 */
 		} else if (strlen(get_var(qvars, "pass1")) != 0 &&
 					strlen(get_var(qvars, "pass2")) != 0) {
-			vl = TMPL_add_var(vl, "pass_error", "length",
-								(char *)NULL);
+			vl = add_html_var(vl, "pass_error", "length");
 			form_err = true;
 		}
 
 		if (!form_err) {
 			do_update_user();
-			vl = TMPL_add_var(vl, "updated", "yes", (char *)NULL);
+			vl = add_html_var(vl, "updated", "yes");
 		}
 	}
 
-	vl = TMPL_add_var(vl, "uid", get_var(qvars, "uid"), (char *)NULL);
+	vl = add_html_var(vl, "uid", get_var(qvars, "uid"));
 	uid = atoi(get_var(qvars, "uid"));
 
 	/*
@@ -658,68 +656,55 @@ static void admin_edit_user(void)
 
 		db_row = get_dbrow(res);
 
-		vl = TMPL_add_var(vl, "username", get_var(db_row, "username"),
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "email1", get_var(db_row, "username"),
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "email2", get_var(db_row, "username"),
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), NULL);
+		vl = add_html_var(vl, "username", get_var(db_row, "username"));
+		vl = add_html_var(vl, "email1", get_var(db_row, "username"));
+		vl = add_html_var(vl, "email2", get_var(db_row, "username"));
+		vl = add_html_var(vl, "name", get_var(db_row, "name"));
 		if (atoi(get_var(db_row, "enabled")) == 1)
-			vl = TMPL_add_var(vl, "is_enabled", "yes",
-							(char *)NULL);
+			vl = add_html_var(vl, "is_enabled", "yes");
 		if (atoi(get_var(db_row, "activated")) == 1)
-			vl = TMPL_add_var(vl, "is_activated", "yes",
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "d_reason", get_var(db_row, "d_reason"),
-							(char *)NULL);
+			vl = add_html_var(vl, "is_activated", "yes");
+		vl = add_html_var(vl, "d_reason", get_var(db_row, "d_reason"));
 
 		capabilities = atoi(get_var(db_row, "capabilities"));
 		if (capabilities & APPROVER_CARD)
-			vl = TMPL_add_var(vl, "ap_card", "yes", (char *)NULL);
+			vl = add_html_var(vl, "ap_card", "yes");
 		if (capabilities & APPROVER_CASH)
-			vl = TMPL_add_var(vl, "ap_cash", "yes", (char *)NULL);
+			vl = add_html_var(vl, "ap_cash", "yes");
 		if (capabilities & APPROVER_CHEQUE)
-			vl = TMPL_add_var(vl, "ap_cheque", "yes",
-								(char *)NULL);
+			vl = add_html_var(vl, "ap_cheque", "yes");
 		if (capabilities & APPROVER_SELF)
-			vl = TMPL_add_var(vl, "ap_self", "yes", (char *)NULL);
+			vl = add_html_var(vl, "ap_self", "yes");
 
 		if (capabilities & ADMIN)
-			vl = TMPL_add_var(vl, "is_admin", "yes", (char *)NULL);
+			vl = add_html_var(vl, "is_admin", "yes");
 
 		free_vars(db_row);
 mysql_cleanup:
 		mysql_free_result(res);
 		mysql_close(conn);
 	} else {
-		vl = TMPL_add_var(vl, "username", get_var(qvars, "email1"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "email1", get_var(qvars, "email1"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "email2", get_var(qvars, "email2"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "name", get_var(qvars, "name"),
-								(char *)NULL);
+		vl = add_html_var(vl, "username", get_var(qvars, "email1"));
+		vl = add_html_var(vl, "email1", get_var(qvars, "email1"));
+		vl = add_html_var(vl, "email2", get_var(qvars, "email2"));
+		vl = add_html_var(vl, "name", get_var(qvars, "name"));
+
 		if (atoi(get_var(qvars, "enabled")) == 1)
-			vl = TMPL_add_var(vl, "is_enabled", "yes",
-								(char *)NULL);
+			vl = add_html_var(vl, "is_enabled", "yes");
 		if (atoi(get_var(qvars, "activated")) == 1)
-			vl = TMPL_add_var(vl, "is_activated", "yes",
-								(char *)NULL);
+			vl = add_html_var(vl, "is_activated", "yes");
 
 		if (atoi(get_var(qvars, "ap_card")) == 1)
-			vl = TMPL_add_var(vl, "ap_card", "yes", (char *)NULL);
+			vl = add_html_var(vl, "ap_card", "yes");
 		if (atoi(get_var(qvars, "ap_cash")) == 1)
-			vl = TMPL_add_var(vl, "ap_cash", "yes", (char *)NULL);
+			vl = add_html_var(vl, "ap_cash", "yes");
 		if (atoi(get_var(qvars, "ap_cheque")) == 1)
-			vl = TMPL_add_var(vl, "ap_cheque", "yes",
-								(char *)NULL);
+			vl = add_html_var(vl, "ap_cheque", "yes");
 		if (atoi(get_var(qvars, "ap_self")) == 1)
-			vl = TMPL_add_var(vl, "ap_self", "yes", (char *)NULL);
+			vl = add_html_var(vl, "ap_self", "yes");
 
 		if (atoi(get_var(qvars, "is_admin")) == 1)
-			vl = TMPL_add_var(vl, "is_admin", "yes", (char *)NULL);
+			vl = add_html_var(vl, "is_admin", "yes");
 	}
 
 	add_csrf_token(vl);
