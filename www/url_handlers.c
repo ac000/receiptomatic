@@ -2535,19 +2535,18 @@ static void receipts(void)
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
-	TMPL_varlist *vl = NULL;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
 	time_t llogin;
 
 	if (IS_APPROVER())
-		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
+		ml = add_html_var(ml, "approver", "yes");
 	if (IS_ADMIN())
-		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
+		ml = add_html_var(ml, "admin", "yes");
 
 	/* Display the user's name and UID at the top of the page */
-	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
+	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
 	/*
 	 * Display the users last login time and location, we only show
@@ -2558,12 +2557,10 @@ static void receipts(void)
 		char tbuf[32];
 
 		strftime(tbuf, 32, "%a %b %e %H:%M %Y", localtime(&llogin));
-		ml = TMPL_add_var(ml, "last_login", tbuf, (char *)NULL);
-		ml = TMPL_add_var(ml, "last_login_from", llogin_from,
-								(char *)NULL);
+		ml = add_html_var(ml, "last_login", tbuf);
+		ml = add_html_var(ml, "last_login_from", llogin_from);
 	} else {
-		ml = TMPL_add_var(ml, "last_login", "First login",
-								(char *)NULL);
+		ml = add_html_var(ml, "last_login", "First login");
 	}
 
 	conn = db_conn();
@@ -2578,7 +2575,7 @@ static void receipts(void)
 
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
-		ml = TMPL_add_var(ml, "receipts", "no", (char *)NULL);
+		ml = add_html_var(ml, "receipts", "no");
 		goto out;
 	}
 
@@ -2588,62 +2585,41 @@ static void receipts(void)
 		char tbuf[64];
 		time_t secs;
 		GHashTable *db_row = NULL;
+		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
-		/*
-		 * This first vl call needs a NULL entry or you only get
-		 * the last receipt entry.
-		 */
-		vl = TMPL_add_var(NULL, "image_path", get_var(db_row, "path"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
-								(char *)NULL);
+
+		vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
+		vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
 		secs = atol(get_var(db_row, "timestamp"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z",
-							localtime(&secs));
-		vl = TMPL_add_var(vl, "timestamp", tbuf, (char *)NULL);
-		vl = TMPL_add_var(vl, "fields.department", fields.department,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.employee_number",
-							fields.employee_number,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.account_codes",
-							fields.account_codes,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.po_num", fields.po_num,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.supplier_name",
-							fields.supplier_name,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.supplier_town",
-							fields.supplier_town,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.currency", fields.currency,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.gross_amount",
-							fields.gross_amount,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.reason", fields.reason,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.receipt_date",
-							fields.receipt_date,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.payment_method",
-							fields.payment_method,
-							(char *)NULL);
+						localtime(&secs));
+		vl = add_html_var(vl, "timestamp", tbuf);
+		vl = add_html_var(vl, "fields.department", fields.department);
+		vl = add_html_var(vl, "fields.employee_number",
+						fields.employee_number);
+		vl = add_html_var(vl, "fields.cost_codes", fields.cost_codes);
+		vl = add_html_var(vl, "fields.account_codes",
+						fields.account_codes);
+		vl = add_html_var(vl, "fields.po_num", fields.po_num);
+		vl = add_html_var(vl, "fields.supplier_name",
+						fields.supplier_name);
+		vl = add_html_var(vl, "fields.supplier_town",
+						fields.supplier_town);
+		vl = add_html_var(vl, "fields.currency", fields.currency);
+		vl = add_html_var(vl, "fields.gross_amount",
+						fields.gross_amount);
+		vl = add_html_var(vl, "fields.vat_amount", fields.vat_amount);
+		vl = add_html_var(vl, "fields.net_amount", fields.net_amount);
+		vl = add_html_var(vl, "fields.vat_rate", fields.vat_rate);
+		vl = add_html_var(vl, "fields.vat_number", fields.vat_number);
+		vl = add_html_var(vl, "fields.reason", fields.reason);
+		vl = add_html_var(vl, "fields.receipt_date",
+						fields.receipt_date);
+		vl = add_html_var(vl, "fields.payment_method",
+						fields.payment_method);
 		/* image_id for hidden input field */
-		vl = TMPL_add_var(vl, "id", get_var(db_row, "id"),
-								(char *)NULL);
+		vl = add_html_var(vl, "id", get_var(db_row, "id"));
 
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
@@ -2651,7 +2627,7 @@ static void receipts(void)
 	ml = TMPL_add_loop(ml, "table", loop);
 	free_fields(&fields);
 	/* Only use csrf if there are receipts to process */
-	add_csrf_token(vl);
+	add_csrf_token(ml);
 
 out:
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
