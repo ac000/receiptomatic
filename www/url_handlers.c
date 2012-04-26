@@ -970,7 +970,7 @@ static void generate_new_key(void)
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
 	free(key);
 
-	vl = TMPL_add_var(vl, "email", email_addr, (char *)NULL);
+	vl = add_html_var(vl, "email", email_addr);
 
 out:
 	send_template("templates/generate_new_key.tmpl", vl, NULL);
