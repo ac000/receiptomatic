@@ -773,8 +773,11 @@ static void admin_pending_activations(void)
 									&from);
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT COUNT(*) AS nrows, name, user, expires "
-				"FROM activations INNER JOIN passwd ON "
+	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM activations "
+				"INNER JOIN passwd ON (activations.user = "
+				"passwd.username)) AS nrows, passwd.name, "
+				"activations.user, activations.expires FROM "
+				"activations INNER JOIN passwd ON "
 				"(activations.user = passwd.username) LIMIT "
 				"%d, %d", from, rpp);
 	d_fprintf(sql_log, "%s\n", sql);
