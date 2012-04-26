@@ -1002,7 +1002,7 @@ static void forgotten_password(void)
 
 	conn = db_conn();
 
-	vl = TMPL_add_var(vl, "email", get_var(qvars, "email"), (char *)NULL);
+	vl = add_html_var(vl, "email", get_var(qvars, "email"));
 
 	email_addr = alloca(strlen(get_var(qvars, "email")) * 2 + 1);
 	mysql_real_escape_string(conn, email_addr, get_var(qvars, "email"),
@@ -1014,7 +1014,7 @@ static void forgotten_password(void)
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	if (mysql_num_rows(res) == 0) {
-		vl = TMPL_add_var(vl, "user_error", "yes", (char *)NULL);
+		vl = add_html_var(vl, "user_error", "yes");
 		goto mysql_cleanup;
 	}
 
@@ -1029,7 +1029,7 @@ static void forgotten_password(void)
 
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
 	free(key);
-	vl = TMPL_add_var(vl, "sent", "yes", (char *)NULL);
+	vl = add_html_var(vl, "sent", "yes");
 
 mysql_cleanup:
 	mysql_free_result(res);
