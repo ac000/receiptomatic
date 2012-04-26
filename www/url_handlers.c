@@ -841,7 +841,7 @@ static void activate_user(void)
 	TMPL_varlist *vl = NULL;
 
 	if (!qvars) {
-		vl = TMPL_add_var(vl, "key_error", "yes", (char *)NULL);
+		vl = add_html_var(vl, "key_error", "yes");
 		goto out2;
 	}
 
@@ -870,21 +870,20 @@ static void activate_user(void)
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	if (mysql_num_rows(res) == 0) {
-		vl = TMPL_add_var(vl, "key_error", "yes", (char *)NULL);
+		vl = add_html_var(vl, "key_error", "yes");
 		goto out;
 	}
 
 	db_row = get_dbrow(res);
-	vl = TMPL_add_var(vl, "name", get_var(db_row, "name"), (char *)NULL);
+	vl = add_html_var(vl, "name", get_var(db_row, "name"));
 
 	/* Check if the activation key has expired. */
 	if (time(NULL) > atol(get_var(db_row, "expires"))) {
-		vl = TMPL_add_var(vl, "expired", "yes", (char *)NULL);
-		vl = TMPL_add_var(vl, "email", get_var(db_row, "user"),
-								(char *)NULL);
+		vl = add_html_var(vl, "expired", "yes");
+		vl = add_html_var(vl, "email", get_var(db_row, "user"));
 		goto out;
 	}
-	vl = TMPL_add_var(vl, "key", get_var(qvars, "key"), (char *)NULL);
+	vl = add_html_var(vl, "key", get_var(qvars, "key"));
 
 	/*
 	 * The user is trying to set a password, do some sanity
@@ -900,16 +899,13 @@ static void activate_user(void)
 					get_var(qvars, "pass2")) == 0) {
 				do_activate_user(get_var(db_row, "uid"), key,
 						get_var(qvars, "pass1"));
-				vl = TMPL_add_var(vl, "activated", "yes",
-								(char *)NULL);
+				vl = add_html_var(vl, "activated", "yes");
 			} else {
-				vl = TMPL_add_var(vl, "password_error",
-								"mismatch",
-								(char *)NULL);
+				vl = add_html_var(vl, "password_error",
+								"mismatch");
 			}
 		} else {
-			vl = TMPL_add_var(vl, "password_error", "length",
-								(char *)NULL);
+			vl = add_html_var(vl, "password_error", "length");
 		}
 	}
 
