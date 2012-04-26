@@ -1547,7 +1547,6 @@ static void approve_receipts(void)
 	int nr_pages = 0;
 	struct field_names fields;
 	TMPL_varlist *ml = NULL;
-	TMPL_varlist *vl = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
 
@@ -1639,15 +1638,15 @@ static void approve_receipts(void)
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
 
-	ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
+	ml = add_html_var(ml, "approver", "yes");
 	if (IS_ADMIN())
-		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
+		ml = add_html_var(ml, "admin", "yes");
 
-	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
+	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
-		ml = TMPL_add_var(ml, "receipts", "no", (char *)NULL);
+		ml = add_html_var(ml, "receipts", "no");
 		goto out;
 	}
 
@@ -1665,90 +1664,65 @@ static void approve_receipts(void)
 		double vr;
 		int ret;
 		GHashTable *db_row = NULL;
+		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
 
 		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 							(float)APPROVER_ROWS);
 
-		vl = TMPL_add_var(NULL, "image_path", get_var(db_row, "path"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
-								(char *)NULL);
+		vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
+		vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
 
 		name = username_to_name(get_var(db_row, "username"));
-		vl = TMPL_add_var(vl, "name", name, (char *)NULL);
+		vl = add_html_var(vl, "name", name);
 		free(name);
 
 		secs = atol(get_var(db_row, "its"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = TMPL_add_var(vl, "images_timestamp", tbuf, (char *)NULL);
+		vl = add_html_var(vl, "images_timestamp", tbuf);
 
 		secs = atol(get_var(db_row, "tts"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = TMPL_add_var(vl, "tags_timestamp", tbuf, (char *)NULL);
-		vl = TMPL_add_var(vl, "fields.department", fields.department,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "department", get_var(db_row,
-								"department"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.employee_number",
-							fields.employee_number,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "employee_number", get_var(db_row,
-							"employee_number"),
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "cost_codes", get_var(db_row,
-								"cost_codes"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.account_codes",
-							fields.account_codes,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "account_codes", get_var(db_row,
-							"account_codes"),
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.po_num", fields.po_num,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "po_num", get_var(db_row, "po_num"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.supplier_name",
-							fields.supplier_name,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "supplier_name", get_var(db_row,
-							"supplier_name"),
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.supplier_town",
-							fields.supplier_town,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "supplier_town", get_var(db_row,
-							"supplier_town"),
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.currency", fields.currency,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "currency", get_var(db_row, "currency"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.gross_amount",
-							fields.gross_amount,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "gross_amount", get_var(db_row,
-							"gross_amount"),
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "vat_amount", get_var(db_row,
-								"vat_amount"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "net_amount", get_var(db_row,
-								"net_amount"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "vat_rate", get_var(db_row, "vat_rate"),
-								(char *)NULL);
+		vl = add_html_var(vl, "tags_timestamp", tbuf);
+		vl = add_html_var(vl, "fields.department", fields.department);
+		vl = add_html_var(vl, "department",
+					get_var(db_row, "department"));
+		vl = add_html_var(vl, "fields.employee_number",
+					fields.employee_number);
+		vl = add_html_var(vl, "employee_number",
+					get_var(db_row, "employee_number"));
+		vl = add_html_var(vl, "fields.cost_codes", fields.cost_codes);
+		vl = add_html_var(vl, "cost_codes",
+					get_var(db_row, "cost_codes"));
+		vl = add_html_var(vl, "fields.account_codes",
+					fields.account_codes);
+		vl = add_html_var(vl, "account_codes",
+					get_var(db_row, "account_codes"));
+		vl = add_html_var(vl, "fields.po_num", fields.po_num);
+		vl = add_html_var(vl, "po_num", get_var(db_row, "po_num"));
+		vl = add_html_var(vl, "fields.supplier_name",
+					fields.supplier_name);
+		vl = add_html_var(vl, "supplier_name",
+					get_var(db_row, "supplier_name"));
+		vl = add_html_var(vl, "fields.supplier_town",
+					fields.supplier_town);
+		vl = add_html_var(vl, "supplier_town",
+					get_var(db_row, "supplier_town"));
+		vl = add_html_var(vl, "fields.currency", fields.currency);
+		vl = add_html_var(vl, "currency", get_var(db_row, "currency"));
+		vl = add_html_var(vl, "fields.gross_amount",
+					fields.gross_amount);
+		vl = add_html_var(vl, "gross_amount",
+					get_var(db_row, "gross_amount"));
+		vl = add_html_var(vl, "fields.vat_amount", fields.vat_amount);
+		vl = add_html_var(vl, "vat_amount",
+					get_var(db_row, "vat_amount"));
+		vl = add_html_var(vl, "fields.net_amount", fields.net_amount);
+		vl = add_html_var(vl, "net_amount",
+					get_var(db_row, "net_amount"));
+		vl = add_html_var(vl, "fields.vat_rate", fields.vat_rate);
+		vl = add_html_var(vl, "vat_rate", get_var(db_row, "vat_rate"));
 
 		/* Sanity check the amounts */
 		gross = strtod(get_var(db_row, "gross_amount"), NULL);
@@ -1757,37 +1731,29 @@ static void approve_receipts(void)
 		vr = strtod(get_var(db_row, "vat_rate"), NULL);
 		ret = check_amounts(gross, net, vat, vr);
 		if (ret < 0)
-			vl = TMPL_add_var(vl, "amnt_err", "yes", (char *)NULL);
+			vl = add_html_var(vl, "amnt_err", "yes");
 		else
-			vl = TMPL_add_var(vl, "amnt_err", "no", (char *)NULL);
+			vl = add_html_var(vl, "amnt_err", "no");
 
-		vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "vat_number", get_var(db_row,
-								"vat_number"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.receipt_date",
-							fields.receipt_date,
-							(char *)NULL);
+		vl = add_html_var(vl, "fields.vat_number", fields.vat_number);
+		vl = add_html_var(vl, "vat_number",
+					get_var(db_row, "vat_number"));
+		vl = add_html_var(vl, "fields.receipt_date",
+					fields.receipt_date);
 
 		secs = atol(get_var(db_row, "receipt_date"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = TMPL_add_var(vl, "receipt_date", tbuf, (char *)NULL);
-		vl = TMPL_add_var(vl, "fields.payment_method",
-							fields.payment_method,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "payment_method", get_var(db_row,
-							"payment_method"),
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "fields.reason", fields.reason,
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "reason", get_var(db_row, "reason"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "id", get_var(db_row, "id"),
-								(char *)NULL);
+		vl = add_html_var(vl, "receipt_date", tbuf);
+		vl = add_html_var(vl, "fields.payment_method",
+					fields.payment_method);
+		vl = add_html_var(vl, "payment_method",
+					get_var(db_row, "payment_method"));
+		vl = add_html_var(vl, "fields.reason", fields.reason);
+		vl = add_html_var(vl, "reason", get_var(db_row, "reason"));
+		vl = add_html_var(vl, "id", get_var(db_row, "id"));
 
 		snprintf(item, 3, "%lu", i);
-		vl = TMPL_add_var(vl, "item", item, (char *)NULL);
+		vl = add_html_var(vl, "item", item);
 
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
