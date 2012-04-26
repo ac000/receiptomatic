@@ -1355,10 +1355,10 @@ static void extract_data(void)
 	if (!IS_APPROVER())
 		return;
 	if (IS_ADMIN())
-		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
+		vl = add_html_var(vl, "admin", "yes");
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
-	vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
+	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+	vl = add_html_var(vl, "approver", "yes");
 
 	send_template("templates/extract_data.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
