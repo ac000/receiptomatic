@@ -167,12 +167,9 @@ static void delete_image(void)
 	if (!realpath(path, image_path))
 		goto out1;
 
-	vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"),
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "image_id", get_var(qvars, "image_id"),
-								(char *)NULL);
+	vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
+	vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
+	vl = add_html_var(vl, "image_id", get_var(qvars, "image_id"));
 
 	memset(uidir, 0, sizeof(uidir));
 	snprintf(uidir, sizeof(uidir), "/%d/", user_session.uid);
