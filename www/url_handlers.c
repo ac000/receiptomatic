@@ -754,7 +754,6 @@ static void admin_pending_activations(void)
 	int from = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	TMPL_varlist *vl = NULL;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -762,12 +761,12 @@ static void admin_pending_activations(void)
 	if (!IS_ADMIN())
 		return;
 
-	ml = TMPL_add_var(ml, "admin", "yes", NULL);
+	ml = add_html_var(ml, "admin", "yes");
 
 	if (IS_APPROVER())
-		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
+		ml = add_html_var(ml, "approver", "yes");
 
-	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
+	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), rpp, &page,
@@ -787,6 +786,7 @@ static void admin_pending_activations(void)
 		char tbuf[64];
 		time_t secs;
 		GHashTable *db_row = NULL;
+		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
 		/*
@@ -802,16 +802,14 @@ static void admin_pending_activations(void)
 		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 								(float)rpp);
 
-		vl = do_zebra(NULL, i);
-		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "username", get_var(db_row, "user"),
-								(char *)NULL);
+		vl = do_zebra(vl, i);
+		vl = add_html_var(vl, "name", get_var(db_row, "name"));
+		vl = add_html_var(vl, "username", get_var(db_row, "user"));
 		secs = atol(get_var(db_row, "expires"));
 		if (time(NULL) > secs)
-			vl = TMPL_add_var(vl, "expired", "yes", (char *)NULL);
+			vl = add_html_var(vl, "expired", "yes");
 		strftime(tbuf, sizeof(tbuf), "%F %H:%M:%S", localtime(&secs));
-		vl = TMPL_add_var(vl, "expires", tbuf, (char *)NULL);
+		vl = add_html_var(vl, "expires", tbuf);
 
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
