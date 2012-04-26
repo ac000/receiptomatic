@@ -2179,7 +2179,6 @@ static void tagged_receipts(void)
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
-	TMPL_varlist *vl = NULL;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -2189,11 +2188,11 @@ static void tagged_receipts(void)
 							&page, &from);
 
 	if (IS_APPROVER())
-		ml = TMPL_add_var(ml, "approver", "yes", (char *)NULL);
+		ml = add_html_var(ml, "approver", "yes");
 	if (IS_ADMIN())
-		ml = TMPL_add_var(ml, "admin", "yes", (char *)NULL);
+		ml = add_html_var(ml, "admin", "yes");
 
-	ml = TMPL_add_var(ml, "user_hdr", user_session.user_hdr, (char *)NULL);
+	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM tags "
@@ -2217,66 +2216,59 @@ static void tagged_receipts(void)
 
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
-		ml = TMPL_add_var(ml, "receipts", "no", (char *)NULL);
+		ml = add_html_var(ml, "receipts", "no");
 		goto out;
 	}
 
 	fields = field_names;
 	set_custom_field_names(&fields);
-	ml = TMPL_add_var(ml, "receipts", "yes", (char *)NULL);
+	ml = add_html_var(ml, "receipts", "yes");
 	/* Draw gallery grid */
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
 		time_t secs;
 		GHashTable *db_row = NULL;
+		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
 
 		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 							(float)GRID_SIZE);
 
-		vl = TMPL_add_var(NULL, "id", get_var(db_row, "id"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
-								(char *)NULL);
+		vl = add_html_var(vl, "id", get_var(db_row, "id"));
+		vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
+		vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
 		secs = atol(get_var(db_row, "receipt_date"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = TMPL_add_var(vl, "fields.receipt_date",
-							fields.receipt_date,
-							(char *)NULL);
-		vl = TMPL_add_var(vl, "receipt_date", tbuf, (char *)NULL);
+		vl = add_html_var(vl, "fields.receipt_date",
+							fields.receipt_date);
+		vl = add_html_var(vl, "receipt_date", tbuf);
 		/* If the receipt been reviewed, display its reviewed date */
 		if (strlen(get_var(db_row, "timestamp")) > 0) {
 			secs = atol(get_var(db_row, "timestamp"));
 			strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y",
 							localtime(&secs));
-			vl = TMPL_add_var(vl, "reviewed_date", tbuf,
-								(char *)NULL);
+			vl = add_html_var(vl, "reviewed_date", tbuf);
 		}
 
 		if (atoi(get_var(db_row, "approved")) == REJECTED)
-			vl = TMPL_add_var(vl, "approved", "rejected",
-								(char *)NULL);
+			vl = add_html_var(vl, "approved", "rejected");
 		else if (atoi(get_var(db_row, "approved")) == PENDING)
-			vl = TMPL_add_var(vl, "approved", "pending",
-								(char *)NULL);
+			vl = add_html_var(vl, "approved", "pending");
 		else
-			vl = TMPL_add_var(vl, "approved", "yes", (char *)NULL);
+			vl = add_html_var(vl, "approved", "yes");
 
 		/* We want a 3 x 3 grid */
 		if (c == COL_SIZE) /* Close off row */
-			vl = TMPL_add_var(vl, "close_row", "yes",
-								(char *)NULL);
+			vl = add_html_var(vl, "close_row", "yes");
 		else
-			vl = TMPL_add_var(vl, "close_row", "no", (char *)NULL);
+			vl = add_html_var(vl, "close_row", "no");
 
 		if (c == COL_SIZE && i < nr_rows) { /* Start a new row */
-			vl = TMPL_add_var(vl, "new_row", "yes", (char *)NULL);
+			vl = add_html_var(vl, "new_row", "yes");
 			c = 0;
 		} else {
-			vl = TMPL_add_var(vl, "new_row", "no", (char *)NULL);
+			vl = add_html_var(vl, "new_row", "no");
 		}
 		c++;
 
