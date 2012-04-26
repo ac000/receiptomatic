@@ -1083,105 +1083,83 @@ static void prefs_fmap(void)
 	}
 
 	if (IS_APPROVER())
-		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
+		vl = add_html_var(vl, "approver", "yes");
 	if (IS_ADMIN())
-		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
+		vl = add_html_var(vl, "admin", "yes");
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr,
-								(char *)NULL);
+	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 
 	fields = field_names;
 	set_custom_field_names(&fields);
 
 	if (updated)
-		vl = TMPL_add_var(vl, "fields_updated", "yes", (char *)NULL);
+		vl = add_html_var(vl, "fields_updated", "yes");
 
-	vl = TMPL_add_var(vl, "receipt_date", DFN_RECEIPT_DATE, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_receipt_date", !strcmp(DFN_RECEIPT_DATE,
-					fields.receipt_date) ? "" :
-					fields.receipt_date, (char *)NULL);
+	vl = add_html_var(vl, "receipt_date", DFN_RECEIPT_DATE);
+	vl = add_html_var(vl, "alt_receipt_date", !strcmp(DFN_RECEIPT_DATE,
+			fields.receipt_date) ? "" : fields.receipt_date);
 
-	vl = TMPL_add_var(vl, "department", DFN_DEPARTMENT, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_department", !strcmp(DFN_DEPARTMENT,
-					fields.department) ? "" :
-					fields.department, (char *)NULL);
+	vl = add_html_var(vl, "department", DFN_DEPARTMENT);
+	vl = add_html_var(vl, "alt_department", !strcmp(DFN_DEPARTMENT,
+			fields.department) ? "" : fields.department);
 
-	vl = TMPL_add_var(vl, "employee_number", DFN_EMPLOYEE_NUMBER,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "alt_employee_number",
-					!strcmp(DFN_EMPLOYEE_NUMBER,
-					fields.employee_number) ? "" :
-					fields.employee_number, (char *)NULL);
+	vl = add_html_var(vl, "employee_number", DFN_EMPLOYEE_NUMBER);
+	vl = add_html_var(vl, "alt_employee_number",
+			!strcmp(DFN_EMPLOYEE_NUMBER, fields.employee_number) ?
+			"" : fields.employee_number);
 
-	vl = TMPL_add_var(vl, "reason", DFN_REASON, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_reason", !strcmp(DFN_REASON,
-					fields.reason) ? "" :
-					fields.reason, (char *)NULL);
+	vl = add_html_var(vl, "reason", DFN_REASON);
+	vl = add_html_var(vl, "alt_reason", !strcmp(DFN_REASON,
+			fields.reason) ? "" : fields.reason);
 
-	vl = TMPL_add_var(vl, "po_num", DFN_PO_NUM, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_po_num", !strcmp(DFN_PO_NUM,
-					fields.po_num) ? "" :
-					fields.po_num, (char *)NULL);
+	vl = add_html_var(vl, "po_num", DFN_PO_NUM);
+	vl = add_html_var(vl, "alt_po_num", !strcmp(DFN_PO_NUM,
+			fields.po_num) ? "" : fields.po_num);
 
-	vl = TMPL_add_var(vl, "cost_codes", DFN_COST_CODES, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_cost_codes", !strcmp(DFN_COST_CODES,
-					fields.cost_codes) ? "" :
-					fields.cost_codes, (char *)NULL);
+	vl = add_html_var(vl, "cost_codes", DFN_COST_CODES);
+	vl = add_html_var(vl, "alt_cost_codes", !strcmp(DFN_COST_CODES,
+			fields.cost_codes) ? "" : fields.cost_codes);
 
-	vl = TMPL_add_var(vl, "account_codes", DFN_ACCOUNT_CODES,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "alt_account_codes", !strcmp(DFN_ACCOUNT_CODES,
-					fields.account_codes) ? "" :
-					fields.account_codes, (char *)NULL);
+	vl = add_html_var(vl, "account_codes", DFN_ACCOUNT_CODES);
+	vl = add_html_var(vl, "alt_account_codes", !strcmp(DFN_ACCOUNT_CODES,
+			fields.account_codes) ? "" : fields.account_codes);
 
-	vl = TMPL_add_var(vl, "supplier_name", DFN_SUPPLIER_NAME,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "alt_supplier_name", !strcmp(DFN_SUPPLIER_NAME,
-					fields.supplier_name) ? "" :
-					fields.supplier_name, (char *)NULL);
+	vl = add_html_var(vl, "supplier_name", DFN_SUPPLIER_NAME);
+	vl = add_html_var(vl, "alt_supplier_name", !strcmp(DFN_SUPPLIER_NAME,
+			fields.supplier_name) ? "" : fields.supplier_name);
 
-	vl = TMPL_add_var(vl, "supplier_town", DFN_SUPPLIER_TOWN,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "alt_supplier_town", !strcmp(DFN_SUPPLIER_TOWN,
-					fields.supplier_town) ? "" :
-					fields.supplier_town, (char *)NULL);
+	vl = add_html_var(vl, "supplier_town", DFN_SUPPLIER_TOWN);
+	vl = add_html_var(vl, "alt_supplier_town", !strcmp(DFN_SUPPLIER_TOWN,
+			fields.supplier_town) ? "" : fields.supplier_town);
 
-	vl = TMPL_add_var(vl, "vat_number", DFN_VAT_NUMBER, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_vat_number", !strcmp(DFN_VAT_NUMBER,
-					fields.vat_number) ? "" :
-					fields.vat_number, (char *)NULL);
+	vl = add_html_var(vl, "vat_number", DFN_VAT_NUMBER);
+	vl = add_html_var(vl, "alt_vat_number", !strcmp(DFN_VAT_NUMBER,
+			fields.vat_number) ? "" : fields.vat_number);
 
-	vl = TMPL_add_var(vl, "gross_amount", DFN_GROSS_AMOUNT, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_gross_amount", !strcmp(DFN_GROSS_AMOUNT,
-					fields.gross_amount) ? "" :
-					fields.gross_amount, (char *)NULL);
+	vl = add_html_var(vl, "gross_amount", DFN_GROSS_AMOUNT);
+	vl = add_html_var(vl, "alt_gross_amount", !strcmp(DFN_GROSS_AMOUNT,
+			fields.gross_amount) ? "" : fields.gross_amount);
 
-	vl = TMPL_add_var(vl, "net_amount", DFN_NET_AMOUNT, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_net_amount", !strcmp(DFN_NET_AMOUNT,
-					fields.net_amount) ? "" :
-					fields.net_amount, (char *)NULL);
+	vl = add_html_var(vl, "net_amount", DFN_NET_AMOUNT);
+	vl = add_html_var(vl, "alt_net_amount", !strcmp(DFN_NET_AMOUNT,
+			fields.net_amount) ? "" : fields.net_amount);
 
-	vl = TMPL_add_var(vl, "vat_amount", DFN_VAT_AMOUNT, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_vat_amount", !strcmp(DFN_VAT_AMOUNT,
-					fields.vat_amount) ? "" :
-					fields.vat_amount, (char *)NULL);
+	vl = add_html_var(vl, "vat_amount", DFN_VAT_AMOUNT);
+	vl = add_html_var(vl, "alt_vat_amount", !strcmp(DFN_VAT_AMOUNT,
+			fields.vat_amount) ? "" : fields.vat_amount);
 
-	vl = TMPL_add_var(vl, "vat_rate", DFN_VAT_RATE, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_vat_rate", !strcmp(DFN_VAT_RATE,
-					fields.vat_rate) ? "" :
-					fields.vat_rate, (char *)NULL);
+	vl = add_html_var(vl, "vat_rate", DFN_VAT_RATE);
+	vl = add_html_var(vl, "alt_vat_rate", !strcmp(DFN_VAT_RATE,
+			fields.vat_rate) ? "" : fields.vat_rate);
 
-	vl = TMPL_add_var(vl, "currency", DFN_CURRENCY, (char *)NULL);
-	vl = TMPL_add_var(vl, "alt_currency", !strcmp(DFN_CURRENCY,
-					fields.currency) ? "" :
-					fields.currency, (char *)NULL);
+	vl = add_html_var(vl, "currency", DFN_CURRENCY);
+	vl = add_html_var(vl, "alt_currency", !strcmp(DFN_CURRENCY,
+			fields.currency) ? "" : fields.currency);
 
-	vl = TMPL_add_var(vl, "payment_method", DFN_PAYMENT_METHOD,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "alt_payment_method", !strcmp(DFN_PAYMENT_METHOD,
-					fields.payment_method) ? "" :
-					fields.payment_method, (char *)NULL);
-
+	vl = add_html_var(vl, "payment_method", DFN_PAYMENT_METHOD);
+	vl = add_html_var(vl, "alt_payment_method",
+			!strcmp(DFN_PAYMENT_METHOD, fields.payment_method) ?
+			"" : fields.payment_method);
 
 	add_csrf_token(vl);
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
