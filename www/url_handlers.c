@@ -1050,11 +1050,11 @@ static void prefs(void)
 	TMPL_varlist *vl = NULL;
 
 	if (IS_ADMIN())
-		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
+		vl = add_html_var(vl, "admin", "yes");
 	if (IS_APPROVER())
-		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
+		vl = add_html_var(vl, "approver", "yes");
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
+	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 
 	send_template("templates/prefs.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
