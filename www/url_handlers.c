@@ -1956,14 +1956,14 @@ static void receipt_info(void)
 	TMPL_fmtlist *fmtlist;
 
 	if (IS_APPROVER())
-		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
+		vl = add_html_var(vl, "approver", "yes");
 	if (IS_ADMIN())
-		vl = TMPL_add_var(vl, "admin", "yes", NULL);
+		vl = add_html_var(vl, "admin", "yes");
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
+	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 
 	if (!tag_info_allowed(get_var(qvars, "image_id"))) {
-		vl = TMPL_add_var(vl, "show_info", "no", (char *)NULL);
+		vl = add_html_var(vl, "show_info", "no");
 		goto out;
 	}
 
@@ -1995,7 +1995,7 @@ static void receipt_info(void)
 	res = mysql_store_result(conn);
 
 	if (mysql_num_rows(res) == 0) {
-		vl = TMPL_add_var(vl, "show_info", "no", (char *)NULL);
+		vl = add_html_var(vl, "show_info", "no");
 		goto out;
 	}
 
@@ -2005,133 +2005,91 @@ static void receipt_info(void)
 	db_row = get_dbrow(res);
 
 	/* image url */
-	vl = TMPL_add_var(vl, "image_path", get_var(db_row, "path"),
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "image_name", get_var(db_row, "name"),
-								(char *)NULL);
+	vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
+	vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
 
-	vl = TMPL_add_var(vl, "r_user", get_var(db_row, "user"), (char *)NULL);
-	vl = TMPL_add_var(vl, "r_uid", get_var(db_row, "uid"), (char *)NULL);
-	vl = TMPL_add_var(vl, "id", image_id, (char *)NULL);
+	vl = add_html_var(vl, "r_user", get_var(db_row, "user"));
+	vl = add_html_var(vl, "r_uid", get_var(db_row, "uid"));
+	vl = add_html_var(vl, "id", image_id);
 
 	/* image upload timestamp */
 	secs = atol(get_var(db_row, "images_timestamp"));
 	strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z", localtime(&secs));
-	vl = TMPL_add_var(vl, "images_timestamp", tbuf, (char *)NULL);
+	vl = add_html_var(vl, "images_timestamp", tbuf);
 
 	/* image tag timestamp */
 	secs = atol(get_var(db_row, "tags_timestamp"));
 	strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z", localtime(&secs));
-	vl = TMPL_add_var(vl, "tags_timestamp", tbuf, (char *)NULL);
+	vl = add_html_var(vl, "tags_timestamp", tbuf);
 
-	vl = TMPL_add_var(vl, "fields.department", fields.department,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "department", get_var(db_row, "department"),
-								(char *)NULL);
+	vl = add_html_var(vl, "fields.department", fields.department);
+	vl = add_html_var(vl, "department", get_var(db_row, "department"));
+	vl = add_html_var(vl, "fields.employee_number",
+					fields.employee_number);
+	vl = add_html_var(vl, "employee_number",
+					get_var(db_row, "employee_number"));
+	vl = add_html_var(vl, "fields.cost_codes", fields.cost_codes);
+	vl = add_html_var(vl, "cost_codes", get_var(db_row, "cost_codes"));
+	vl = add_html_var(vl, "fields.account_codes", fields.account_codes);
+	vl = add_html_var(vl, "account_codes",
+					get_var(db_row, "account_codes"));
+	vl = add_html_var(vl, "fields.po_num", fields.po_num);
+	vl = add_html_var(vl, "po_num", get_var(db_row, "po_num"));
+	vl = add_html_var(vl, "fields.supplier_name", fields.supplier_name);
+	vl = add_html_var(vl, "supplier_name",
+					get_var(db_row, "supplier_name"));
+	vl = add_html_var(vl, "fields.supplier_town", fields.supplier_town);
+	vl = add_html_var(vl, "supplier_town",
+					get_var(db_row, "supplier_town"));
+	vl = add_html_var(vl, "fields.currency", fields.currency);
+	vl = add_html_var(vl, "currency", get_var(db_row, "currency"));
+	vl = add_html_var(vl, "fields.gross_amount", fields.gross_amount);
+	vl = add_html_var(vl, "gross_amount",
+					get_var(db_row, "gross_amount"));
+	vl = add_html_var(vl, "fields.vat_amount", fields.vat_amount);
+	vl = add_html_var(vl, "vat_amount",
+					get_var(db_row, "vat_amount"));
+	vl = add_html_var(vl, "fields.net_amount", fields.net_amount);
+	vl = add_html_var(vl, "net_amount", get_var(db_row, "net_amount"));
+	vl = add_html_var(vl, "fields.vat_rate", fields.vat_rate);
+	vl = add_html_var(vl, "vat_rate", get_var(db_row, "vat_rate"));
+	vl = add_html_var(vl, "fields.vat_number", fields.vat_number);
+	vl = add_html_var(vl, "vat_number", get_var(db_row, "vat_number"));
+	vl = add_html_var(vl, "fields.reason", fields.reason);
+	vl = add_html_var(vl, "reason", get_var(db_row, "reason"));
+	vl = add_html_var(vl, "fields.receipt_date", fields.receipt_date);
 
-	vl = TMPL_add_var(vl, "fields.employee_number", fields.employee_number,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "employee_number", get_var(db_row,
-							"employee_number"),
-							(char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.cost_codes", fields.cost_codes,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "cost_codes", get_var(db_row, "cost_codes"),
-								(char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.account_codes", fields.account_codes,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "account_codes", get_var(db_row,
-							"account_codes"),
-							(char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.po_num", fields.po_num, (char *)NULL);
-	vl = TMPL_add_var(vl, "po_num", get_var(db_row, "po_num"),
-								(char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.supplier_name", fields.supplier_name,
-							(char *)NULL);
-	vl = TMPL_add_var(vl, "supplier_name", get_var(db_row,
-							"supplier_name"),
-							(char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.supplier_town", fields.supplier_town,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "supplier_town", get_var(db_row,
-							"supplier_town"),
-							(char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.currency", fields.currency,
-							(char *)NULL);
-	vl = TMPL_add_var(vl, "currency", get_var(db_row, "currency"),
-							(char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.gross_amount", fields.gross_amount,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "gross_amount", get_var(db_row,
-						"gross_amount"), (char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.vat_amount", fields.vat_amount,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "vat_amount", get_var(db_row,
-						"vat_amount"), (char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.net_amount", fields.net_amount, NULL);
-	vl = TMPL_add_var(vl, "net_amount", get_var(db_row, "net_amount"),
-								(char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.vat_rate", fields.vat_rate,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "vat_rate", get_var(db_row, "vat_rate"),
-								(char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.vat_number", fields.vat_number,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "vat_number", get_var(db_row, "vat_number"),
-								(char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.reason", fields.reason, (char *)NULL);
-	vl = TMPL_add_var(vl, "reason", get_var(db_row, "reason"),
-								(char *)NULL);
-
-	vl = TMPL_add_var(vl, "fields.receipt_date", fields.receipt_date,
-								(char *)NULL);
 	secs = atol(get_var(db_row, "receipt_date"));
 	strftime(tbuf, sizeof(tbuf), "%a %b %d, %Y", localtime(&secs));
-	vl = TMPL_add_var(vl, "receipt_date", tbuf, (char *)NULL);
+	vl = add_html_var(vl, "receipt_date", tbuf);
 
-	vl = TMPL_add_var(vl, "fields.payment_method", fields.payment_method,
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "payment_method", get_var(db_row,
-							"payment_method"),
-							(char *)NULL);
+	vl = add_html_var(vl, "fields.payment_method", fields.payment_method);
+	vl = add_html_var(vl, "payment_method",
+					get_var(db_row, "payment_method"));
 
 	if (atoi(get_var(db_row, "approved")) == REJECTED)
-		vl = TMPL_add_var(vl, "approved", "rejected", (char *)NULL);
+		vl = add_html_var(vl, "approved", "rejected");
 	else if (atoi(get_var(db_row, "approved")) == PENDING)
-		vl = TMPL_add_var(vl, "approved", "pending", (char *)NULL);
+		vl = add_html_var(vl, "approved", "pending");
 	else
-		vl = TMPL_add_var(vl, "approved", "yes", (char *)NULL);
+		vl = add_html_var(vl, "approved", "yes");
 
 	/* Only PENDING receipts of the user are editable */
 	if (atoi(get_var(db_row, "approved")) == PENDING &&
 				atoi(get_var(db_row, "uid")) ==
 				user_session.uid) {
-		vl = TMPL_add_var(vl, "showedit", "true", (char *)NULL);
+		vl = add_html_var(vl, "showedit", "true");
 		if (strcmp(get_var(qvars, "edit"), "true") == 0) {
 			/* Don't show the Edit button when editing */
-			vl = TMPL_add_var(vl, "showedit", "false",
-								(char *)NULL);
-			vl = TMPL_add_var(vl, "edit", "true", (char *)NULL);
+			vl = add_html_var(vl, "showedit", "false");
+			vl = add_html_var(vl, "edit", "true");
 			/*
 			 * Put the date into the same format that it should be
 			 * entered by the user (YYYY-MM-DD).
 			 */
 			strftime(tbuf, sizeof(tbuf), "%Y-%m-%d",
 							localtime(&secs));
-			vl = TMPL_add_var(vl, "receipt_date", tbuf,
-								(char *)NULL);
+			vl = add_html_var(vl, "receipt_date", tbuf);
 		}
 	} else if (atoi(get_var(db_row, "approved")) == APPROVED ||
 			atoi(get_var(db_row, "approved")) == REJECTED) {
@@ -2143,9 +2101,9 @@ static void receipt_info(void)
 		secs = atol(get_var(db_row, "a_time"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z",
 							localtime(&secs));
-		vl = TMPL_add_var(vl, "a_time", tbuf, (char *)NULL);
-		vl = TMPL_add_var(vl, "reject_reason", get_var(db_row,
-						"r_reason"), (char *)NULL);
+		vl = add_html_var(vl, "a_time", tbuf);
+		vl = add_html_var(vl, "reject_reason",
+					get_var(db_row, "r_reason"));
 	}
 	/* Only need to add the token if the receipt info is editable */
 	add_csrf_token(vl);
