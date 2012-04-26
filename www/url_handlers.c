@@ -479,33 +479,31 @@ static void admin_add_user(void)
 			return;
 	}
 
-	vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
+	vl = add_html_var(vl, "admin", "yes");
 
 	if (IS_APPROVER())
-		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
+		vl = add_html_var(vl, "approver", "yes");
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
+	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 
 	if (!qvars)
 		goto out;
 
 	if (strlen(get_var(qvars, "name")) == 0) {
 		form_err = true;
-		vl = TMPL_add_var(vl, "name_error", "yes", (char *)NULL);
+		vl = add_html_var(vl, "name_error", "yes");
 	}
-	vl = TMPL_add_var(vl, "name", get_var(qvars, "name"), (char *)NULL);
+	vl = add_html_var(vl, "name", get_var(qvars, "name"));
 
 	if ((strlen(get_var(qvars, "email1")) == 0 &&
 				strlen(get_var(qvars, "email2")) == 0) ||
 				(strcmp(get_var(qvars, "email1"),
 				get_var(qvars, "email2")) != 0)) {
 		form_err = true;
-		vl = TMPL_add_var(vl, "email_error", "yes", (char *)NULL);
+		vl = add_html_var(vl, "email_error", "yes");
 	}
-	vl = TMPL_add_var(vl, "email1", get_var(qvars, "email1"),
-								(char *)NULL);
-	vl = TMPL_add_var(vl, "email2", get_var(qvars, "email2"),
-								(char *)NULL);
+	vl = add_html_var(vl, "email1", get_var(qvars, "email1"));
+	vl = add_html_var(vl, "email2", get_var(qvars, "email2"));
 
 	if (strlen(get_var(qvars, "ap_card")) > 0 ||
 				strlen(get_var(qvars, "ap_cash")) > 0 ||
@@ -514,25 +512,24 @@ static void admin_add_user(void)
 		capabilities |= APPROVER;
 		if (strlen(get_var(qvars, "ap_card")) > 0) {
 			capabilities |= APPROVER_CARD;
-			vl = TMPL_add_var(vl, "ap_card", "yes", (char *)NULL);
+			vl = add_html_var(vl, "ap_card", "yes");
 		}
 		if (strlen(get_var(qvars, "ap_cash")) > 0) {
 			capabilities |= APPROVER_CASH;
-			vl = TMPL_add_var(vl, "ap_cash", "yes", (char *)NULL);
+			vl = add_html_var(vl, "ap_cash", "yes");
 		}
 		if (strlen(get_var(qvars, "ap_cheque")) > 0) {
 			capabilities |= APPROVER_CHEQUE;
-			vl = TMPL_add_var(vl, "ap_cheque", "yes",
-								(char *)NULL);
+			vl = add_html_var(vl, "ap_cheque", "yes");
 		}
 		if (strlen(get_var(qvars, "ap_self")) > 0) {
 			capabilities |= APPROVER_SELF;
-			vl = TMPL_add_var(vl, "ap_self", "yes", (char *)NULL);
+			vl = add_html_var(vl, "ap_self", "yes");
 		}
 	}
 	if (strlen(get_var(qvars, "is_admin")) > 0) {
 		capabilities |= ADMIN;
-		vl = TMPL_add_var(vl, "is_admin", "yes", (char *)NULL);
+		vl = add_html_var(vl, "is_admin", "yes");
 	}
 
 	if (!form_err) {
@@ -544,7 +541,7 @@ static void admin_add_user(void)
 			 * Tried to add an already existing user.
 			 * Tell the admin.
 			 */
-			vl = TMPL_add_var(vl, "dup_user", "yes", (char *)NULL);
+			vl = add_html_var(vl, "dup_user", "yes");
 		} else {
 			printf("Location: /admin/add_user/\r\n\r\n");
 			goto out2;
