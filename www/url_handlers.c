@@ -1216,14 +1216,12 @@ static void prefs_edit_user(void)
 				strlen(get_var(qvars, "email2")) == 0) ||
 				(strcmp(get_var(qvars, "email1"),
 				get_var(qvars, "email2")) != 0)) {
-			vl = TMPL_add_var(vl, "email_error", "yes",
-								(char *)NULL);
+			vl = add_html_var(vl, "email_error", "yes");
 			form_err = true;
 		} else if (strcmp(user_session.username,
 					get_var(qvars, "email1")) != 0) {
 			if (user_already_exists(get_var(qvars, "email1"))) {
-				vl = TMPL_add_var(vl, "user_exists", "yes",
-								(char *)NULL);
+				vl = add_html_var(vl, "user_exists", "yes");
 				form_err = true;
 			}
 		}
@@ -1231,8 +1229,8 @@ static void prefs_edit_user(void)
 					strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
 					get_var(qvars, "pass2")) != 0) {
-				vl = TMPL_add_var(vl, "pass_error", "mismatch",
-								(char *)NULL);
+				vl = add_html_var(vl, "pass_error",
+								"mismatch");
 				form_err = true;
 			}
 		/*
@@ -1241,8 +1239,7 @@ static void prefs_edit_user(void)
 		 */
 		} else if (strlen(get_var(qvars, "pass1")) != 0 &&
 					strlen(get_var(qvars, "pass2")) != 0) {
-			vl = TMPL_add_var(vl, "pass_error", "length",
-								(char *)NULL);
+			vl = add_html_var(vl, "pass_error", "length");
 			form_err = true;
 		}
 
@@ -1255,7 +1252,7 @@ static void prefs_edit_user(void)
 		}
 	} else {
 		if (strlen(get_var(qvars, "updated")) > 0)
-			vl = TMPL_add_var(vl, "updated", "yes", (char *)NULL);
+			vl = add_html_var(vl, "updated", "yes");
 	}
 
 	/*
@@ -1282,35 +1279,27 @@ static void prefs_edit_user(void)
 		res = mysql_store_result(conn);
 		db_row = get_dbrow(res);
 
-		vl = TMPL_add_var(vl, "username", get_var(db_row, "username"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "email1", get_var(db_row, "username"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "email2", get_var(db_row, "username"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "name", get_var(db_row, "name"),
-								(char *)NULL);
+		vl = add_html_var(vl, "username", get_var(db_row, "username"));
+		vl = add_html_var(vl, "email1", get_var(db_row, "username"));
+		vl = add_html_var(vl, "email2", get_var(db_row, "username"));
+		vl = add_html_var(vl, "name", get_var(db_row, "name"));
 
 		free_vars(db_row);
 		mysql_free_result(res);
 		mysql_close(conn);
 	} else {
-		vl = TMPL_add_var(vl, "username", get_var(qvars, "email1"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "email1", get_var(qvars, "email1"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "email2", get_var(qvars, "email2"),
-								(char *)NULL);
-		vl = TMPL_add_var(vl, "name", get_var(qvars, "name"),
-								(char *)NULL);
+		vl = add_html_var(vl, "username", get_var(qvars, "email1"));
+		vl = add_html_var(vl, "email1", get_var(qvars, "email1"));
+		vl = add_html_var(vl, "email2", get_var(qvars, "email2"));
+		vl = add_html_var(vl, "name", get_var(qvars, "name"));
 	}
 
 	if (IS_ADMIN())
-		vl = TMPL_add_var(vl, "admin", "yes", (char *)NULL);
+		vl = add_html_var(vl, "admin", "yes");
 	if (IS_APPROVER())
-		vl = TMPL_add_var(vl, "approver", "yes", (char *)NULL);
+		vl = add_html_var(vl, "approver", "yes");
 
-	vl = TMPL_add_var(vl, "user_hdr", user_session.user_hdr, (char *)NULL);
+	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 
 	add_csrf_token(vl);
 	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
