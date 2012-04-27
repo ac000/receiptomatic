@@ -1098,7 +1098,7 @@ int do_add_user(unsigned char capabilities)
 	tm = time(NULL);
 	snprintf(sql, SQL_MAX, "INSERT INTO activations VALUES ('%s', '%s', "
 						"%ld)", email_addr, key,
-						tm + 86400);
+						tm + KEY_EXP);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 
