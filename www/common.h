@@ -55,6 +55,9 @@
 #define SHA256		 5
 #define SHA512		10
 
+/* Length of time (seconds) an activation key is valid */
+#define KEY_EXP		86400
+
 /* Macro to check if the user is an approver */
 #define IS_APPROVER()	(((user_session.capabilities) & (APPROVER)) ? 1 : 0)
 /* Macro to check if the user is an admin */
