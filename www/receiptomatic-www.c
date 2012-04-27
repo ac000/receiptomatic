@@ -193,8 +193,9 @@ static void dump_session_state(void)
 								"session_id"));
 		fprintf(debug_log, "\tcsrf_token   : %s\n", tcmapget2(cols,
 								"csrf_token"));
-		fprintf(debug_log, "\trestrict_ip  : %s\n\n", tcmapget2(cols,
-							"restrict_ip"));
+		fprintf(debug_log, "\trestrict_ip  : %s\n\n",
+				tcmapget2(cols, "restrict_ip")[0] == '1' ?
+				"true" : "false");
 		tcmapdel(cols);
 	}
 	tclistdel(res);
