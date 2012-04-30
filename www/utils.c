@@ -605,6 +605,20 @@ void free_fields(struct field_names *fields)
 }
 
 /*
++ * Free's the http environment structure.
++ */
+void free_env_vars(void)
+{
+	free(env_vars.request_uri);
+	free(env_vars.request_method);
+	free(env_vars.content_type);
+	free(env_vars.http_cookie);
+	free(env_vars.http_user_agent);
+	free(env_vars.http_x_forwarded_for);
+	free(env_vars.query_string);
+}
+
+/*
  * Generate a somewhat hard to guess string to hash for the users
  * activation key. We use the following:
  *
