@@ -815,6 +815,9 @@ TMPL_varlist *do_zebra(TMPL_varlist *varlist, unsigned long row)
 	return vlist;
 }
 
+/*
+ * Simple wrapper around TMPL_add_var()
+ */
 TMPL_varlist *add_html_var(TMPL_varlist *varlist, const char *name,
 							const char *value)
 {
