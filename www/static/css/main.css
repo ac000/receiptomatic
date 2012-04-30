@@ -2,6 +2,10 @@ body {
         font-family: sans-serif;
 }
 
+a {
+	text-decoration: none;
+}
+
 .lighter {
 	color: rgb(130, 130, 130);
 }
