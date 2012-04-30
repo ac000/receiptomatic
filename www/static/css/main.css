@@ -37,8 +37,11 @@ body {
 
 #cookie_note {
 	position: relative;
-	height: 130px;
+	height: 90px;
 	width: 670px;
 	margin: 100 auto;
 	background: #d4ddea;
+	padding-right: 10px;
+	padding-left: 10px;
+	padding-top: 20px;
 }
