@@ -120,9 +120,9 @@
 		<td> :&nbsp;
 		<tmpl_if name = "edit" value = "true">
 			<select name = "currency">
-			<option value = "GBP" <tmpl_if name = "currency" value = "GBP">selected</tmpl_if>>GBP</option>
-			<option value = "USD" <tmpl_if name = "currency" value = "USD">selected</tmpl_if>>USD</option>
-			<option value = "EUR" <tmpl_if name = "currency" value = "EUR">selected</tmpl_if>>EUR</option>
+			<option value = "GBP" <tmpl_if name = "currency" value = "GBP">selected</tmpl_if>>GBP&nbsp;</option>
+			<option value = "USD" <tmpl_if name = "currency" value = "USD">selected</tmpl_if>>USD&nbsp;</option>
+			<option value = "EUR" <tmpl_if name = "currency" value = "EUR">selected</tmpl_if>>EUR&nbsp;</option>
 			</select>
 		<tmpl_else>
 			<tmpl_var name = "currency" fmt = "de_xss" />
