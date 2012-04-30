@@ -2642,13 +2642,7 @@ void handle_request(void)
 	printf("Location: /login/\r\n\r\n");
 
 out:
-	free(user_session.username);
-	free(user_session.name);
-	free(user_session.origin_ip);
-	free(user_session.client_id);
-	free(user_session.session_id);
-	free(user_session.csrf_token);
-	free(user_session.user_hdr);
+	free_user_session();
 
 out2:
 	free_vars(qvars);

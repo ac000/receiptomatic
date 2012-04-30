@@ -619,6 +619,20 @@ void free_env_vars(void)
 }
 
 /*
+ * Free's the user session structure.
+ */
+void free_user_session(void)
+{
+	free(user_session.username);
+	free(user_session.name);
+	free(user_session.origin_ip);
+	free(user_session.client_id);
+	free(user_session.session_id);
+	free(user_session.csrf_token);
+	free(user_session.user_hdr);
+}
+
+/*
  * Generate a somewhat hard to guess string to hash for the users
  * activation key. We use the following:
  *

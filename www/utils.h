@@ -24,6 +24,7 @@ char *get_avar(int index, const char *key);
 char *get_var(GHashTable *vars, const char *key);
 void free_fields(struct field_names *fields);
 void free_env_vars(void);
+void free_user_session(void);
 void set_env_vars(void);
 char *generate_activation_key(const char *email_addr);
 void send_activation_mail(const char *name, const char *address,
