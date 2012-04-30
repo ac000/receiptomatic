@@ -113,7 +113,7 @@ static void logout(void)
 
 	/* Immediately expire the session cookies */
 	printf("Set-Cookie: session_id=deleted; "
-				"expires=Thu, 01-Jan-1970 00:00:01 GMT; "
+				"expires=Thu, 01 Jan 1970 00:00:01 GMT; "
 				"path=/; httponly\r\n");
 	send_template("templates/logout.tmpl", NULL, NULL);
 }
