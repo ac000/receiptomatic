@@ -91,7 +91,6 @@ bool is_logged_in(void)
 	const char *rbuf;
 	bool login_ok = false;
 
-
 	if (!env_vars.http_cookie)
 		goto out3;
 
