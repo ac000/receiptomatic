@@ -567,7 +567,11 @@ void set_env_vars(void)
 	if (getenv("HTTP_USER_AGENT"))
 		env_vars.http_user_agent = strdup(getenv("HTTP_USER_AGENT"));
 	else
-		env_vars.http_user_agent = NULL;
+		/*
+		 * In case it's (null), we still need at least an empty
+		 * string for checking against in is_logged_in()
+		 */
+		env_vars.http_user_agent = strdup("");
 
 	if (getenv("HTTP_X_FORWARDED_FOR"))
 		env_vars.http_x_forwarded_for = strdup(getenv(
