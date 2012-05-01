@@ -31,6 +31,8 @@ extern char *db_socket_name;
 extern unsigned int db_port_num;
 extern unsigned int db_flags;
 
+int nr_procs;
+
 #define IMAGE_PATH	rec_image_path
 #define BASE_URL	rec_base_url
 #define SESSION_DB	rec_session_db
@@ -53,5 +55,7 @@ extern unsigned int db_flags;
 #define DB_SOCKET_NAME	db_socket_name
 #define DB_PORT_NUM	db_port_num
 #define DB_FLAGS	db_flags
+
+#define NR_PROCS	nr_procs
 
 #endif /* _RECEIPTOMATIC_CONFIG_H_ */

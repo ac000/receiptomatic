@@ -64,6 +64,8 @@ int get_config(const char *filename)
 			mail_subject = strdup(value);
 		else if (strcmp(option, "LOG_DIR") == 0)
 			log_dir = strdup(value);
+		else if (strcmp(option, "NR_PROCS") == 0)
+			nr_procs = atoi(value);
 	}
 
 	fclose(fp);

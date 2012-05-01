@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <limits.h>
+#include <sys/sysinfo.h>
 
 #include "common.h"
 #include "get_config.h"
@@ -42,6 +43,27 @@ FILE *access_log;
 FILE *sql_log;
 FILE *error_log;
 FILE *debug_log;
+
+/*
+ * Decide how many worker processes should be created.
+ *
+ * If we have a specified number in the config file (NR_PROCS), use
+ * that.
+ *
+ * Else try getting the number of available processors and fork one
+ * process per processor.
+ *
+ * Else just create a single worker.
+ */
+static int get_nr_procs(void)
+{
+	if (NR_PROCS > 0)
+		return NR_PROCS;
+	else if (get_nprocs() > 0)
+		return get_nprocs();
+	else
+		return 1;
+}
 
 /*
  * Main program loop. This sits in accept() waiting for connections.
@@ -390,8 +412,8 @@ int main(int argc, char **argv)
 
 	init_clear_session_timer();
 
-	/* Pre-fork NR_PROCS worker processes */
-	create_server(NR_PROCS);
+	/* Pre-fork worker processes */
+	create_server(get_nr_procs());
 
 	/* Set the process name for the master process */
 	set_proc_title("receiptomatic-www: master");

@@ -10,8 +10,6 @@
 #ifndef _RECEIPTOMATIC_WWW_H_
 #define _RECEIPTOMATIC_WWW_H_
 
-#define NR_PROCS	5	/* Number of processes to fork at startup */
-
 #define SESSION_CHECK	(60 * 60)	/* Check for old sessions every hour */
 #define SESSION_EXPIRY	(60 * 60 * 4)	/* 4 hours */
 
