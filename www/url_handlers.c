@@ -2331,6 +2331,129 @@ out:
 }
 
 /*
+ * /stats/
+ *
+ * HTML is in templates/stats.tmpl
+ *
+ * Display some simple stats about users receipts.
+ */
+static void stats(void)
+{
+	unsigned long i;
+	unsigned long nr_rows;
+	char sql[SQL_MAX];
+	MYSQL *conn;
+	MYSQL_RES *res;
+	TMPL_varlist *vl = NULL;
+	TMPL_loop *loop = NULL;
+
+	if (IS_APPROVER())
+		vl = add_html_var(vl, "approver", "yes");
+	if (IS_ADMIN())
+		vl = add_html_var(vl, "admin", "yes");
+
+	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+
+	conn = db_conn();
+	/* Total of approved receipts */
+	snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS nr_rows, "
+				"SUM(tags.gross_amount) AS gross_total FROM "
+				"images INNER JOIN tags ON "
+				"(images.id = tags.id) WHERE images.uid = %d "
+				"AND images.approved = %d GROUP BY currency",
+				user_session.uid, APPROVED);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_query(conn, sql);
+	res = mysql_store_result(conn);
+	nr_rows = mysql_num_rows(res);
+	for (i = 0; i < nr_rows; i++) {
+		GHashTable *db_row = NULL;
+		TMPL_varlist *ll = NULL;
+
+		db_row = get_dbrow(res);
+		ll = add_html_var(ll, "nr_rows", get_var(db_row, "nr_rows"));
+		ll = add_html_var(ll, "currency", get_var(db_row, "currency"));
+		ll = add_html_var(ll, "total", get_var(db_row, "gross_total"));
+		loop = TMPL_add_varlist(loop, ll);
+		free_vars(db_row);
+	}
+	vl = TMPL_add_loop(vl, "approved", loop);
+	mysql_free_result(res);
+
+	/* Total of rejected receipts */
+	snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS nr_rows, "
+				"SUM(tags.gross_amount) AS gross_total FROM "
+				"images INNER JOIN tags ON "
+				"(images.id = tags.id) WHERE images.uid = %d "
+				"AND images.approved = %d GROUP BY currency",
+				user_session.uid, REJECTED);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_query(conn, sql);
+	res = mysql_store_result(conn);
+	nr_rows = mysql_num_rows(res);
+	loop = NULL;
+	for (i = 0; i < nr_rows; i++) {
+		GHashTable *db_row = NULL;
+		TMPL_varlist *ll = NULL;
+
+		db_row = get_dbrow(res);
+		ll = add_html_var(ll, "nr_rows", get_var(db_row, "nr_rows"));
+		ll = add_html_var(ll, "currency", get_var(db_row, "currency"));
+		ll = add_html_var(ll, "total", get_var(db_row, "gross_total"));
+		loop = TMPL_add_varlist(loop, ll);
+		free_vars(db_row);
+	}
+	vl = TMPL_add_loop(vl, "rejects", loop);
+	mysql_free_result(res);
+
+	/* Total of pending receipts */
+	snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS nr_rows, "
+				"SUM(tags.gross_amount) AS gross_total FROM "
+				"images INNER JOIN tags ON "
+				"(images.id = tags.id) WHERE images.uid = %d "
+				"AND images.approved = %d GROUP BY currency",
+				user_session.uid, PENDING);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_query(conn, sql);
+	res = mysql_store_result(conn);
+	nr_rows = mysql_num_rows(res);
+	loop = NULL;
+	for (i = 0; i < nr_rows; i++) {
+		GHashTable *db_row = NULL;
+		TMPL_varlist *ll = NULL;
+
+		db_row = get_dbrow(res);
+		ll = add_html_var(ll, "nr_rows", get_var(db_row, "nr_rows"));
+		ll = add_html_var(ll, "currency", get_var(db_row, "currency"));
+		ll = add_html_var(ll, "total", get_var(db_row, "gross_total"));
+		loop = TMPL_add_varlist(loop, ll);
+		free_vars(db_row);
+	}
+	vl = TMPL_add_loop(vl, "pending", loop);
+	mysql_free_result(res);
+
+	/* Number of un-tagged receipts */
+	snprintf(sql, SQL_MAX, "SELECT COUNT(*) AS nr_rows FROM images WHERE "
+				"uid = %d AND processed = 0",
+				user_session.uid);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_query(conn, sql);
+	res = mysql_store_result(conn);
+	if (mysql_num_rows(res) > 0) {
+		GHashTable *db_row = NULL;
+
+		db_row = get_dbrow(res);
+		vl = add_html_var(vl, "untagged", get_var(db_row, "nr_rows"));
+		free_vars(db_row);
+	}
+	mysql_free_result(res);
+
+	send_template("templates/stats.tmpl", vl, NULL);
+	TMPL_free_varlist(vl);
+	mysql_close(conn);
+}
+
+/*
  * /receipts/
  *
  * HTML is in templates/receipts.tmpl
@@ -2630,6 +2753,11 @@ void handle_request(void)
 
 	if (match_uri(request_uri, "/admin/")) {
 		admin();
+		goto out;
+	}
+
+	if (match_uri(request_uri, "/stats/")) {
+		stats();
 		goto out;
 	}
 
