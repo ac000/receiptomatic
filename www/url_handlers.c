@@ -711,6 +711,54 @@ out_csrf:
 }
 
 /*
+ * /admin/user_stats/
+ *
+ * HTML is in templates/admin_user_stats.tmpl
+ *
+ * Show receipt stats for a specified user.
+ */
+static void admin_user_stats(void)
+{
+	char sql[SQL_MAX];
+	unsigned int uid;
+	GHashTable *db_row = NULL;
+	MYSQL *conn;
+	MYSQL_RES *res;
+	TMPL_varlist *vl = NULL;
+
+	if (!IS_ADMIN() || !qvars)
+		return;
+
+	if (IS_APPROVER())
+		vl = add_html_var(vl, "approver", "yes");
+
+	vl = add_html_var(vl, "admin", "yes");
+	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+
+	uid = atoi(get_var(qvars, "uid"));
+
+	conn = db_conn();
+	snprintf(sql, SQL_MAX, "SELECT name FROM passwd WHERE uid = %u", uid);
+	d_fprintf(sql_log, "%s\n", sql);
+	mysql_query(conn, sql);
+	res = mysql_store_result(conn);
+	if (mysql_num_rows(res) == 0)
+		goto out;
+
+	gather_receipt_stats_for_user(uid, vl);
+	db_row = get_dbrow(res);
+	vl = add_html_var(vl, "uid", get_var(qvars, "uid"));
+	vl = add_html_var(vl, "name", get_var(db_row, "name"));
+	free_vars(db_row);
+
+	send_template("templates/admin_user_stats.tmpl", vl, NULL);
+
+out:
+	mysql_free_result(res);
+	TMPL_free_varlist(vl);
+}
+
+/*
  * /admin/pending_activations/
  *
  * HTML is in templates/admin_pending_activations.tmpl
@@ -2644,6 +2692,11 @@ void handle_request(void)
 
 	if (match_uri(request_uri, "/admin/edit_user/")) {
 		admin_edit_user();
+		goto out;
+	}
+
+	if (match_uri(request_uri, "/admin/user_stats/")) {
+		admin_user_stats();
 		goto out;
 	}
 

@@ -1,0 +1,125 @@
+<html>
+<head>
+	<title>receiptomatic / admin / user stats</title>
+	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
+</head>
+<body>
+	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/">preferences</a> |
+	<tmpl_if name = "approver">
+	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/">approve receipts</a> | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
+	</tmpl_if>
+	<tmpl_if name = "admin">
+	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
+	</tmpl_if>
+	<p />
+	<tmpl_var name = "user_hdr" />
+	<big><big>| Admin / User Stats</big></big><br />
+	<hr />
+
+<big><big>Stats for <tmpl_var name = "name"></big></big><small><span class = "lighter"> (<tmpl_var name = "uid">) </span></small>
+<p />
+
+<tmpl_if name = "approved">
+	<big><span class = "lighter">Approved Receipts</span></big>
+	<table cellpadding = "2">
+	<tbody>
+	<tr>
+	<td>
+		<b>Currency</b>
+	</td>
+	<td>
+		<b>Number Of Receipts</b>
+	</td>
+	<td>
+		<b>Gross Total</b>
+	</td>
+<tmpl_loop name = "approved">
+	<tr>
+	<td>
+		<tmpl_var name = "currency" />
+	</td>
+	<td>
+		<tmpl_var name  = "nr_rows" />
+	</td>
+	<td>
+		<tmpl_var name  = "total" />
+	</td>
+	</tr>
+</tmpl_loop>
+	</tbody>
+	</table>
+
+	<p />
+</tmpl_if>
+
+<tmpl_if name = "rejects">
+	<big><span class = "lighter">Rejected Receipts</span></big>
+	<table cellpadding = "2">
+	<tbody>
+	<tr>
+	<td>
+		<b>Currency</b>
+	</td>
+	<td>
+		<b>Number Of Receipts</b>
+	</td>
+	<td>
+		<b>Gross Total</b>
+	</td>
+<tmpl_loop name = "rejects">
+	<tr>
+	<td>
+		<tmpl_var name = "currency" />
+	</td>
+	<td>
+		<tmpl_var name  = "nr_rows" />
+	</td>
+	<td>
+		<tmpl_var name  = "total" />
+	</td>
+	</tr>
+</tmpl_loop>
+	</tbody>
+	</table>
+
+	<p />
+</tmpl_if>
+
+<tmpl_if name = "pending">
+	<big><span class = "lighter">Pending Receipts</span></big>
+	<table cellpadding = "2">
+	<tbody>
+	<tr>
+	<td>
+		<b>Currency</b>
+	</td>
+	<td>
+		<b>Number Of Receipts</b>
+	</td>
+	<td>
+		<b>Gross Total</b>
+	</td>
+<tmpl_loop name = "pending">
+	<tr>
+	<td>
+		<tmpl_var name = "currency" />
+	</td>
+	<td>
+		<tmpl_var name  = "nr_rows" />
+	</td>
+	<td>
+		<tmpl_var name  = "total" />
+	</td>
+	</tr>
+</tmpl_loop>
+	</tbody>
+	</table>
+
+	<p />
+</tmpl_if>
+
+	<p />
+	User has <b><tmpl_var name  = "untagged" /></b> untagged receipts.
+
+</body>
+</html>
