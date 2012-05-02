@@ -3,8 +3,8 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 13, 2011 at 02:01 PM
--- Server version: 5.0.77
+-- Generation Time: May 02, 2012 at 10:50 AM
+-- Server version: 5.0.95
 -- PHP Version: 5.1.6
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
@@ -31,24 +31,6 @@ CREATE TABLE IF NOT EXISTS `activations` (
   `expires` int(11) NOT NULL,
   UNIQUE KEY `user` (`user`),
   KEY `akey` (`akey`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `approved`
---
-
-CREATE TABLE IF NOT EXISTS `approved` (
-  `id` varchar(64) NOT NULL,
-  `uid` int(10) unsigned NOT NULL,
-  `username` varchar(255) NOT NULL,
-  `timestamp` int(10) unsigned NOT NULL,
-  `status` smallint(5) unsigned NOT NULL,
-  `reason` varchar(255) NOT NULL,
-  UNIQUE KEY `id` (`id`),
-  KEY `timestamp` (`timestamp`),
-  KEY `uid` (`uid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -119,6 +101,24 @@ CREATE TABLE IF NOT EXISTS `passwd` (
   `d_reason` varchar(255) NOT NULL,
   UNIQUE KEY `uid` (`uid`),
   UNIQUE KEY `username` (`username`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `reviewed`
+--
+
+CREATE TABLE IF NOT EXISTS `reviewed` (
+  `id` varchar(64) NOT NULL,
+  `uid` int(10) unsigned NOT NULL,
+  `username` varchar(255) NOT NULL,
+  `timestamp` int(10) unsigned NOT NULL,
+  `status` smallint(5) unsigned NOT NULL,
+  `reason` varchar(255) NOT NULL,
+  UNIQUE KEY `id` (`id`),
+  KEY `timestamp` (`timestamp`),
+  KEY `uid` (`uid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------

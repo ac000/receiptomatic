@@ -64,11 +64,11 @@ void extract_data_now(int fd)
 					"tags.net_amount, tags.vat_rate, "
 					"tags.vat_number, tags.receipt_date, "
 					"tags.reason, tags.payment_method "
-					"FROM tags INNER JOIN approved ON "
-					"(tags.id = approved.id) WHERE "
-					"approved.uid = %u AND "
-					"approved.timestamp > %ld AND "
-					"approved.status = %d",
+					"FROM tags INNER JOIN reviewed ON "
+					"(tags.id = reviewed.id) WHERE "
+					"reviewed.uid = %u AND "
+					"reviewed.timestamp > %ld AND "
+					"reviewed.status = %d",
 					user_session.uid,
 					user_session.login_at, APPROVED);
 	d_fprintf(sql_log, "%s\n", sql);

@@ -1335,7 +1335,7 @@ static void process_receipt_approval(void)
 	mysql_real_escape_string(conn, username, user_session.username,
 					strlen(user_session.username));
 
-	mysql_query(conn, "LOCK TABLES approved WRITE, images WRITE, "
+	mysql_query(conn, "LOCK TABLES reviewed WRITE, images WRITE, "
 								"tags READ");
 
 	list_size = g_list_length(avars);
@@ -1407,7 +1407,7 @@ static void process_receipt_approval(void)
 		}
 
 		/* Make sure this reciept hasn't already been processed */
-		snprintf(sql, SQL_MAX, "SELECT status from approved WHERE "
+		snprintf(sql, SQL_MAX, "SELECT status from reviewed WHERE "
 							"id = '%s'", image_id);
 		d_fprintf(sql_log, "%s\n", sql);
 		mysql_real_query(conn, sql, strlen(sql));
@@ -1427,7 +1427,7 @@ static void process_receipt_approval(void)
 		mysql_free_result(res);
 
 		if (action[0] == 'a') { /* approved */
-			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
+			snprintf(sql, SQL_MAX, "INSERT INTO reviewed VALUES ("
 						"'%s', %u, '%s', %ld, %d, "
 						"'%s')",
 						image_id, user_session.uid,
@@ -1441,7 +1441,7 @@ static void process_receipt_approval(void)
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_query(conn, sql);
 		} else if (action[0] == 'r') { /* rejected */
-			snprintf(sql, SQL_MAX, "INSERT INTO approved VALUES ("
+			snprintf(sql, SQL_MAX, "INSERT INTO reviewed VALUES ("
 						"'%s', %u, '%s', %ld, %d, "
 						"'%s')",
 						image_id, user_session.uid,
@@ -1752,17 +1752,17 @@ static void reviewed_receipts(void)
 	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM approved "
+	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM reviewed "
 				"INNER JOIN images ON "
-				"(approved.id = images.id)) AS nrows, "
-				"approved.timestamp AS ats, images.id, "
+				"(reviewed.id = images.id)) AS nrows, "
+				"reviewed.timestamp AS ats, images.id, "
 				"images.path, images.name, images.timestamp "
-				"AS its, approved.status, passwd.name AS "
-				"user, passwd.uid FROM approved INNER JOIN "
-				"images ON (approved.id = images.id) "
+				"AS its, reviewed.status, passwd.name AS "
+				"user, passwd.uid FROM reviewed INNER JOIN "
+				"images ON (reviewed.id = images.id) "
 				"INNER JOIN passwd ON "
 				"(images.uid = passwd.uid) ORDER BY "
-				"approved.timestamp DESC LIMIT %d, %d",
+				"reviewed.timestamp DESC LIMIT %d, %d",
 				from, GRID_SIZE);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
@@ -1882,11 +1882,11 @@ static void receipt_info(void)
 				"tags.net_amount, tags.vat_rate, "
 				"tags.vat_number, tags.receipt_date, "
 				"tags.reason, tags.payment_method, "
-				"approved.reason AS r_reason, "
-				"approved.timestamp AS a_time, passwd.name AS "
+				"reviewed.reason AS r_reason, "
+				"reviewed.timestamp AS a_time, passwd.name AS "
 				"user, passwd.uid FROM images INNER JOIN tags "
-				"ON (images.id = tags.id) LEFT JOIN approved "
-				"ON (approved.id = tags.id) INNER JOIN passwd "
+				"ON (images.id = tags.id) LEFT JOIN reviewed "
+				"ON (reviewed.id = tags.id) INNER JOIN passwd "
 				"ON (images.uid = passwd.uid) WHERE "
 				"images.id = '%s' LIMIT 1", image_id);
 	d_fprintf(sql_log, "%s\n", sql);
@@ -2058,10 +2058,10 @@ static void tagged_receipts(void)
 				"images.processed = 1 AND images.uid = "
 				"%u) AS nrows, tags.receipt_date, "
 				"images.id, images.path, images.name, "
-				"images.approved, approved.timestamp FROM "
+				"images.approved, reviewed.timestamp FROM "
 				"tags INNER JOIN images ON "
-				"(tags.id = images.id) LEFT JOIN approved ON "
-				"(tags.id = approved.id) WHERE "
+				"(tags.id = images.id) LEFT JOIN reviewed ON "
+				"(tags.id = reviewed.id) WHERE "
 				"images.processed = 1 AND images.uid = "
 				"%u ORDER BY tags.timestamp DESC LIMIT "
 				"%d, %d",
