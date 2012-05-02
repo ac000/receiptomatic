@@ -262,7 +262,7 @@ bool image_access_allowed(const char *path)
 	char uidir[PATH_MAX];
 
 	memset(uidir, 0, sizeof(uidir));
-	snprintf(uidir, sizeof(uidir), "/%d/", user_session.uid);
+	snprintf(uidir, sizeof(uidir), "/%u/", user_session.uid);
 
 	/* Approvers can see all images */
 	if (IS_APPROVER())

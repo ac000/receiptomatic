@@ -172,7 +172,7 @@ static void delete_image(void)
 	vl = add_html_var(vl, "image_id", get_var(qvars, "image_id"));
 
 	memset(uidir, 0, sizeof(uidir));
-	snprintf(uidir, sizeof(uidir), "/%d/", user_session.uid);
+	snprintf(uidir, sizeof(uidir), "/%u/", user_session.uid);
 	/* Is it one of the users images? */
 	if (strncmp(image_path + strlen(IMAGE_PATH), uidir, strlen(uidir))
 									!= 0)
