@@ -1,0 +1,42 @@
+This documents the available config options that can be set in
+receiptomatic.cfg
+
+Required
+========
+
+BASE_URL	The protocol and host part of the url that the site is accessed
+		as, e.g https://ri.opentechlabs.net
+
+DB_NAME		The name of the receiptomatic databsse.
+DB_USER		The username for the receiptomatic database.
+DB_PASS		The password for the receiptomatic database user.
+
+IMAGE_PATH	The base path for where the receipt images are stored, e.g
+		/data/www/opentechlabs.net/receiptomatic/receipt_images
+
+MAIL_CMD	The command used to send email e.g
+		/usr/sbin/sendmail -f noreply@opentechlabs.net -t
+MAIL_FROM	The From address to use for email, e.g
+		noreply@opentechlabs.net
+MAIL_REPLY_TO	The address to use the the Reply-to: header, e.g
+		noreply@opentechlabs.net
+MAIL_SUBJECT	The subject to use for the email, e.g
+		Receiptomatic Account Activation
+
+SESSION_DB	Path to the tokyocabinet sessions file, e.g
+		/dev/shm/receiptomatic-www-sessions.tct
+
+
+Optional
+========
+
+DB_HOST		The hostname of the database server for receiptomatic, e.g
+		db.opentechlabs.net, default is localhost
+DB_SOCKET_NAME	The name of the local socket for the database, e.g
+		/var/lib/mysql/mysql.sock, default is NULL
+DB_PORT_NUM	The port number the database is listening on, e.g
+		3306, default is 3306
+DB_FLAGS	Any extra flags to pass to the database at connection time.
+
+NR_PROCS	The number of worker processes to fork. By default, one process
+		will be forked per available cpu.
