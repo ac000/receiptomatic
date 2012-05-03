@@ -1340,8 +1340,14 @@ void do_activate_user(const char *uid, const char *key, const char *password)
 
 /*
  * Gather users receipts stats and set html template variables
+ *
+ * If the uid is < 0, then gather overall stats.
+ *
+ * Which is why uid is passed in as long long, when it is generally an
+ * unsigned int, we need to be able to pass in -1, long long should cover
+ * this and the max unsigned int value.
  */
-void gather_receipt_stats_for_user(unsigned int uid, TMPL_varlist *varlist)
+void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 {
 	unsigned long i;
 	unsigned long nr_rows;
@@ -1352,12 +1358,20 @@ void gather_receipt_stats_for_user(unsigned int uid, TMPL_varlist *varlist)
 
 	conn = db_conn();
 	/* Total of approved receipts */
-	snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS nr_rows, "
-				"SUM(tags.gross_amount) AS gross_total FROM "
-				"images INNER JOIN tags ON "
+	if (uid > -1)
+		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+				"nr_rows, SUM(tags.gross_amount) AS "
+				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
-				uid, APPROVED);
+				(unsigned int)uid, APPROVED);
+	else
+		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+				"nr_rows, SUM(tags.gross_amount) AS "
+				"gross_total FROM images INNER JOIN tags ON "
+				"(images.id = tags.id) WHERE "
+				"images.approved = %d GROUP BY currency",
+				APPROVED);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
@@ -1377,12 +1391,20 @@ void gather_receipt_stats_for_user(unsigned int uid, TMPL_varlist *varlist)
 	mysql_free_result(res);
 
 	/* Total of rejected receipts */
-	snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS nr_rows, "
-				"SUM(tags.gross_amount) AS gross_total FROM "
-				"images INNER JOIN tags ON "
+	if (uid > -1)
+		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+				"nr_rows, SUM(tags.gross_amount) AS "
+				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
-				uid, REJECTED);
+				(unsigned int)uid, REJECTED);
+	else
+		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+				"nr_rows, SUM(tags.gross_amount) AS "
+				"gross_total FROM images INNER JOIN tags ON "
+				"(images.id = tags.id) WHERE "
+				"images.approved = %d GROUP BY currency",
+				REJECTED);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
@@ -1403,12 +1425,20 @@ void gather_receipt_stats_for_user(unsigned int uid, TMPL_varlist *varlist)
 	mysql_free_result(res);
 
 	/* Total of pending receipts */
-	snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS nr_rows, "
-				"SUM(tags.gross_amount) AS gross_total FROM "
-				"images INNER JOIN tags ON "
+	if (uid > -1)
+		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+				"nr_rows, SUM(tags.gross_amount) AS "
+				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
-				uid, PENDING);
+				(unsigned int)uid, PENDING);
+	else
+		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+				"nr_rows, SUM(tags.gross_amount) AS "
+				"gross_total FROM images INNER JOIN tags ON "
+				"(images.id = tags.id) WHERE "
+				"images.approved = %d GROUP BY currency",
+				PENDING);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);
@@ -1429,9 +1459,13 @@ void gather_receipt_stats_for_user(unsigned int uid, TMPL_varlist *varlist)
 	mysql_free_result(res);
 
 	/* Number of un-tagged receipts */
-	snprintf(sql, SQL_MAX, "SELECT COUNT(*) AS nr_rows FROM images WHERE "
-				"uid = %u AND processed = 0",
-				uid);
+	if (uid > -1)
+		snprintf(sql, SQL_MAX, "SELECT COUNT(*) AS nr_rows FROM "
+				"images WHERE uid = %u AND processed = 0",
+				(unsigned int)uid);
+	else
+		snprintf(sql, SQL_MAX, "SELECT COUNT(*) AS nr_rows FROM "
+				"images WHERE processed = 0");
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);

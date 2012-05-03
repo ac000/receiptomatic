@@ -31,7 +31,7 @@ int do_add_user(unsigned char capabilities);
 void do_update_user(void);
 void do_edit_user(void);
 void do_activate_user(const char *uid, const char *key, const char *password);
-void gather_receipt_stats_for_user(unsigned int uid, TMPL_varlist *varlist);
+void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist);
 void send_template(const char *template, TMPL_varlist *varlist,
 							TMPL_fmtlist *fmtlist);
 bool match_uri(const char *request_uri, const char *match);

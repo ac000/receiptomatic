@@ -711,6 +711,34 @@ out_csrf:
 }
 
 /*
+ * /admin/stats/
+ *
+ * HTML is in templates/admin_stats.tmpl
+ *
+ * Show overall receipt stats for the system.
+ */
+static void admin_stats(void)
+{
+	TMPL_varlist *vl = NULL;
+
+	if (!IS_ADMIN())
+		return;
+
+	vl = add_html_var(vl, "admin", "yes");
+
+	if (IS_APPROVER())
+		vl = add_html_var(vl, "approver", "yes");
+
+	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+
+	/* Gather stats covering _all_ users */
+	gather_receipt_stats_for_user(-1, vl);
+
+	send_template("templates/admin_stats.tmpl", vl, NULL);
+	TMPL_free_varlist(vl);
+}
+
+/*
  * /admin/user_stats/
  *
  * HTML is in templates/admin_user_stats.tmpl
@@ -2697,6 +2725,11 @@ void handle_request(void)
 
 	if (match_uri(request_uri, "/admin/user_stats/")) {
 		admin_user_stats();
+		goto out;
+	}
+
+	if (match_uri(request_uri, "/admin/stats/")) {
+		admin_stats();
 		goto out;
 	}
 
