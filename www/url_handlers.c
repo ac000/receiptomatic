@@ -445,7 +445,7 @@ static void admin_list_users(void)
 	ml = TMPL_add_loop(ml, "table", loop);
 	do_pagination(ml, page, nr_pages);
 
-	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/admin_list_users.tmpl", ml, fmtlist);
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
@@ -547,7 +547,7 @@ static void admin_add_user(void)
 
 out:
 	add_csrf_token(vl);
-	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/admin_add_user.tmpl", vl, fmtlist);
 	TMPL_free_fmtlist(fmtlist);
 
@@ -702,7 +702,7 @@ mysql_cleanup:
 	}
 
 	add_csrf_token(vl);
-	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/admin_edit_user.tmpl", vl, fmtlist);
 	TMPL_free_fmtlist(fmtlist);
 
@@ -870,7 +870,7 @@ static void admin_pending_activations(void)
 	ml = TMPL_add_loop(ml, "table", loop);
 	do_pagination(ml, page, nr_pages);
 
-	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/admin_pending_activations.tmpl", ml, fmtlist);
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
@@ -1213,7 +1213,7 @@ static void prefs_fmap(void)
 			"" : fields.payment_method);
 
 	add_csrf_token(vl);
-	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/prefs_fmap.tmpl", vl, fmtlist);
 	TMPL_free_varlist(vl);
 	TMPL_free_fmtlist(fmtlist);
@@ -1331,7 +1331,7 @@ static void prefs_edit_user(void)
 	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 
 	add_csrf_token(vl);
-	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/prefs_edit_user.tmpl", vl, fmtlist);
 	TMPL_free_varlist(vl);
 	TMPL_free_fmtlist(fmtlist);
@@ -1783,7 +1783,7 @@ static void approve_receipts(void)
 	add_csrf_token(ml);
 
 out:
-	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/approve_receipts.tmpl", ml, fmtlist);
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
@@ -1902,7 +1902,7 @@ static void reviewed_receipts(void)
 	do_pagination(ml, page, nr_pages);
 
 out:
-	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/reviewed_receipts.tmpl", ml, fmtlist);
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
@@ -2089,7 +2089,7 @@ static void receipt_info(void)
 	mysql_close(conn);
 
 out:
-	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/receipt_info.tmpl", vl, fmtlist);
 	TMPL_free_varlist(vl);
 	TMPL_free_fmtlist(fmtlist);
@@ -2213,7 +2213,7 @@ static void tagged_receipts(void)
 	do_pagination(ml, page, nr_pages);
 
 out:
-	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/tagged_receipts.tmpl", ml, fmtlist);
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
@@ -2394,7 +2394,7 @@ static void process_receipt(void)
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
 			vl = add_html_var(vl, "from", "receipt_info");
 		add_csrf_token(vl);
-		fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+		fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 		send_template("templates/process_receipt.tmpl", vl, fmtlist);
 		TMPL_free_fmtlist(fmtlist);
 	}
@@ -2542,7 +2542,7 @@ static void receipts(void)
 	add_csrf_token(ml);
 
 out:
-	fmtlist = TMPL_add_fmt(0, "de_xss", de_xss);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/receipts.tmpl", ml, fmtlist);
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
