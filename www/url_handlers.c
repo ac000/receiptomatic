@@ -1589,7 +1589,7 @@ static void approve_receipts(void)
 		strcat(pmsql, cash);
 	}
 	if (user_session.capabilities & APPROVER_CARD) {
-		if (strlen(pmsql) > 0)
+		if (IS_SET(pmsql))
 			strcpy(join, " OR ");
 		else
 			strcpy(join, "\0");
@@ -1598,7 +1598,7 @@ static void approve_receipts(void)
 		strcat(pmsql, card);
 	}
 	if (user_session.capabilities & APPROVER_CHEQUE) {
-		if (strlen(pmsql) > 0)
+		if (IS_SET(pmsql))
 			strcpy(join, " OR ");
 		else
 			strcpy(join, "\0");
@@ -1616,7 +1616,7 @@ static void approve_receipts(void)
 	 * error log and return (to avoid a segfault due to the subsequent
 	 * incomplete SQL query).
 	 */
-	if (strlen(pmsql) == 0) {
+	if (!IS_SET(pmsql)) {
 		d_fprintf(error_log, "User %u seems to have an invalid "
 					"capability setting in the passwd "
 					"table.\n", user_session.uid);
