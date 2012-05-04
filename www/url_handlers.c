@@ -1249,8 +1249,8 @@ static void prefs_edit_user(void)
 		if (!valid_csrf_token())
 			return;
 
-		if ((strlen(get_var(qvars, "email1")) == 0 &&
-				strlen(get_var(qvars, "email2")) == 0) ||
+		if ((!IS_SET(get_var(qvars, "email1")) &&
+				!IS_SET(get_var(qvars, "email2"))) ||
 				(strcmp(get_var(qvars, "email1"),
 				get_var(qvars, "email2")) != 0)) {
 			vl = add_html_var(vl, "email_error", "yes");
@@ -1274,8 +1274,8 @@ static void prefs_edit_user(void)
 		 * If the password fields are > 0 in length, then we tried
 		 * to update it.
 		 */
-		} else if (strlen(get_var(qvars, "pass1")) != 0 &&
-					strlen(get_var(qvars, "pass2")) != 0) {
+		} else if (IS_SET(get_var(qvars, "pass1")) &&
+					IS_SET(get_var(qvars, "pass2"))) {
 			vl = add_html_var(vl, "pass_error", "length");
 			form_err = true;
 		}
@@ -1288,7 +1288,7 @@ static void prefs_edit_user(void)
 			return;
 		}
 	} else {
-		if (strlen(get_var(qvars, "updated")) > 0)
+		if (IS_SET(get_var(qvars, "updated")))
 			vl = add_html_var(vl, "updated", "yes");
 	}
 
