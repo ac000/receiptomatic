@@ -494,14 +494,14 @@ static void admin_add_user(void)
 	if (!qvars)
 		goto out;
 
-	if (strlen(get_var(qvars, "name")) == 0) {
+	if (!IS_SET(get_var(qvars, "name"))) {
 		form_err = true;
 		vl = add_html_var(vl, "name_error", "yes");
 	}
 	vl = add_html_var(vl, "name", get_var(qvars, "name"));
 
-	if ((strlen(get_var(qvars, "email1")) == 0 &&
-				strlen(get_var(qvars, "email2")) == 0) ||
+	if ((!IS_SET(get_var(qvars, "email1")) &&
+				!IS_SET(get_var(qvars, "email2"))) ||
 				(strcmp(get_var(qvars, "email1"),
 				get_var(qvars, "email2")) != 0)) {
 		form_err = true;
@@ -510,29 +510,29 @@ static void admin_add_user(void)
 	vl = add_html_var(vl, "email1", get_var(qvars, "email1"));
 	vl = add_html_var(vl, "email2", get_var(qvars, "email2"));
 
-	if (strlen(get_var(qvars, "ap_card")) > 0 ||
-				strlen(get_var(qvars, "ap_cash")) > 0 ||
-				strlen(get_var(qvars, "ap_cheque")) > 0 ||
-				strlen(get_var(qvars, "ap_self")) > 0) {
+	if (IS_SET(get_var(qvars, "ap_card")) ||
+				IS_SET(get_var(qvars, "ap_cash")) ||
+				IS_SET(get_var(qvars, "ap_cheque")) ||
+				IS_SET(get_var(qvars, "ap_self"))) {
 		capabilities |= APPROVER;
-		if (strlen(get_var(qvars, "ap_card")) > 0) {
+		if (IS_SET(get_var(qvars, "ap_card"))) {
 			capabilities |= APPROVER_CARD;
 			vl = add_html_var(vl, "ap_card", "yes");
 		}
-		if (strlen(get_var(qvars, "ap_cash")) > 0) {
+		if (IS_SET(get_var(qvars, "ap_cash"))) {
 			capabilities |= APPROVER_CASH;
 			vl = add_html_var(vl, "ap_cash", "yes");
 		}
-		if (strlen(get_var(qvars, "ap_cheque")) > 0) {
+		if (IS_SET(get_var(qvars, "ap_cheque"))) {
 			capabilities |= APPROVER_CHEQUE;
 			vl = add_html_var(vl, "ap_cheque", "yes");
 		}
-		if (strlen(get_var(qvars, "ap_self")) > 0) {
+		if (IS_SET(get_var(qvars, "ap_self"))) {
 			capabilities |= APPROVER_SELF;
 			vl = add_html_var(vl, "ap_self", "yes");
 		}
 	}
-	if (strlen(get_var(qvars, "is_admin")) > 0) {
+	if (IS_SET(get_var(qvars, "is_admin"))) {
 		capabilities |= ADMIN;
 		vl = add_html_var(vl, "is_admin", "yes");
 	}
