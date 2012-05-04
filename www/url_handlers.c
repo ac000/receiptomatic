@@ -259,6 +259,10 @@ static void get_image(void)
 	}
 
 	fd = open(image_path, O_RDONLY);
+	if (fd == -1) {
+		d_fprintf(error_log, "Could not open %s\n", image_path);
+		return;
+	}
 	fstat(fd, &sb);
 
 	cookie = magic_open(MAGIC_MIME);
@@ -309,6 +313,10 @@ static void full_image(void)
 	}
 
 	fd = open(image_path, O_RDONLY);
+	if (fd == -1) {
+		d_fprintf(error_log, "Could not open %s\n", image_path);
+		return;
+	}
 	fstat(fd, &sb);
 
 	printf("Cache-Control: private\r\n");
