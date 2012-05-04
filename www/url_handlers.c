@@ -2291,14 +2291,14 @@ static void process_receipt(void)
 	fields = field_names;
 	set_custom_field_names(&fields);
 
-	if (strlen(get_var(qvars, "department")) == 0) {
+	if (!IS_SET(get_var(qvars, "department"))) {
 		tag_error = true;
 		vl = add_html_var(vl, "error.department", "1");
 	}
 	vl = add_html_var(vl, "fields.department", fields.department);
 	vl = add_html_var(vl, "department", get_var(qvars, "department"));
 
-	if (strlen(get_var(qvars, "employee_number")) == 0) {
+	if (!IS_SET(get_var(qvars, "employee_number"))) {
 		tag_error = true;
 		vl = add_html_var(vl, "error.employee_number", "1");
 	}
@@ -2307,14 +2307,14 @@ static void process_receipt(void)
 	vl = add_html_var(vl, "employee_number",
 					get_var(qvars, "employee_number"));
 
-	if (strlen(get_var(qvars, "cost_codes")) == 0) {
+	if (!IS_SET(get_var(qvars, "cost_codes"))) {
 		tag_error = true;
 		vl = add_html_var(vl, "error.cost_codes", "1");
 	}
 	vl = add_html_var(vl, "fields.cost_codes", fields.cost_codes);
 	vl = add_html_var(vl, "cost_codes", get_var(qvars, "cost_codes"));
 
-	if (strlen(get_var(qvars, "account_codes")) == 0) {
+	if (!IS_SET(get_var(qvars, "account_codes"))) {
 		tag_error = true;
 		vl = add_html_var(vl, "error.account_codes", "1");
 	}
@@ -2322,14 +2322,14 @@ static void process_receipt(void)
 	vl = add_html_var(vl, "account_codes",
 					get_var(qvars, "account_codes"));
 
-	if (strlen(get_var(qvars, "po_num")) == 0) {
+	if (!IS_SET(get_var(qvars, "po_num"))) {
 		tag_error = true;
 		vl = add_html_var(vl, "error.po_num", "1");
 	}
 	vl = add_html_var(vl, "fields.po_num", fields.po_num);
 	vl = add_html_var(vl, "po_num", get_var(qvars, "po_num"));
 
-	if (strlen(get_var(qvars, "supplier_name")) == 0) {
+	if (!IS_SET(get_var(qvars, "supplier_name"))) {
 		tag_error = true;
 		vl = add_html_var(vl, "error.supplier_name", "1");
 	}
@@ -2337,7 +2337,7 @@ static void process_receipt(void)
 	vl = add_html_var(vl, "supplier_name",
 					get_var(qvars, "supplier_name"));
 
-	if (strlen(get_var(qvars, "supplier_town")) == 0) {
+	if (!IS_SET(get_var(qvars, "supplier_town"))) {
 		tag_error = true;
 		vl = add_html_var(vl, "error.supplier_town", "1");
 	}
@@ -2366,7 +2366,7 @@ static void process_receipt(void)
 	vl = add_html_var(vl, "fields.vat_rate", fields.vat_rate);
 	vl = add_html_var(vl, "vat_rate", get_var(qvars, "vat_rate"));
 
-	if (strlen(get_var(qvars, "vat_number")) == 0) {
+	if (!IS_SET(get_var(qvars, "vat_number"))) {
 		tag_error = true;
 		vl = add_html_var(vl, "error.vat_number", "1");
 	}
