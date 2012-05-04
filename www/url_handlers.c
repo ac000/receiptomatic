@@ -2185,7 +2185,7 @@ static void tagged_receipts(void)
 							fields.receipt_date);
 		vl = add_html_var(vl, "receipt_date", tbuf);
 		/* If the receipt been reviewed, display its reviewed date */
-		if (strlen(get_var(db_row, "timestamp")) > 0) {
+		if (IS_SET(get_var(db_row, "timestamp"))) {
 			secs = atol(get_var(db_row, "timestamp"));
 			strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y",
 							localtime(&secs));
