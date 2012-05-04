@@ -62,6 +62,8 @@
 #define IS_APPROVER()	(((user_session.capabilities) & (APPROVER)) ? 1 : 0)
 /* Macro to check if the user is an admin */
 #define IS_ADMIN()	(((user_session.capabilities) & (ADMIN)) ? 1 : 0)
+/* Macro to check if a char *variable is set, i.e a len > 0 */
+#define IS_SET(var)	((strlen(var) > 0) ? 1 : 0)
 
 /*
  * Wrapper around fprintf(). It will prepend the text passed it with
