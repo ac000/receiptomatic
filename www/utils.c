@@ -16,6 +16,8 @@
 #include <string.h>
 #include <ctype.h>
 #include <sys/time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 #include <glib.h>
 
@@ -358,8 +360,12 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 		char temp_name[] = "/tmp/u_files/pgv-XXXXXX";
 		struct file_info *file_info;
 		int fd;
+		mode_t smask;
 
+		/* Ensure we create the file restrictively */
+		smask = umask(0077);
 		fd = mkstemp(temp_name);
+		umask(smask);
 
 		file_info = malloc(sizeof(struct file_info));
 		file_info->orig_file_name = strdup(
