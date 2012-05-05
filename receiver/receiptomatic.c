@@ -82,8 +82,8 @@ static void send_error_email(const char *email_addr)
 	fprintf(fp, "To: %s\n", email_addr);
 	fputs("Content-type: text/plain\n\n", fp);
 	fputs("The email address that you sent your image(s) from is not the "
-				"one you use to log into the system.\n\n", fp);
-	fputs("Your image has _not_ been stored.\n", fp);
+			"one you\nuse to log into the system.\n\n", fp);
+	fputs("Your image(s) have _not_ been stored.\n", fp);
 
 	pclose(fp);
 	sent_email = true;
