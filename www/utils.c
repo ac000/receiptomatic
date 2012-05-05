@@ -685,16 +685,21 @@ void send_activation_mail(const char *name, const char *address,
 {
 	FILE *fp = popen(MAIL_CMD, "w");
 
-	fprintf(fp, "Reply-to: %s\n", MAIL_REPLY_TO);
-	fprintf(fp, "From: %s\n", MAIL_FROM);
-	fprintf(fp, "Subject: %s\n", MAIL_SUBJECT);
-	fprintf(fp, "To: %s <%s>\n", name, address);
-	fputs("Content-type: text/plain\n\n", fp);
-	fputs("Your account has been created and awaits activation.\n\n", fp);
-	fputs("Please follow the below url to complete your account setup.\n",
-									fp);
-	fputs("Note that this activation key is valid for 24 hours.\n\n", fp);
-	fprintf(fp, "%s/activate_user/?key=%s\n", BASE_URL, key);
+	fprintf(fp, "Reply-To: %s\r\n", MAIL_REPLY_TO);
+	fprintf(fp, "From: %s\r\n", MAIL_FROM);
+	fprintf(fp, "Subject: %s\r\n", MAIL_SUBJECT);
+	fprintf(fp, "To: %s <%s>\r\n", name, address);
+	fputs("Content-Type: text/plain; charset=us-ascii\r\n", fp);
+	fputs("Content-Transfer-Encoding: 7bit\r\n", fp);
+	fputs("\r\n", fp);
+
+	fputs("Your account has been created and awaits activation.\r\n", fp);
+	fputs("\r\n", fp);
+	fputs("Please follow the below url to complete your account setup."
+								"\r\n", fp);
+	fputs("Note that this activation key is valid for 24 hours.\r\n", fp);
+	fputs("\r\n", fp);
+	fprintf(fp, "%s/activate_user/?key=%s\r\n", BASE_URL, key);
 
 	pclose(fp);
 }

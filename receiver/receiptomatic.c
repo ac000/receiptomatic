@@ -76,14 +76,18 @@ static void send_error_email(const char *email_addr)
 
 	FILE *fp = popen(MAIL_CMD, "w");
 
-	fprintf(fp, "Reply-to: %s\n", MAIL_REPLY_TO);
-	fprintf(fp, "From: %s\n", MAIL_FROM);
-	fprintf(fp, "Subject: Receiptomatic email error\n");
-	fprintf(fp, "To: %s\n", email_addr);
-	fputs("Content-type: text/plain\n\n", fp);
+	fprintf(fp, "Reply-To: %s\r\n", MAIL_REPLY_TO);
+	fprintf(fp, "From: %s\r\n", MAIL_FROM);
+	fprintf(fp, "Subject: Receiptomatic email error\r\n");
+	fprintf(fp, "To: %s\r\n", email_addr);
+	fputs("Content-Type: text/plain; charset=us-ascii\r\n", fp);
+	fputs("Content-Transfer-Encoding: 7bit\r\n", fp);
+	fputs("\r\n", fp);
+
 	fputs("The email address that you sent your image(s) from is not the "
-			"one you\nuse to log into the system.\n\n", fp);
-	fputs("Your image(s) have _not_ been stored.\n", fp);
+			"one you\r\nuse to log into the system.\r\n", fp);
+	fputs("\r\n", fp);
+	fputs("Your image(s) have _not_ been stored.\r\n", fp);
 
 	pclose(fp);
 	sent_email = true;
