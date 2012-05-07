@@ -68,7 +68,7 @@ out:
 
 static void send_error_email(const char *email_addr)
 {
-	static bool sent_email = false;
+	static bool sent_email;
 
 	/* We only want to send one error email per received email */
 	if (sent_email)
