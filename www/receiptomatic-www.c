@@ -385,6 +385,8 @@ int main(int argc, char **argv)
 
 	/* Ignore SIGHUP for now */
 	signal(SIGHUP, SIG_IGN);
+	/* Ignore SIGPIPE */
+	signal(SIGPIPE, SIG_IGN);
 
 	/* Setup signal handler for USR1 to dump session state */
 	sigemptyset(&action.sa_mask);
