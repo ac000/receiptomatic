@@ -189,6 +189,8 @@ static void dump_session_state(void)
 	nres = tclistnum(res);
 	fprintf(debug_log, "Number of active sessions: %d\n", nres);
 	for (i = 0; i < nres; i++) {
+		unsigned char capabilities;
+
 		rbuf = tclistval(res, i, &rsize);
 		cols = tctdbget(tdb, rbuf, rsize);
 		tcmapiterinit(cols);
@@ -197,8 +199,15 @@ static void dump_session_state(void)
 								"sid"));
 		fprintf(debug_log, "\tuid          : %s\n", tcmapget2(cols,
 								"uid"));
-		fprintf(debug_log, "\tcapabilities : %s\n", tcmapget2(cols,
-							"capabilities"));
+		capabilities = atoi(tcmapget2(cols, "capabilities"));
+		fprintf(debug_log, "\tcapabilities : (%d) %s %s %s %s %s %s\n",
+				capabilities,
+				capabilities & ADMIN ? "admin," : "",
+				capabilities & APPROVER ? "approver -" : "",
+				capabilities & APPROVER_CARD ? "card" : "",
+				capabilities & APPROVER_CASH ? "cash" : "",
+				capabilities & APPROVER_CHEQUE ? "cheque" : "",
+				capabilities & APPROVER_SELF ? "self" : "");
 		fprintf(debug_log, "\tusername     : %s\n", tcmapget2(cols,
 								"username"));
 		fprintf(debug_log, "\tname         : %s\n", tcmapget2(cols,
