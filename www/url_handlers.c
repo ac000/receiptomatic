@@ -290,57 +290,6 @@ static void get_image(void)
 }
 
 /*
- * /full_image/
- *
- * Allows the user to download the image to view at full size outside
- * the browser.
- */
-static void full_image(void)
-{
-	int fd;
-	ssize_t bytes_read;
-	char buf[BUF_SIZE];
-	char path[PATH_MAX];
-	char image_path[PATH_MAX];
-	struct stat sb;
-
-	snprintf(path, PATH_MAX, "%s/%s", IMAGE_PATH, env_vars.request_uri
-									+ 12);
-	if (!realpath(path, image_path))
-		return;
-
-	/* Don't let users access other users images */
-	if (!image_access_allowed(image_path)) {
-		printf("Status: 401 Unauthorized\r\n\r\n");
-		d_fprintf(access_log, "Access denied to %s for %s\n",
-							env_vars.request_uri,
-							user_session.username);
-		return;
-	}
-
-	fd = open(image_path, O_RDONLY);
-	if (fd == -1) {
-		d_fprintf(error_log, "Could not open %s\n", image_path);
-		return;
-	}
-	fstat(fd, &sb);
-
-	printf("Cache-Control: private\r\n");
-	printf("Content-Type: application/download\r\n");
-	printf("Content-Transfer-Encoding: binary\r\n");
-	printf("Content-Length: %ld\r\n", sb.st_size);
-	printf("Content-Disposition: filename = %s\r\n\r\n",
-							basename(image_path));
-
-	do {
-		bytes_read = read(fd, &buf, BUF_SIZE);
-		fwrite(buf, bytes_read, 1, stdout);
-	} while (bytes_read > 0);
-
-	close(fd);
-}
-
-/*
  * /admin/
  *
  * HTML is in templates/admin.tmpl
@@ -2689,11 +2638,6 @@ void handle_request(void)
 
 	if (match_uri(request_uri, "/get_image/")) {
 		get_image();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/full_image/")) {
-		full_image();
 		goto out;
 	}
 

@@ -1524,9 +1524,6 @@ bool match_uri(const char *request_uri, const char *match)
 	 */
 	if (strstr(request, "/get_image/") && strstr(match, "/get_image/"))
 		return true;
-	else if (strstr(request, "/full_image/") &&
-						strstr(match, "/full_image/"))
-		return true;
 	else if (strncmp(request, match, mlen) == 0 && rlen == mlen)
 		return true;
 	else
