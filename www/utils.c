@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -656,14 +657,13 @@ char *generate_activation_key(const char *email_addr)
 	char ht[3];
 	int hbs;
 	int i;
-	struct timeval tv;
+	struct timespec tp;
 	MHASH td;
 
 	td = mhash_init(MHASH_SHA256);
-	gettimeofday(&tv, NULL);
+	clock_gettime(CLOCK_REALTIME, &tp);
 	snprintf(hash_src, sizeof(hash_src), "%s|%d-%ld.%ld", email_addr,
-							getpid(), tv.tv_sec,
-							tv.tv_usec);
+					getpid(), tp.tv_sec, tp.tv_nsec);
 	mhash(td, hash_src, strlen(hash_src));
 	hash = mhash_end(td);
 	memset(shash, 0, sizeof(shash));
