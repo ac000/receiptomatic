@@ -270,7 +270,14 @@ static void get_image(void)
 
 	printf("Cache-Control: private\r\n");
 	printf("Content-Type: %s\r\n", mime_type);
-	printf("Content-Length: %ld\r\n\r\n", sb.st_size);
+	printf("Content-Length: %ld\r\n", sb.st_size);
+	if (!strstr("medium", image_path)) {
+		/* We're going for the full size image for download */
+		printf("Content-Transfer-Encoding: binary\r\n");
+		printf("Content-Disposition: attachment; filename = %s\r\n",
+							basename(image_path));
+	}
+	printf("\r\n");
 	d_fprintf(debug_log, "Sending image: %s\n", env_vars.request_uri);
 
 	do {
