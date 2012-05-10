@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <sys/time.h>
+#include <time.h>
 
 int main(int argc, char **argv)
 {
@@ -40,10 +40,10 @@ int main(int argc, char **argv)
 
 	for (i = 3; i < 19; i++) {
 		long r;
-		struct timeval tv;
+		struct timespec tp;
 
-		gettimeofday(&tv, NULL);
-		srandom(tv.tv_sec * tv.tv_usec);
+		clock_gettime(CLOCK_REALTIME, &tp);
+		srandom(tp.tv_sec * tp.tv_nsec);
 		r = random() % 64; /* 0 - 63 */
 		salt[i] = salt_chars[r];
 	}
