@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/time.h>
+#include <time.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -36,7 +36,7 @@ unsigned long long log_login(void)
 	char *hostname;
 	char *ip_addr;
 	char host[NI_MAXHOST] = "\0";
-	struct timeval login_at;
+	struct timespec login_at;
 	struct sockaddr_in addr4;
 	struct sockaddr_in6 addr6;
 	struct sockaddr *addr = (struct sockaddr *)&addr4;
@@ -47,7 +47,7 @@ unsigned long long log_login(void)
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 
-	gettimeofday(&login_at, NULL);
+	clock_gettime(CLOCK_REALTIME, &login_at);
 
 	if (!strchr(env_vars.http_x_forwarded_for, ':')) {
 		/* IPv4 */
@@ -95,9 +95,11 @@ unsigned long long log_login(void)
 
 	sid = strtoull(row[0], NULL, 10) + 1;
 
+	/* Divide tv_nsec by 1000 to get a rough microseconds value */
 	snprintf(sql, SQL_MAX, "INSERT INTO utmp VALUES (%ld.%ld, %u, '%s', "
 					"'%s', '%s', %llu)",
-					login_at.tv_sec, login_at.tv_usec,
+					login_at.tv_sec,
+					login_at.tv_nsec / NS_USEC,
 					uid, username, ip_addr, hostname, sid);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
