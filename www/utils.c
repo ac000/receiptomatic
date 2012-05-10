@@ -16,7 +16,6 @@
 #include <string.h>
 #include <ctype.h>
 #include <time.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -723,10 +722,10 @@ char *generate_password_hash(int hash_type, const char *password)
 
 	for (i = 3; i < 19; i++) {
 		long r;
-		struct timeval tv;
+		struct timespec tp;
 
-		gettimeofday(&tv, NULL);
-		srandom(tv.tv_sec * tv.tv_usec);
+		clock_gettime(CLOCK_REALTIME, &tp);
+		srandom(tp.tv_sec * tp.tv_nsec);
 		r = random() % 64; /* 0 - 63 */
 		salt[i] = salt_chars[r];
 	}
