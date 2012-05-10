@@ -25,7 +25,7 @@
 #include <ctemplate.h>
 #endif
 
-#include <sys/time.h>
+#include <time.h>
 
 #include <glib.h>
 
@@ -55,6 +55,14 @@
 #define SHA256		 5
 #define SHA512		10
 
+/*
+ * These three define the number of nanoseconds in a second,
+ * millisecond and microsecond.
+ */
+#define NS_SEC		1000000000
+#define NS_MSEC		1000000
+#define NS_USEC		1000
+
 /* Length of time (seconds) an activation key is valid */
 #define KEY_EXP		86400
 
@@ -76,9 +84,10 @@
  */
 #define d_fprintf(stream, fmt, ...) \
 	do { \
-		struct timeval tv; \
-		gettimeofday(&tv, NULL); \
-		fprintf(stream, "%ld.%ld %d %s: " fmt, tv.tv_sec, tv.tv_usec, \
+		struct timespec tp; \
+		clock_gettime(CLOCK_REALTIME, &tp); \
+		fprintf(stream, "%ld.%ld %d %s: " fmt, tp.tv_sec, \
+					tp.tv_nsec / NS_USEC, \
 					getpid(), __func__, ##__VA_ARGS__); \
 		fflush(stream); \
 	} while (0)
