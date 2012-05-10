@@ -18,7 +18,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/time.h>
 #include <time.h>
 #include <alloca.h>
 #include <netdb.h>
@@ -2589,10 +2588,10 @@ void handle_request(void)
 {
 	bool logged_in = false;
 	char *request_uri;
-	struct timeval stv;
-	struct timeval etv;
+	struct timespec stp;
+	struct timespec etp;
 
-	gettimeofday(&stv, NULL);
+	clock_gettime(CLOCK_REALTIME, &stp);
 
 	qvars = NULL;
 	avars = NULL;
@@ -2771,14 +2770,13 @@ out2:
 	free_vars(qvars);
 	free_avars();
 	free_u_files();
-	gettimeofday(&etv, NULL);
-	d_fprintf(access_log, "Got request from %s for %s (%s), %f secs\n",
+	clock_gettime(CLOCK_REALTIME, &etp);
+	d_fprintf(access_log, "Got request from %s for %s (%s), %ums\n",
 				env_vars.http_x_forwarded_for,
 				request_uri,
 				env_vars.request_method,
-				((double)etv.tv_sec +
-				(double)etv.tv_usec / 1000000.0) -
-				((double)stv.tv_sec + (double)stv.tv_usec
-				/ 1000000.0));
+				(unsigned int)((etp.tv_sec * 1000 +
+				etp.tv_nsec / NS_MSEC) -
+				(stp.tv_sec * 1000 + stp.tv_nsec / NS_MSEC)));
 	free_env_vars();
 }
