@@ -404,7 +404,7 @@ void set_user_session(void)
 
 /*
  * Generate a session_id used to identify a users session.
- * It generates a SHA-256 from random dara.
+ * It generates a SHA-256 from random data.
  */
 char *create_session_id(void)
 {
