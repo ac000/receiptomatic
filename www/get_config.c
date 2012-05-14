@@ -31,6 +31,9 @@ int get_config(const char *filename)
 		option = token;
 		token = strtok(NULL, "=");
 		value = token;
+		/* Skip blank lines */
+		if (!value)
+			continue;
 		/* Loose the trailing \n */
 		value[strlen(value) - 1] = '\0';
 
