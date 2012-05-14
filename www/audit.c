@@ -49,15 +49,13 @@ unsigned long long log_login(void)
 
 	clock_gettime(CLOCK_REALTIME, &login_at);
 
-	if (!strchr(env_vars.http_x_forwarded_for, ':')) {
+	if (!strchr(env_vars.remote_addr, ':')) {
 		/* IPv4 */
-		inet_pton(AF_INET, env_vars.http_x_forwarded_for,
-							&addr4.sin_addr);
+		inet_pton(AF_INET, env_vars.remote_addr, &addr4.sin_addr);
 		addr4.sin_family = AF_INET;
 	} else {
 		/* IPv6 */
-		inet_pton(AF_INET6, env_vars.http_x_forwarded_for,
-							&addr6.sin6_addr);
+		inet_pton(AF_INET6, env_vars.remote_addr, &addr6.sin6_addr);
 		addr6.sin6_family = AF_INET6;
 
 		addr = (struct sockaddr *)&addr6;
@@ -74,9 +72,9 @@ unsigned long long log_login(void)
 	hostname = alloca(strlen(host) * 2 + 1);
 	mysql_real_escape_string(conn, hostname, host, strlen(host));
 
-	ip_addr = alloca(strlen(env_vars.http_x_forwarded_for) * 2 + 1);
-	mysql_real_escape_string(conn, ip_addr, env_vars.http_x_forwarded_for,
-					strlen(env_vars.http_x_forwarded_for));
+	ip_addr = alloca(strlen(env_vars.remote_addr) * 2 + 1);
+	mysql_real_escape_string(conn, ip_addr, env_vars.remote_addr,
+					strlen(env_vars.remote_addr));
 
 	snprintf(sql, SQL_MAX, "SELECT uid FROM passwd WHERE username = '%s'",
 								username);

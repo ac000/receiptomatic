@@ -114,7 +114,7 @@ bool is_logged_in(void)
 	if (atoi(tcmapget2(cols, "restrict_ip")) == 1) {
 		/* origin_ip */
 		if (strcmp(tcmapget2(cols, "origin_ip"),
-					env_vars.http_x_forwarded_for) != 0)
+					env_vars.remote_addr) != 0)
 			goto out;
 	}
 	/* client_id */
@@ -599,7 +599,7 @@ void create_session(unsigned long long sid)
 					"name", get_var(db_row, "name"),
 					"login_at", timestamp,
 					"last_seen", timestamp, "origin_ip",
-					env_vars.http_x_forwarded_for,
+					env_vars.remote_addr,
 					"client_id", env_vars.http_user_agent,
 					"session_id", session_id,
 					"csrf_token", "\0",

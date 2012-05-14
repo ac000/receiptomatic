@@ -579,11 +579,11 @@ void set_env_vars(void)
 		 */
 		env_vars.http_user_agent = strdup("");
 
-	if (getenv("HTTP_X_FORWARDED_FOR"))
-		env_vars.http_x_forwarded_for = strdup(getenv(
-						"HTTP_X_FORWARDED_FOR"));
+	if (getenv("HTTP_X_FORWARDED_FOR") &&
+					IS_SET(getenv("HTTP_X_FORWARDED_FOR")))
+		env_vars.remote_addr = strdup(getenv("HTTP_X_FORWARDED_FOR"));
 	else
-		env_vars.http_x_forwarded_for = NULL;
+		env_vars.remote_addr = strdup(getenv("REMOTE_ADDR"));
 
 	if (getenv("QUERY_STRING"))
 		env_vars.query_string = strdup(getenv("QUERY_STRING"));
@@ -624,7 +624,7 @@ void free_env_vars(void)
 	free(env_vars.content_type);
 	free(env_vars.http_cookie);
 	free(env_vars.http_user_agent);
-	free(env_vars.http_x_forwarded_for);
+	free(env_vars.remote_addr);
 	free(env_vars.query_string);
 }
 

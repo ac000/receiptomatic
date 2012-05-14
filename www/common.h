@@ -150,7 +150,7 @@ struct env_vars {
 	char *content_type;
 	char *http_cookie;
 	char *http_user_agent;
-	char *http_x_forwarded_for;
+	char *remote_addr;
 	char *query_string;
 } env_vars;
 extern struct env_vars env_vars;
