@@ -73,6 +73,11 @@
 /* Macro to check if a char *variable is set, i.e a len > 0 */
 #define IS_SET(var)	((strlen(var) > 0) ? 1 : 0)
 
+/* Unbreak __func__ by my_global.h */
+#ifdef __func__
+#undef __func__
+#endif
+
 /*
  * Wrapper around fprintf(). It will prepend the text passed it with
  * seconds.microseconds pid function:
