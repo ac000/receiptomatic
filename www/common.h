@@ -25,6 +25,9 @@
 #include <ctemplate.h>
 #endif
 
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
 #include <time.h>
 
 #include <glib.h>
