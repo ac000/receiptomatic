@@ -324,10 +324,10 @@ static void process_part(GMimeObject *part, gpointer user_data)
 		strcpy(filename, "000-receipt_image");
 		strcat(filename, ext);
 	} else {
-		struct dirent *entry;
+		struct dirent64 *entry;
 		int ne = 0;
 
-		while ((entry = readdir(dir)) != NULL) {
+		while ((entry = readdir64(dir)) != NULL) {
 			/* skip . .. medium & small entries */
 			if (entry->d_name[0] == '.' ||
 						entry->d_name[0] == 'm' ||
