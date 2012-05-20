@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -std=c99 -O2
+CFLAGS=-Wall -std=c99 -O2 -D_FILE_OFFSET_BITS=64
 LIBS=`pkg-config --libs gmime-2.0` `mysql_config --libs` `GraphicsMagick-config --ldflags --libs` -lmhash
 INCS=`pkg-config --cflags gmime-2.0` `mysql_config --cflags` `GraphicsMagick-config --cppflags`
 
