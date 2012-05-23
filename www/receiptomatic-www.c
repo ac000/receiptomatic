@@ -362,7 +362,7 @@ static void init_logs(void)
  *
  * Close and re-open the log files.
  *
- * This function should _only_ be called from the mster process.
+ * This function should _only_ be called from the master process.
  * The worker processes should just call init_logs() directy.
  */
 static void logfile_rotation(void)
