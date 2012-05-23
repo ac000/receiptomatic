@@ -32,6 +32,7 @@ static char **rargv;
 static volatile sig_atomic_t create_new_server;
 static volatile sig_atomic_t dump_sessions;
 static volatile sig_atomic_t clear_sessions;
+static volatile sig_atomic_t rotate_log_files;
 
 char *log_dir = "/tmp";
 static char access_log_path[PATH_MAX];
@@ -63,32 +64,6 @@ static int get_nr_procs(void)
 		return get_nprocs();
 	else
 		return 1;
-}
-
-/*
- * Main program loop. This sits in accept() waiting for connections.
- */
-static void accept_request(void)
-{
-	/*
-	 * We use SIGUSR1 to dump the session state which we only want
-	 * handled by the parent process. Ignore it in the children.
-	 */
-	signal(SIGUSR1, SIG_IGN);
-	/*
-	 * We use SIGRTMIN to clear out old sessions. This signal is
-	 * produced by a timer. We only want this signal handled in the
-	 * parent so ignore it in the children.
-	 */
-	signal(SIGRTMIN, SIG_IGN);
-
-	while (FCGI_Accept() >= 0) {
-		handle_request();
-		FCGI_Finish();
-	}
-
-	/* If we get here, something went wrong */
-	_exit(EXIT_FAILURE);
 }
 
 /*
@@ -136,26 +111,6 @@ static void set_proc_title(const char *title)
 
 	rargv[1] = NULL;
 	p = strncpy(rargv[0], title, argv_last - rargv[0]);
-}
-
-/*
- * Create nr server processes.
- */
-static void create_server(int nr)
-{
-	int i;
-
-	for (i = 0; i < nr; i++) {
-		pid_t pid;
-
-		pid = fork();
-		if (pid == 0) {  /* child */
-			set_proc_title("receiptomatic-www: worker");
-			accept_request();
-		}
-	}
-
-	create_new_server = 0;
 }
 
 /*
@@ -349,21 +304,130 @@ static void init_clear_session_timer(void)
 	timer_settime(timerid, 0, &its, NULL);
 }
 
+/*
+ * signal handler for SIGHUP, sets a flag to inform that
+ * the log files should be closed and reopened for log file
+ * rotation.
+ */
+static void sh_rotate_log_files(int signo)
+{
+	rotate_log_files = 1;
+}
+
 static void init_logs(void)
 {
-	snprintf(access_log_path, PATH_MAX, "%s/receiptomatic-www.access.log",
-								LOG_DIR);
-	snprintf(error_log_path, PATH_MAX, "%s/receiptomatic-www.error.log",
-								LOG_DIR);
-	snprintf(sql_log_path, PATH_MAX, "%s/receiptomatic-www.sql.log",
-								LOG_DIR);
-	snprintf(debug_log_path, PATH_MAX, "%s/receiptomatic-www.debug.log",
-								LOG_DIR);
+	if (rotate_log_files) {
+		d_fprintf(debug_log,
+			  "logrotation: closing and re-opening log files\n");
 
-	access_log = fopen(ACCESS_LOG, "w");
-	error_log = fopen(ERROR_LOG, "w");
-	sql_log = fopen(SQL_LOG, "w");
-	debug_log = fopen(DEBUG_LOG, "w");
+		fclose(access_log);
+		fclose(error_log);
+		fclose(sql_log);
+		fclose(debug_log);
+
+		/*
+		 * The log files need to be opened for appending here or
+		 * they will get truncated while other processes have them
+		 * open.
+		 */
+		access_log = fopen(ACCESS_LOG, "a");
+		error_log = fopen(ERROR_LOG, "a");
+		sql_log = fopen(SQL_LOG, "a");
+		debug_log = fopen(DEBUG_LOG, "a");
+	} else {
+		snprintf(access_log_path, PATH_MAX,
+			 "%s/receiptomatic-www.access.log", LOG_DIR);
+		snprintf(error_log_path, PATH_MAX,
+			 "%s/receiptomatic-www.error.log", LOG_DIR);
+		snprintf(sql_log_path, PATH_MAX,
+			 "%s/receiptomatic-www.sql.log", LOG_DIR);
+		snprintf(debug_log_path, PATH_MAX,
+			 "%s/receiptomatic-www.debug.log", LOG_DIR);
+
+		access_log = fopen(ACCESS_LOG, "w");
+		error_log = fopen(ERROR_LOG, "w");
+		sql_log = fopen(SQL_LOG, "w");
+		debug_log = fopen(DEBUG_LOG, "w");
+	}
+
+	/* Make stderr point to the error_log */
+	dup2(fileno(error_log), STDERR_FILENO);
+
+	rotate_log_files = 0;
+}
+
+/*
+ * Send a SIGHUP signal to the worker processes to notify them
+ * about log file rotation.
+ *
+ * Close and re-open the log files.
+ *
+ * This function should _only_ be called from the mster process.
+ * The worker processes should just call init_logs() directy.
+ */
+static void logfile_rotation(void)
+{
+	sigset_t hup;
+
+	/*
+	 * We don't want the master process receiving the
+	 * HUP signal itself.
+	 */
+	sigemptyset(&hup);
+	sigaddset(&hup, SIGHUP);
+	sigprocmask(SIG_BLOCK, &hup, NULL);
+	kill(0, SIGHUP);
+	sigprocmask(SIG_UNBLOCK, &hup, NULL);
+
+	init_logs();
+}
+
+/*
+ * Main program loop. This sits in accept() waiting for connections.
+ */
+static void accept_request(void)
+{
+	/*
+	 * We use SIGUSR1 to dump the session state which we only want
+	 * handled by the parent process. Ignore it in the children.
+	 */
+	signal(SIGUSR1, SIG_IGN);
+	/*
+	 * We use SIGRTMIN to clear out old sessions. This signal is
+	 * produced by a timer. We only want this signal handled in the
+	 * parent so ignore it in the children.
+	 */
+	signal(SIGRTMIN, SIG_IGN);
+
+	while (FCGI_Accept() >= 0) {
+		if (rotate_log_files)
+			init_logs();
+		handle_request();
+		FCGI_Finish();
+	}
+
+	/* If we get here, something went wrong */
+	_exit(EXIT_FAILURE);
+}
+
+/*
+ * Create nr server processes.
+ */
+static void create_server(int nr)
+{
+	int i;
+
+	for (i = 0; i < nr; i++) {
+		pid_t pid;
+
+		pid = fork();
+		if (pid == 0) {  /* child */
+			set_proc_title("receiptomatic-www: worker");
+			accept_request();
+		}
+	}
+
+	create_new_server = 0;
 }
 
 int main(int argc, char **argv)
@@ -383,19 +447,20 @@ int main(int argc, char **argv)
 		goto close_logs;
 	}
 
-	/* Make stderr point to the error_log */
-	dup2(fileno(error_log), STDERR_FILENO);
-
 	ret = mysql_library_init(0, NULL, NULL);
 	if (ret) {
 		d_fprintf(error_log, "mysql: could not initialise library.\n");
 		goto close_logs;
 	}
 
-	/* Ignore SIGHUP for now */
-	signal(SIGHUP, SIG_IGN);
 	/* Ignore SIGPIPE */
 	signal(SIGPIPE, SIG_IGN);
+
+	/* Setup signal handler for HUP for logfile rotation */
+	sigemptyset(&action.sa_mask);
+	action.sa_handler = sh_rotate_log_files;
+	action.sa_flags = SA_RESTART;
+	sigaction(SIGHUP, &action, NULL);
 
 	/* Setup signal handler for USR1 to dump session state */
 	sigemptyset(&action.sa_mask);
@@ -448,6 +513,8 @@ int main(int argc, char **argv)
 			dump_session_state();
 		if (clear_sessions)
 			clear_old_sessions();
+		if (rotate_log_files)
+			logfile_rotation();
 	}
 
 	mysql_library_end();
