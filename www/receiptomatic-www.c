@@ -453,16 +453,16 @@ int main(int argc, char **argv)
 		goto close_logs;
 	}
 
-	/* Ignore SIGPIPE */
+	/* Ignore SIGPIPE as per the fastcgi faq */
 	signal(SIGPIPE, SIG_IGN);
 
-	/* Setup signal handler for HUP for logfile rotation */
+	/* Setup signal handler for SIGHUP for logfile rotation */
 	sigemptyset(&action.sa_mask);
 	action.sa_handler = sh_rotate_log_files;
 	action.sa_flags = SA_RESTART;
 	sigaction(SIGHUP, &action, NULL);
 
-	/* Setup signal handler for USR1 to dump session state */
+	/* Setup signal handler for SIGUSR1 to dump session state */
 	sigemptyset(&action.sa_mask);
 	action.sa_handler = sh_dump_session_state;
 	action.sa_flags = SA_RESTART;
