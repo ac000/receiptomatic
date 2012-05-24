@@ -123,7 +123,7 @@ static void sh_dump_session_state(int signo)
 }
 
 /*
- * Dumps session state upon receiving a SIGUSR1
+ * Dumps session state upon receiving a SIGUSR2
  */
 static void dump_session_state(void)
 {
@@ -388,10 +388,10 @@ static void logfile_rotation(void)
 static void accept_request(void)
 {
 	/*
-	 * We use SIGUSR1 to dump the session state which we only want
+	 * We use SIGUSR2 to dump the session state which we only want
 	 * handled by the parent process. Ignore it in the children.
 	 */
-	signal(SIGUSR1, SIG_IGN);
+	signal(SIGUSR2, SIG_IGN);
 	/*
 	 * We use SIGRTMIN to clear out old sessions. This signal is
 	 * produced by a timer. We only want this signal handled in the
@@ -462,11 +462,11 @@ int main(int argc, char **argv)
 	action.sa_flags = SA_RESTART;
 	sigaction(SIGHUP, &action, NULL);
 
-	/* Setup signal handler for SIGUSR1 to dump session state */
+	/* Setup signal handler for SIGUSR2 to dump session state */
 	sigemptyset(&action.sa_mask);
 	action.sa_handler = sh_dump_session_state;
 	action.sa_flags = SA_RESTART;
-	sigaction(SIGUSR1, &action, NULL);
+	sigaction(SIGUSR2, &action, NULL);
 
 	/*
 	 * Setup a signal handler for SIGTERM to terminate all the
