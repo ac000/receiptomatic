@@ -94,7 +94,7 @@
 	do { \
 		struct timespec tp; \
 		clock_gettime(CLOCK_REALTIME, &tp); \
-		fprintf(stream, "%ld.%ld %d %s: " fmt, tp.tv_sec, \
+		fprintf(stream, "%ld.%-6ld %d %s: " fmt, tp.tv_sec, \
 					tp.tv_nsec / NS_USEC, \
 					getpid(), __func__, ##__VA_ARGS__); \
 		fflush(stream); \
