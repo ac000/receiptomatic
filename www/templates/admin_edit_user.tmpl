@@ -20,7 +20,7 @@
 	<big><big><span class = "lighter">Updated</span></big></big>
 	<p />
 </tmpl_if>
-	<big>Editing user: <big><tmpl_var name = "name" /> </big><small><span class = "lighter"> (<tmpl_var name = "uid" />) </span></small>
+	<big>Editing user: <big><tmpl_var name = "name" fmt = "de_xss" /> </big><small><span class = "lighter"> (<tmpl_var name = "uid" />) </span></small>
 	<p />
 
 	<form action = "/admin/edit_user/" method = "POST">
