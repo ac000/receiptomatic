@@ -716,6 +716,7 @@ static void admin_user_stats(void)
 	MYSQL *conn;
 	MYSQL_RES *res;
 	TMPL_varlist *vl = NULL;
+	TMPL_fmtlist *fmtlist;
 
 	if (!IS_ADMIN() || !qvars)
 		return;
@@ -742,7 +743,8 @@ static void admin_user_stats(void)
 	vl = add_html_var(vl, "name", get_var(db_row, "name"));
 	free_vars(db_row);
 
-	send_template("templates/admin_user_stats.tmpl", vl, NULL);
+	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
+	send_template("templates/admin_user_stats.tmpl", vl, fmtlist);
 
 out:
 	mysql_free_result(res);
