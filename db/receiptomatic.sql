@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: May 02, 2012 at 10:50 AM
+-- Generation Time: Jun 01, 2012 at 12:01 PM
 -- Server version: 5.0.95
 -- PHP Version: 5.1.6
 
@@ -111,14 +111,14 @@ CREATE TABLE IF NOT EXISTS `passwd` (
 
 CREATE TABLE IF NOT EXISTS `reviewed` (
   `id` varchar(64) NOT NULL,
-  `uid` int(10) unsigned NOT NULL,
-  `username` varchar(255) NOT NULL,
+  `r_uid` int(10) unsigned NOT NULL,
+  `r_username` varchar(255) NOT NULL,
   `timestamp` int(10) unsigned NOT NULL,
   `status` smallint(5) unsigned NOT NULL,
   `reason` varchar(255) NOT NULL,
   UNIQUE KEY `id` (`id`),
   KEY `timestamp` (`timestamp`),
-  KEY `uid` (`uid`)
+  KEY `r_uid` (`r_uid`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------

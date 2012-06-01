@@ -66,7 +66,7 @@ void extract_data_now(int fd)
 					"tags.reason, tags.payment_method "
 					"FROM tags INNER JOIN reviewed ON "
 					"(tags.id = reviewed.id) WHERE "
-					"reviewed.uid = %u AND "
+					"reviewed.r_uid = %u AND "
 					"reviewed.timestamp > %ld AND "
 					"reviewed.status = %d",
 					user_session.uid,

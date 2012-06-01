@@ -1912,9 +1912,9 @@ static void receipt_info(void)
 					strlen(get_var(qvars, "image_id")));
 	snprintf(sql, SQL_MAX, "SELECT (SELECT passwd.name FROM passwd "
 				"INNER JOIN reviewed ON "
-				"(reviewed.uid = passwd.uid) WHERE "
+				"(reviewed.r_uid = passwd.uid) WHERE "
 				"reviewed.id = '%s') AS reviewed_by_n, "
-				"reviewed.uid AS reviewed_by_u, "
+				"reviewed.r_uid AS reviewed_by_u, "
 				"images.timestamp AS images_timestamp, "
 				"images.path, images.name, images.approved, "
 				"tags.timestamp AS tags_timestamp, "
