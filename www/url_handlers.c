@@ -1910,8 +1910,13 @@ static void receipt_info(void)
 	image_id = alloca(strlen(get_var(qvars, "image_id")) * 2 + 1);
 	mysql_real_escape_string(conn, image_id, get_var(qvars, "image_id"),
 					strlen(get_var(qvars, "image_id")));
-	snprintf(sql, SQL_MAX, "SELECT images.timestamp AS images_timestamp, "
-				"images.path, images.name, images.approved,"
+	snprintf(sql, SQL_MAX, "SELECT (SELECT passwd.name FROM passwd "
+				"INNER JOIN reviewed ON "
+				"(reviewed.uid = passwd.uid) WHERE "
+				"reviewed.id = '%s') AS reviewed_by_n, "
+				"reviewed.uid AS reviewed_by_u, "
+				"images.timestamp AS images_timestamp, "
+				"images.path, images.name, images.approved, "
 				"tags.timestamp AS tags_timestamp, "
 				"tags.employee_number, tags.department, "
 				"tags.po_num, tags.cost_codes, "
@@ -1927,7 +1932,8 @@ static void receipt_info(void)
 				"ON (images.id = tags.id) LEFT JOIN reviewed "
 				"ON (reviewed.id = tags.id) INNER JOIN passwd "
 				"ON (images.uid = passwd.uid) WHERE "
-				"images.id = '%s' LIMIT 1", image_id);
+				"images.id = '%s' LIMIT 1",
+				image_id, image_id);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -2042,6 +2048,13 @@ static void receipt_info(void)
 		vl = add_html_var(vl, "a_time", tbuf);
 		vl = add_html_var(vl, "reject_reason",
 					get_var(db_row, "r_reason"));
+		/* Only approvers can see who approved/rejected receipts */
+		if (IS_APPROVER()) {
+			vl = add_html_var(vl, "reviewed_by_n",
+					get_var(db_row, "reviewed_by_n"));
+			vl = add_html_var(vl, "reviewed_by_u",
+					get_var(db_row, "reviewed_by_u"));
+		}
 	}
 	/* Only need to add the token if the receipt info is editable */
 	add_csrf_token(vl);

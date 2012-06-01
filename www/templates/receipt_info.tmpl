@@ -34,7 +34,7 @@
 	<tbody>
 
 	<tr>
-		<td rowspan = "20" width = "45%">
+		<td rowspan = "21" width = "45%">
 		<a href = "/get_image/<tmpl_var name = 'image_path' />/<tmpl_var name = 'image_name' />"><img src = "/get_image/<tmpl_var name = 'image_path' />/medium/<tmpl_var name = 'image_name' />" width = "300" height = "300" /></a>
 		</td>
 
@@ -226,6 +226,14 @@
 		</tmpl_if>
 		</td>
 	</tr>
+	<tmpl_if name = "reviewed_by_n">
+		<tr>
+			<td></td>
+			<td> :&nbsp;
+			<span class = "lighter"><tmpl_var name = "reviewed_by_n" fmt = "de_xss" /> <small>(<tmpl_var name = "reviewed_by_u">)</small></span>
+			</td>
+		</tr>
+	</tmpl_if>
 	<tr>
 		<tmpl_if name = "reject_reason">
 			<td><big><span class = "lighter">Reject Reason</span></big></td>
