@@ -92,6 +92,8 @@
  */
 #define d_fprintf(stream, fmt, ...) \
 	do { \
+		if (stream == debug_log && !DEBUG_LEVEL) \
+			break; \
 		struct timespec tp; \
 		clock_gettime(CLOCK_REALTIME, &tp); \
 		fprintf(stream, "%ld.%-6ld %d %s: " fmt, tp.tv_sec, \

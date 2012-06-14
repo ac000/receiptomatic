@@ -69,6 +69,8 @@ int get_config(const char *filename)
 			log_dir = strdup(value);
 		else if (strcmp(option, "NR_PROCS") == 0)
 			nr_procs = atoi(value);
+		else if (strcmp(option, "DEBUG_LEVEL") == 0)
+			debug_level = atoi(value);
 	}
 
 	fclose(fp);

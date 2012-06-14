@@ -33,6 +33,9 @@ extern unsigned int db_flags;
 
 int nr_procs;
 
+/* Default debug level set in www/receiptomatic-www.c */
+extern int debug_level;
+
 #define IMAGE_PATH	rec_image_path
 #define BASE_URL	rec_base_url
 #define SESSION_DB	rec_session_db
@@ -57,5 +60,7 @@ int nr_procs;
 #define DB_FLAGS	db_flags
 
 #define NR_PROCS	nr_procs
+
+#define DEBUG_LEVEL	debug_level
 
 #endif /* _RECEIPTOMATIC_CONFIG_H_ */

@@ -40,3 +40,9 @@ DB_FLAGS	Any extra flags to pass to the database at connection time.
 
 NR_PROCS	The number of worker processes to fork. By default, one process
 		will be forked per available cpu.
+
+DEBUG_LEVEL	Set the debug level. While useful, the debugging can be a
+		security risk in production as it will log usernames and
+		passwords in plain text. Defaults to off (0). Set it to a
+		positive number to enable debugging. Currently there is only
+		two levels, off and on.

@@ -45,6 +45,8 @@ FILE *sql_log;
 FILE *error_log;
 FILE *debug_log;
 
+int debug_level = 0;
+
 /*
  * Decide how many worker processes should be created.
  *
