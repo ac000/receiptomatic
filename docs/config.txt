@@ -7,7 +7,7 @@ Required
 BASE_URL	The protocol and host part of the url that the site is accessed
 		as, e.g https://ri.opentechlabs.net
 
-DB_NAME		The name of the receiptomatic databsse.
+DB_NAME		The name of the receiptomatic database.
 DB_USER		The username for the receiptomatic database.
 DB_PASS		The password for the receiptomatic database user.
 
