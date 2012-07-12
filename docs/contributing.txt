@@ -1,0 +1,43 @@
+We welcome outside contributions to this project. There is no copyright
+assignment policy.
+
+If you would like to contribute code, documentation etc, then please make sure
+your patches or pull request commits are 'signed-off'.
+
+This means adding a line that says "Signed-off-by: Name <email>" at the end of
+each commit, indicating that you wrote the code and have the right to pass it
+on as an open source patch.
+
+See: http://gerrit.googlecode.com/svn/documentation/2.0/user-signedoffby.html
+
+Also, please write good git commit messages. A good commit message
+looks like this:
+
+	Header line: explaining the commit in one line
+
+	Body of commit message is a few lines of text, explaining things
+	in more detail, possibly giving some background about the issue
+	being fixed, etc etc.
+
+	The body of the commit message can be several paragraphs, and
+	please do proper word-wrap and keep columns shorter than about
+	74 characters or so. That way "git log" will show things
+	nicely even when it's indented.
+
+	Reported-by: whoever-reported-it
+	Signed-off-by: Your Name <youremail@yourhost.com>
+
+where that header line really should be meaningful, and really should be
+just one line. That header line is what is shown by tools like gitk and
+shortlog, and should summarise the change in one readable line of text,
+independently of the longer explanation.
+
+Also, new code should follow the coding style used, this is basically the
+coding style used in the linux kernel and is documented here:
+
+https://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=Documentation/CodingStyle;hb=HEAD
+
+or directly in the Documentation/CodingStyle file in your kernel source tree.
+
+Contributions can be mailed directly to the current maintainer at:
+andrew@opentechlabs.co.uk
