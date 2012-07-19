@@ -191,13 +191,13 @@ static void add_multipart_avar(const char *name, const char *value,
 		query_values = g_hash_table_new_full(g_str_hash, g_str_equal,
 							g_free, g_free);
 	}
-	strncpy(lidx, idx, 127);
+	snprintf(lidx, sizeof(lidx), "%s", idx);
 	token = NULL;
 
 	token = strtok(token, "=");
 	key = alloca(strlen(token));
 	memset(key, 0, strlen(token));
-	strncpy(key, token, strlen(token) - 1);
+	snprintf(key, sizeof(key), "%s", token);
 
 	d_fprintf(debug_log, "Adding key: %s with value: %s\n", key, value);
 	g_hash_table_replace(query_values, g_strdup(key), g_strdup(value));
@@ -254,13 +254,13 @@ static void add_avar(const char *qvar, int finalize)
 		query_values = g_hash_table_new_full(g_str_hash, g_str_equal,
 							g_free, g_free);
 	}
-	strncpy(lidx, idx, sizeof(lidx) - 1);
+	snprintf(lidx, sizeof(lidx), "%s", idx);
 	token = NULL;
 
 	token = strtok(token, "=");
 	key = alloca(strlen(token));
 	memset(key, 0, strlen(token));
-	strncpy(key, token + 2, strlen(token + 2) - 3);
+	snprintf(key, strlen(token + 2) - 2, "%s", token + 2);
 	token = NULL;
 
 	token = strtok(token, "=");
