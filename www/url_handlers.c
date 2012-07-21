@@ -1735,7 +1735,7 @@ static void approve_receipts(void)
 		vl = add_html_var(vl, "reason", get_var(db_row, "reason"));
 		vl = add_html_var(vl, "id", get_var(db_row, "id"));
 
-		snprintf(item, 3, "%lu", i);
+		snprintf(item, sizeof(item), "%lu", i);
 		vl = add_html_var(vl, "item", item);
 
 		loop = TMPL_add_varlist(loop, vl);
