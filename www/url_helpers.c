@@ -535,8 +535,8 @@ void add_csrf_token(TMPL_varlist *varlist)
  * Checks if a valid csrf token has been presented.
  *
  * Returns:
- * 	true, for yes
- * 	false, for no
+ *	true, for yes
+ *	false, for no
  */
 bool valid_csrf_token(void)
 {
