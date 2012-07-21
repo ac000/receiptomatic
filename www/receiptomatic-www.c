@@ -252,7 +252,7 @@ static void clear_old_sessions(void)
 
 	d_fprintf(debug_log, "Clearing old sessions\n");
 
-	snprintf(expiry, 21, "%ld", time(NULL) - SESSION_EXPIRY);
+	snprintf(expiry, sizeof(expiry), "%ld", time(NULL) - SESSION_EXPIRY);
 
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOWRITER);
