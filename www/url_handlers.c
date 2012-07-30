@@ -538,7 +538,7 @@ static void admin_edit_user(void)
 	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 
 	/* If we got a POST, update user settings before showing them. */
-	if (strcmp(env_vars.request_method, "POST") == 0) {
+	if (IS_POST()) {
 		if (!valid_csrf_token())
 			goto out_csrf;
 
