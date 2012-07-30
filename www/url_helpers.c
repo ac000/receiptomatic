@@ -194,8 +194,7 @@ bool is_users_receipt(const char *id)
 
 	conn = db_conn();
 
-	s_id = alloca(strlen(id) * 2 + 1);
-	mysql_real_escape_string(conn, s_id, id, strlen(id));
+	s_id = make_mysql_safe_string(conn, id);
 
 	snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE id = '%s' AND "
 							"uid = %u", s_id,
@@ -208,6 +207,7 @@ bool is_users_receipt(const char *id)
 
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(s_id);
 
 	return users_recpt;
 }
