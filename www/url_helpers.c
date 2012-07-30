@@ -566,11 +566,7 @@ void create_session(unsigned long long sid)
 
 	conn = db_conn();
 
-	username = alloca(strlen(get_var(qvars, "username")) * 2 + 1);
-	mysql_real_escape_string(conn, username, get_var(
-						qvars, "username"),
-						strlen(get_var(qvars,
-						"username")));
+	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
 	snprintf(sql, SQL_MAX, "SELECT uid, name, capabilities FROM passwd "
 						"WHERE username = '%s'",
 						username);
@@ -614,6 +610,7 @@ void create_session(unsigned long long sid)
 	mysql_close(conn);
 	mysql_free_result(res);
 	free_vars(db_row);
+	free(username);
 	free(session_id);
 }
 
