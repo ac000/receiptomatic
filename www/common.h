@@ -106,7 +106,7 @@
  * Structure that defines a users session. The session is stored
  * in a tokyocabinet database table inbetween requests.
  */
-struct session {
+struct user_session {
 	unsigned long long sid;
 	unsigned int uid;
 	unsigned char capabilities;
@@ -120,8 +120,8 @@ struct session {
 	char *csrf_token;
 	unsigned int restrict_ip;
 	char *user_hdr;
-} session;
-struct session user_session;
+} user_session;
+struct user_session user_session;
 
 struct field_names {
 	char *receipt_date;
