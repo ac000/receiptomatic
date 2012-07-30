@@ -870,9 +870,7 @@ static void activate_user(void)
 
 	conn = db_conn();
 
-	key = alloca(strlen(get_var(qvars, "key")) * 2 + 1);
-	mysql_real_escape_string(conn, key, get_var(qvars, "key"),
-					strlen(get_var(qvars, "key")));
+	key = make_mysql_safe_string(conn, get_var(qvars, "key"));
 
 	snprintf(sql, SQL_MAX, "SELECT uid, name, user, expires FROM passwd "
 					"INNER JOIN activations ON "
@@ -923,9 +921,10 @@ static void activate_user(void)
 	}
 
 out:
-	free_vars(db_row);
 	mysql_free_result(res);
 	mysql_close(conn);
+	free_vars(db_row);
+	free(key);
 
 out2:
 	send_template("templates/activate_user.tmpl", vl, NULL);
