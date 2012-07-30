@@ -1180,7 +1180,7 @@ static void prefs_edit_user(void)
 	 * If we got POST data, update the users settings before
 	 * showing them.
 	 */
-	if (strcmp(env_vars.request_method, "POST") == 0) {
+	if (IS_POST()) {
 		if (!valid_csrf_token())
 			return;
 
