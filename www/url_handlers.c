@@ -426,7 +426,7 @@ static void admin_add_user(void)
 		return;
 
 	/* Prevent CSRF attack */
-	if (strcmp(env_vars.request_method, "POST") == 0) {
+	if (IS_POST()) {
 		if (!valid_csrf_token())
 			return;
 	}
