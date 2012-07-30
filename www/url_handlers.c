@@ -2230,9 +2230,7 @@ static void process_receipt(void)
 	conn = db_conn();
 
 	/* Receipt must be in PENDING status */
-	image_id = alloca(strlen(get_var(qvars, "image_id")) * 2 + 1);
-	mysql_real_escape_string(conn, image_id, get_var(qvars, "image_id"),
-					strlen(get_var(qvars, "image_id")));
+	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
 	snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE id = '%s' AND "
 						"approved = %d",
 						get_var(qvars, "image_id"),
@@ -2370,6 +2368,7 @@ static void process_receipt(void)
 out:
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(image_id);
 }
 
 /*
