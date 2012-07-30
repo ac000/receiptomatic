@@ -953,9 +953,7 @@ static void generate_new_key(void)
 
 	conn = db_conn();
 
-	email_addr = alloca(strlen(get_var(qvars, "email")) * 2 + 1);
-	mysql_real_escape_string(conn, email_addr, get_var(qvars, "email"),
-					strlen(get_var(qvars, "email")));
+	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email"));
 
 	snprintf(sql, SQL_MAX, "SELECT user FROM activations WHERE user = "
 							"'%s'", email_addr);
@@ -986,6 +984,7 @@ out:
 
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(email_addr);
 }
 
 /*
