@@ -139,9 +139,7 @@ static void delete_image(void)
 
 	conn = db_conn();
 
-	image_id = alloca(strlen(get_var(qvars, "image_id")) * 2 + 1);
-	mysql_real_escape_string(conn, image_id, get_var(qvars, "image_id"),
-					strlen(get_var(qvars, "image_id")));
+	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
 
 	/* Only allow to delete images that are un-tagged */
 	snprintf(sql, SQL_MAX, "SELECT path, name FROM images WHERE id = '%s' "
@@ -212,6 +210,7 @@ static void delete_image(void)
 out1:
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(image_id);
 	free_vars(db_row);
 	TMPL_free_varlist(vl);
 out2:
