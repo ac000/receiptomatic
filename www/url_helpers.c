@@ -871,10 +871,10 @@ void tag_image(void)
 	char *supplier_town;
 	char *supplier_name;
 	char *currency;
-	char *gross_amount;
-	char *vat_amount;
-	char *net_amount;
-	char *vat_rate;
+	double gross_amount;
+	double vat_amount;
+	double net_amount;
+	double vat_rate;
 	char *vat_number;
 	char *reason;
 	char *payment_method;
@@ -884,97 +884,36 @@ void tag_image(void)
 
 	conn = db_conn();
 
-	image_id = alloca(strlen(get_var(qvars, "image_id")) * 2 + 1);
-	mysql_real_escape_string(conn, image_id, get_var(qvars, "image_id"),
-					strlen(get_var(qvars, "image_id")));
-
-	username = alloca(strlen(user_session.username) * 2 + 1);
-	mysql_real_escape_string(conn, username, user_session.username,
-					strlen(user_session.username));
-
-	employee_number = alloca(strlen(get_var(qvars,
-					"employee_number")) * 2 + 1);
-	mysql_real_escape_string(conn, employee_number, get_var(
-					qvars, "employee_number"), strlen(
-					get_var(qvars, "employee_number")));
-
-	department = alloca(strlen(get_var(qvars, "department")) * 2 + 1);
-	mysql_real_escape_string(conn, department, get_var(
-					qvars, "department"), strlen(
-					get_var(qvars, "department")));
-
-	po_num = alloca(strlen(get_var(qvars, "po_num")) * 2 + 1);
-	mysql_real_escape_string(conn, po_num, get_var(
-					qvars, "po_num"), strlen(
-					get_var(qvars, "po_num")));
-
-	cost_codes = alloca(strlen(get_var(qvars, "cost_codes")) * 2 + 1);
-	mysql_real_escape_string(conn, cost_codes, get_var(
-					qvars, "cost_codes"), strlen(
-					get_var(qvars, "cost_codes")));
-
-	account_codes = alloca(strlen(get_var(qvars,
-					"account_codes")) * 2 + 1);
-	mysql_real_escape_string(conn, account_codes, get_var(
-					qvars, "account_codes"), strlen(
-					get_var(qvars, "account_codes")));
-
-	supplier_town = alloca(strlen(get_var(qvars,
-					"supplier_town")) * 2 + 1);
-	mysql_real_escape_string(conn, supplier_town, get_var(
-					qvars, "supplier_town"), strlen(
-					get_var(qvars, "supplier_town")));
-
-	supplier_name = alloca(strlen(get_var(qvars,
-					"supplier_name")) * 2 + 1);
-	mysql_real_escape_string(conn, supplier_name, get_var(
-					qvars, "supplier_name"), strlen(
-					get_var(qvars, "supplier_name")));
-
-	currency = alloca(strlen(get_var(qvars, "currency")) * 2 + 1);
-	mysql_real_escape_string(conn, currency, get_var(
-					qvars, "currency"), strlen(
-					get_var(qvars, "currency")));
-
-	gross_amount = alloca(strlen(get_var(qvars, "gross_amount")) * 2 + 1);
-	mysql_real_escape_string(conn, gross_amount, get_var(
-					qvars, "gross_amount"), strlen(
-					get_var(qvars, "gross_amount")));
-
-	vat_amount = alloca(strlen(get_var(qvars, "vat_amount")) * 2 + 1);
-	mysql_real_escape_string(conn, vat_amount, get_var(
-					qvars, "vat_amount"), strlen(
-					get_var(qvars, "vat_amount")));
-
-	net_amount = alloca(strlen(get_var(qvars, "net_amount")) * 2 + 1);
-	mysql_real_escape_string(conn, net_amount, get_var(
-					qvars, "net_amount"), strlen(
-					get_var(qvars, "net_amount")));
-
-	vat_rate = alloca(strlen(get_var(qvars, "vat_rate")) * 2 + 1);
-	mysql_real_escape_string(conn, vat_rate, get_var(
-					qvars, "vat_rate"), strlen(
-					get_var(qvars, "vat_rate")));
-
-	vat_number = alloca(strlen(get_var(qvars, "vat_number")) * 2 + 1);
-	mysql_real_escape_string(conn, vat_number, get_var(
-					qvars, "vat_number"), strlen(
-					get_var(qvars, "vat_number")));
-
-	reason = alloca(strlen(get_var(qvars, "reason")) * 2 + 1);
-	mysql_real_escape_string(conn, reason, get_var(
-					qvars, "reason"), strlen(
-					get_var(qvars, "reason")));
+	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
+	username = make_mysql_safe_string(conn, user_session.username);
+	employee_number = make_mysql_safe_string(
+			conn, get_var(qvars, "employee_number"));
+	department = make_mysql_safe_string(
+			conn, get_var(qvars, "department"));
+	po_num = make_mysql_safe_string(conn, get_var(qvars, "po_num"));
+	cost_codes = make_mysql_safe_string(
+			conn, get_var(qvars, "cost_codes"));
+	account_codes = make_mysql_safe_string(
+			conn, get_var(qvars, "account_codes"));
+	supplier_town = make_mysql_safe_string(
+			conn, get_var(qvars, "supplier_town"));
+	supplier_name = make_mysql_safe_string(
+			conn, get_var(qvars, "supplier_name"));
+	currency = make_mysql_safe_string(conn, get_var(qvars, "currency"));
+	gross_amount = strtod(get_var(qvars, "gross_amount"), NULL);
+	vat_amount = strtod(get_var(qvars, "vat_amount"), NULL);
+	net_amount = strtod(get_var(qvars, "net_amount"), NULL);
+	vat_rate = strtod(get_var(qvars, "vat_rate"), NULL);
+	vat_number = make_mysql_safe_string(
+			conn, get_var(qvars, "vat_number"));
+	reason = make_mysql_safe_string(conn, get_var(qvars, "reason"));
 
 	memset(&tm, 0, sizeof(tm));
 	strptime(get_var(qvars, "receipt_date"), "%Y-%m-%d", &tm);
 	strftime(secs, sizeof(secs), "%s", &tm);
 
-	payment_method = alloca(strlen(get_var(qvars, "payment_method"))
-								* 2 + 1);
-	mysql_real_escape_string(conn, payment_method, get_var(
-					qvars, "payment_method"), strlen(
-					get_var(qvars, "payment_method")));
+	payment_method = make_mysql_safe_string(
+			conn, get_var(qvars, "payment_method"));
 
 	snprintf(sql, SQL_MAX, "REPLACE INTO tags VALUES ('%s', %u, '%s', "
 				"%ld, '%s', '%s', '%s', '%s', '%s', '%s', "
@@ -984,11 +923,8 @@ void tag_image(void)
 				time(NULL), employee_number, department,
 				po_num, cost_codes, account_codes,
 				supplier_town, supplier_name, currency,
-				strtof(gross_amount, NULL),
-				strtof(vat_amount, NULL),
-				strtof(net_amount, NULL),
-				strtof(vat_rate, NULL),
-				vat_number, atol(secs), reason,
+				gross_amount, vat_amount, net_amount,
+				vat_rate, vat_number, atol(secs), reason,
 				payment_method);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
@@ -999,6 +935,19 @@ void tag_image(void)
 	mysql_query(conn, sql);
 
 	mysql_close(conn);
+	free(image_id);
+	free(username);
+	free(employee_number);
+	free(department);
+	free(po_num);
+	free(cost_codes);
+	free(account_codes);
+	free(supplier_town);
+	free(supplier_name);
+	free(currency);
+	free(vat_number);
+	free(reason);
+	free(payment_method);
 }
 
 /*
