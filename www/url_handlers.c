@@ -846,7 +846,6 @@ static void activate_user(void)
 {
 	char sql[SQL_MAX];
 	char *key;
-	bool post = false;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
@@ -856,16 +855,6 @@ static void activate_user(void)
 		vl = add_html_var(vl, "key_error", "yes");
 		goto out2;
 	}
-
-	/*
-	 * If we got a POST request, that means the user has attempted
-	 * to set a password.
-	 *
-	 * Otherwise we should have an activation key to proceed with
-	 * the account activation.
-	 */
-	if (strcmp(env_vars.request_method, "POST") == 0)
-		post = true;
 
 	conn = db_conn();
 
@@ -902,7 +891,7 @@ static void activate_user(void)
 	 * The user needs to enter the password twice, make sure they match.
 	 * Also make sure that the password is at least 8 characters long.
 	 */
-	if (post) {
+	if (IS_POST()) {
 		if (strlen(get_var(qvars, "pass1")) > 7 &&
 					strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
