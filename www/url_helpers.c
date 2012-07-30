@@ -791,94 +791,35 @@ void update_fmap(void)
 
 	conn = db_conn();
 
-	username = alloca(strlen(user_session.username) * 2 + 1);
-	mysql_real_escape_string(conn, username, user_session.username,
-					strlen(user_session.username));
-
-	receipt_date = alloca(strlen(get_var(qvars, "receipt_date")) * 2 + 1);
-	mysql_real_escape_string(conn, receipt_date, get_var(
-					qvars, "receipt_date"), strlen(
-					get_var(qvars, "receipt_date")));
-
-	department = alloca(strlen(get_var(qvars, "department")) * 2 + 1);
-	mysql_real_escape_string(conn, department, get_var(
-					qvars, "department"), strlen(
-					get_var(qvars, "department")));
-
-	employee_number = alloca(strlen(get_var(
-					qvars, "employee_number")) * 2 + 1);
-	mysql_real_escape_string(conn, employee_number, get_var(
-					qvars, "employee_number"), strlen(
-					get_var(qvars, "employee_number")));
-
-	reason = alloca(strlen(get_var(qvars, "reason")) * 2 + 1);
-	mysql_real_escape_string(conn, reason, get_var(
-					qvars, "reason"), strlen(
-					get_var(qvars, "reason")));
-
-	po_num = alloca(strlen(get_var(qvars, "po_num")) * 2 + 1);
-	mysql_real_escape_string(conn, po_num, get_var(
-					qvars, "po_num"), strlen(
-					get_var(qvars, "po_num")));
-
-	cost_codes = alloca(strlen(get_var(qvars, "cost_codes")) * 2 + 1);
-	mysql_real_escape_string(conn, cost_codes, get_var(
-					qvars, "cost_codes"), strlen(
-					get_var(qvars, "cost_codes")));
-
-	account_codes = alloca(strlen(get_var(
-					qvars, "account_codes")) * 2 + 1);
-	mysql_real_escape_string(conn, account_codes, get_var(
-					qvars, "account_codes"), strlen(
-					get_var(qvars, "account_codes")));
-
-	supplier_name = alloca(strlen(get_var(
-					qvars, "supplier_name")) * 2 + 1);
-	mysql_real_escape_string(conn, supplier_name, get_var(
-					qvars, "supplier_name"), strlen(
-					get_var(qvars, "supplier_name")));
-
-	supplier_town = alloca(strlen(get_var(
-					qvars, "supplier_town")) * 2 + 1);
-	mysql_real_escape_string(conn, supplier_town, get_var(
-					qvars, "supplier_town"), strlen(
-					get_var(qvars, "supplier_town")));
-
-	vat_number = alloca(strlen(get_var(qvars, "vat_number")) * 2 + 1);
-	mysql_real_escape_string(conn, vat_number, get_var(
-					qvars, "vat_number"), strlen(
-					get_var(qvars, "vat_number")));
-
-	gross_amount = alloca(strlen(get_var(qvars, "gross_amount")) * 2 + 1);
-	mysql_real_escape_string(conn, gross_amount, get_var(
-					qvars, "gross_amount"), strlen(
-					get_var(qvars, "gross_amount")));
-
-	net_amount = alloca(strlen(get_var(qvars, "net_amount")) * 2 + 1);
-	mysql_real_escape_string(conn, net_amount, get_var(
-					qvars, "net_amount"), strlen(
-					get_var(qvars, "net_amount")));
-
-	vat_amount = alloca(strlen(get_var(qvars, "vat_amount")) * 2 + 1);
-	mysql_real_escape_string(conn, vat_amount, get_var(
-					qvars, "vat_amount"), strlen(
-					get_var(qvars, "vat_amount")));
-
-	vat_rate = alloca(strlen(get_var(qvars, "vat_rate")) * 2 + 1);
-	mysql_real_escape_string(conn, vat_rate, get_var(
-					qvars, "vat_rate"), strlen(
-					get_var(qvars, "vat_rate")));
-
-	currency = alloca(strlen(get_var(qvars, "currency")) * 2 + 1);
-	mysql_real_escape_string(conn, currency, get_var(
-					qvars, "currency"), strlen(
-					get_var(qvars, "currency")));
-
-	payment_method = alloca(strlen(get_var(qvars, "payment_method"))
-								* 2 + 1);
-	mysql_real_escape_string(conn, payment_method, get_var(
-					qvars, "payment_method"), strlen(
-					get_var(qvars, "payment_method")));
+	username = make_mysql_safe_string(conn, user_session.username);
+	receipt_date = make_mysql_safe_string(
+			conn, get_var(qvars, "receipt_date"));
+	department = make_mysql_safe_string(
+			conn, get_var(qvars, "department"));
+	employee_number = make_mysql_safe_string(
+			conn, get_var(qvars, "employee_number"));
+	reason = make_mysql_safe_string(conn, get_var(qvars, "reason"));
+	po_num = make_mysql_safe_string(conn, get_var(qvars, "po_num"));
+	cost_codes = make_mysql_safe_string(
+			conn, get_var(qvars, "cost_codes"));
+	account_codes = make_mysql_safe_string(
+			conn, get_var(qvars, "account_codes"));
+	supplier_name = make_mysql_safe_string(
+			conn, get_var(qvars, "supplier_name"));
+	supplier_town = make_mysql_safe_string(
+			conn, get_var(qvars, "supplier_town"));
+	vat_number = make_mysql_safe_string(
+			conn, get_var(qvars, "vat_number"));
+	gross_amount = make_mysql_safe_string(
+			conn, get_var(qvars, "gross_amount"));
+	net_amount = make_mysql_safe_string(
+			conn, get_var(qvars, "net_amount"));
+	vat_amount = make_mysql_safe_string(
+			conn, get_var(qvars, "vat_amount"));
+	vat_rate = make_mysql_safe_string(conn, get_var(qvars, "vat_rate"));
+	currency = make_mysql_safe_string(conn, get_var(qvars, "currency"));
+	payment_method = make_mysql_safe_string(
+			conn, get_var(qvars, "payment_method"));
 
 	snprintf(sql, SQL_MAX, "REPLACE INTO field_names VALUES (%u, '%s', "
 					"'%s', '%s', '%s', '%s', '%s', '%s', "
@@ -895,6 +836,23 @@ void update_fmap(void)
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 	mysql_close(conn);
+	free(username);
+	free(receipt_date);
+	free(department);
+	free(employee_number);
+	free(reason);
+	free(po_num);
+	free(cost_codes);
+	free(account_codes);
+	free(supplier_name);
+	free(supplier_town);
+	free(vat_number);
+	free(gross_amount);
+	free(net_amount);
+	free(vat_amount);
+	free(vat_rate);
+	free(currency);
+	free(payment_method);
 }
 
 /*
