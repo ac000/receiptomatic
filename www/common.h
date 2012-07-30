@@ -121,7 +121,7 @@ struct session {
 	unsigned int restrict_ip;
 	char *user_hdr;
 } session;
-extern struct session user_session;
+struct session user_session;
 
 struct field_names {
 	char *receipt_date;
@@ -155,7 +155,7 @@ struct env_vars {
 	char *remote_addr;
 	char *query_string;
 } env_vars;
-extern struct env_vars env_vars;
+struct env_vars env_vars;
 
 /* Structure to hold information about uploaded files via POST */
 struct file_info {
