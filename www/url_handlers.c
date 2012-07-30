@@ -1011,9 +1011,7 @@ static void forgotten_password(void)
 
 	vl = add_html_var(vl, "email", get_var(qvars, "email"));
 
-	email_addr = alloca(strlen(get_var(qvars, "email")) * 2 + 1);
-	mysql_real_escape_string(conn, email_addr, get_var(qvars, "email"),
-					strlen(get_var(qvars, "email")));
+	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email"));
 
 	snprintf(sql, SQL_MAX, "SELECT username FROM passwd WHERE username = "
 							"'%s'", email_addr);
@@ -1041,6 +1039,7 @@ static void forgotten_password(void)
 mysql_cleanup:
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(email_addr);
 
 out:
 	send_template("templates/forgotten_password.tmpl", vl, NULL);
