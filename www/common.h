@@ -26,6 +26,7 @@
 #endif
 
 #include <stdio.h>
+#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <time.h>
@@ -101,6 +102,19 @@
 					getpid(), __func__, ##__VA_ARGS__); \
 		fflush(stream); \
 	} while (0)
+
+/*
+ * Wrapper around mysql_real_escape_string()
+ *
+ * Given a string it will return a string, that must be free'd, that is safe
+ * to pass to mysql.
+ */
+static inline char *make_mysql_safe_string(MYSQL *conn, const char *string)
+{
+	char *safe = malloc(strlen(string) * 2 + 1);
+	mysql_real_escape_string(conn, safe, string, strlen(string));
+	return safe;
+}
 
 /*
  * Structure that defines a users session. The session is stored
