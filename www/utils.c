@@ -460,11 +460,10 @@ void set_vars(void)
 
 	memset(buf, 0, sizeof(buf));
 
-	if (strstr(env_vars.request_method, "GET") &&
-					strlen(env_vars.query_string) > 0) {
+	if (IS_GET() && strlen(env_vars.query_string) > 0) {
 		snprintf(buf, BUF_SIZE, "%s", env_vars.query_string);
 		process_vars(buf);
-	} else if (strstr(env_vars.request_method, "POST")) {
+	} else if (IS_POST()) {
 		if (strstr(env_vars.content_type, "x-www-form-urlencoded")) {
 			fread(buf, sizeof(buf) - 1, 1, stdin);
 			process_vars(buf);
