@@ -1225,7 +1225,7 @@ void do_edit_user(void)
 
 	conn = db_conn();
 
-	if (strlen(get_var(qvars, "pass1")) > 0) {
+	if (IS_SET(get_var(qvars, "pass1"))) {
 		hash = generate_password_hash(SHA512, get_var(qvars, "pass1"));
 	} else {
 		MYSQL_RES *res;
