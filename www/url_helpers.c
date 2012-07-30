@@ -152,10 +152,7 @@ int check_auth(void)
 	MYSQL_ROW row;
 
 	conn = db_conn();
-	username = alloca(strlen(get_var(qvars, "username")) * 2 + 1);
-	mysql_real_escape_string(conn, username, get_var(qvars, "username"),
-						strlen(get_var(qvars,
-						"username")));
+	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
 	snprintf(sql, SQL_MAX, "SELECT password, enabled FROM passwd WHERE "
 						"username = '%s'", username);
 	mysql_real_query(conn, sql, strlen(sql));
@@ -179,6 +176,7 @@ int check_auth(void)
 out:
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(username);
 
 	return ret;
 }
