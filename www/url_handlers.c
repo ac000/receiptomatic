@@ -1362,9 +1362,7 @@ static void process_receipt_approval(void)
 
 	conn = db_conn();
 
-	username = alloca(strlen(user_session.username) * 2 + 1);
-	mysql_real_escape_string(conn, username, user_session.username,
-					strlen(user_session.username));
+	username = make_mysql_safe_string(conn, user_session.username);
 
 	mysql_query(conn, "LOCK TABLES reviewed WRITE, images WRITE, "
 								"tags READ");
@@ -1372,21 +1370,16 @@ static void process_receipt_approval(void)
 	list_size = g_list_length(avars);
 	for (i = 0; i < list_size; i++) {
 		char *action = get_avar(i, "approved_status");
-		char *reason = '\0';
+		char *reason = "";
 		char *image_id;
 		MYSQL_RES *res;
 
-		image_id = alloca(strlen(get_avar(i, "id")) * 2 + 1);
-		mysql_real_escape_string(conn, image_id, get_avar(i, "id"),
-						strlen(get_avar(i, "id")));
+		image_id = make_mysql_safe_string(conn, get_avar(i, "id"));
 
-		if (get_avar(i, "reason")) {
-			reason = alloca(strlen(get_avar(i, "reason")) * 2 + 1);
+		if (get_avar(i, "reason"))
+			reason = make_mysql_safe_string(
+					conn, get_avar(i, "reason"));
 
-			mysql_real_escape_string(conn, reason,
-						get_avar(i, "reason"),
-						strlen(get_avar(i, "reason")));
-		}
 
 		/* Can user approve their own receipts? */
 		if (!(user_session.capabilities & APPROVER_SELF)) {
@@ -1486,10 +1479,14 @@ static void process_receipt_approval(void)
 			d_fprintf(sql_log, "%s\n", sql);
 			mysql_query(conn, sql);
 		}
+		free(image_id);
+		if (IS_SET(reason))
+			free(reason);
 	}
 
 	mysql_query(conn, "UNLOCK TABLES");
 	mysql_close(conn);
+	free(username);
 
 	printf("Location: /approve_receipts/\r\n\r\n");
 }
