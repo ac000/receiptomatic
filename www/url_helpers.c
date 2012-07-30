@@ -1130,7 +1130,7 @@ void do_update_user(void)
 	conn = db_conn();
 	uid = atoi(get_var(qvars, "uid"));
 
-	if (strlen(get_var(qvars, "pass1")) > 0) {
+	if (IS_SET(get_var(qvars, "pass1"))) {
 		hash = generate_password_hash(SHA512, get_var(qvars, "pass1"));
 	} else {
 		MYSQL_RES *res;
@@ -1161,21 +1161,21 @@ void do_update_user(void)
 	mysql_real_escape_string(conn, d_reason, get_var(qvars, "d_reason"),
 					strlen(get_var(qvars, "d_reason")));
 
-	if (strlen(get_var(qvars, "ap_card")) > 0 ||
-				strlen(get_var(qvars, "ap_cash")) > 0 ||
-				strlen(get_var(qvars, "ap_cheque")) > 0 ||
-				strlen(get_var(qvars, "ap_self")) > 0) {
+	if (IS_SET(get_var(qvars, "ap_card")) ||
+	    IS_SET(get_var(qvars, "ap_cash")) ||
+	    IS_SET(get_var(qvars, "ap_cheque")) ||
+	    IS_SET(get_var(qvars, "ap_self"))) {
 		capabilities |= APPROVER;
-		if (strlen(get_var(qvars, "ap_card")) > 0)
+		if (IS_SET(get_var(qvars, "ap_card")))
 			capabilities |= APPROVER_CARD;
-		if (strlen(get_var(qvars, "ap_cash")) > 0)
+		if (IS_SET(get_var(qvars, "ap_cash")))
 			capabilities |= APPROVER_CASH;
-		if (strlen(get_var(qvars, "ap_cheque")) > 0)
+		if (IS_SET(get_var(qvars, "ap_cheque")))
 			capabilities |= APPROVER_CHEQUE;
-		if (strlen(get_var(qvars, "ap_self")) > 0)
+		if (IS_SET(get_var(qvars, "ap_self")))
 			capabilities |= APPROVER_SELF;
 	}
-	if (strlen(get_var(qvars, "is_admin")) > 0)
+	if (IS_SET(get_var(qvars, "is_admin")))
 		capabilities |= ADMIN;
 
 	if (atoi(get_var(qvars, "enabled")) == 1)
