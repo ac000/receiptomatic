@@ -1144,12 +1144,8 @@ void do_edit_user(void)
 		mysql_free_result(res);
 	}
 
-	username = alloca(strlen(get_var(qvars, "email1")) * 2 + 1);
-	mysql_real_escape_string(conn, username, get_var(qvars, "email1"),
-					strlen(get_var(qvars, "email1")));
-	name = alloca(strlen(get_var(qvars, "name")) * 2 + 1);
-	mysql_real_escape_string(conn, name, get_var(qvars, "name"),
-					strlen(get_var(qvars, "name")));
+	username = make_mysql_safe_string(conn, get_var(qvars, "email1"));
+	name = make_mysql_safe_string(conn, get_var(qvars, "name"));
 
 	snprintf(sql, SQL_MAX, "REPLACE INTO passwd VALUES (%d, '%s', '%s', "
 						"'%s', %d, 1, 1, '')",
@@ -1187,9 +1183,9 @@ void do_edit_user(void)
 						user_session.restrict_ip);
 	snprintf(capabilities, sizeof(capabilities), "%d",
 						user_session.capabilities);
-	name = alloca(strlen(get_var(qvars, "name")) + 1);
+	name = realloc(name, strlen(get_var(qvars, "name")) + 1);
 	sprintf(name, "%s", get_var(qvars, "name"));
-	username = alloca(strlen(get_var(qvars, "email1")) + 1);
+	username = realloc(username, strlen(get_var(qvars, "email1")) + 1);
 	sprintf(username, "%s", get_var(qvars, "email1"));
 	cols = tcmapnew3("sid", sid, "uid", uid, "username", username,
 				"name", name, "login_at", login_at,
@@ -1206,6 +1202,8 @@ void do_edit_user(void)
 
 	tctdbclose(tdb);
 	tctdbdel(tdb);
+	free(username);
+	free(name);
 }
 
 /*
