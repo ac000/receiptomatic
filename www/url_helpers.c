@@ -231,8 +231,7 @@ bool tag_info_allowed(const char *image_id)
 
 	conn = db_conn();
 
-	s_image_id = alloca(strlen(image_id) * 2 + 1);
-	mysql_real_escape_string(conn, s_image_id, image_id, strlen(image_id));
+	s_image_id = make_mysql_safe_string(conn, image_id);
 
 	snprintf(sql, SQL_MAX, "SELECT path FROM images WHERE id = '%s' AND "
 							"uid = %u", s_image_id,
@@ -245,6 +244,7 @@ bool tag_info_allowed(const char *image_id)
 
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(s_image_id);
 
 out:
 	return tag_allowed;
