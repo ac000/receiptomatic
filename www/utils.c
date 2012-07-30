@@ -770,8 +770,7 @@ bool user_already_exists(const char *username)
 
 	conn = db_conn();
 
-	user = alloca(strlen(username) * 2 + 1);
-	mysql_real_escape_string(conn, user, username, strlen(username));
+	user = make_mysql_safe_string(conn, username);
 	snprintf(sql, SQL_MAX, "SELECT username FROM passwd WHERE "
 						"username = '%s'", user);
 	d_fprintf(sql_log, "%s\n", sql);
@@ -782,6 +781,7 @@ bool user_already_exists(const char *username)
 
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(user);
 
 	return ret;
 }
