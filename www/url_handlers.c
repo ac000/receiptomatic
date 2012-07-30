@@ -40,12 +40,6 @@
 #include "url_handlers.h"
 #include "audit.h"
 
-/* Structure to hold user's session information */
-struct session user_session;
-
-/* Structure to hold envionment variables sent by the browser */
-struct env_vars env_vars;
-
 /*
  * /login/
  *
