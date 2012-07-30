@@ -973,12 +973,8 @@ int do_add_user(unsigned char capabilities)
 
 	conn = db_conn();
 
-	email_addr = alloca(strlen(get_var(qvars, "email1")) * 2 + 1);
-	mysql_real_escape_string(conn, email_addr, get_var(qvars, "email1"),
-					strlen(get_var(qvars, "email1")));
-	name = alloca(strlen(get_var(qvars, "name")) * 2 + 1);
-	mysql_real_escape_string(conn, name, get_var(qvars, "name"),
-					strlen(get_var(qvars, "name")));
+	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email1"));
+	name = make_mysql_safe_string(conn, get_var(qvars, "name"));
 
 	key = generate_activation_key(email_addr);
 
@@ -1008,6 +1004,8 @@ int do_add_user(unsigned char capabilities)
 	free(key);
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(email_addr);
+	free(name);
 
 out:
 	return ret;
