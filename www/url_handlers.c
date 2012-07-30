@@ -1891,14 +1891,12 @@ static void receipt_info(void)
 
 	if (!tag_info_allowed(get_var(qvars, "image_id"))) {
 		vl = add_html_var(vl, "show_info", "no");
-		goto out;
+		goto out2;
 	}
 
 	conn = db_conn();
 
-	image_id = alloca(strlen(get_var(qvars, "image_id")) * 2 + 1);
-	mysql_real_escape_string(conn, image_id, get_var(qvars, "image_id"),
-					strlen(get_var(qvars, "image_id")));
+	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
 	snprintf(sql, SQL_MAX, "SELECT (SELECT passwd.name FROM passwd "
 				"INNER JOIN reviewed ON "
 				"(reviewed.r_uid = passwd.uid) WHERE "
@@ -1929,7 +1927,7 @@ static void receipt_info(void)
 
 	if (mysql_num_rows(res) == 0) {
 		vl = add_html_var(vl, "show_info", "no");
-		goto out;
+		goto out1;
 	}
 
 	fields = field_names;
@@ -2050,10 +2048,13 @@ static void receipt_info(void)
 
 	free_vars(db_row);
 	free_fields(&fields);
+
+out1:
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(image_id);
 
-out:
+out2:
 	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/receipt_info.tmpl", vl, fmtlist);
 	TMPL_free_varlist(vl);
