@@ -18,7 +18,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <math.h>
-#include <alloca.h>
 
 /* Hashing algorithms */
 #include <mhash.h>
