@@ -692,71 +692,71 @@ void set_custom_field_names(struct field_names *fields)
 
 	db_row = get_dbrow(res);
 
-	if (strlen(get_var(db_row, "receipt_date")) > 0) {
+	if (IS_SET(get_var(db_row, "receipt_date"))) {
 		free(fields->receipt_date);
 		fields->receipt_date = strdup(get_var(db_row, "receipt_date"));
 	}
-	if (strlen(get_var(db_row, "department")) > 0) {
+	if (IS_SET(get_var(db_row, "department"))) {
 		free(fields->department);
 		fields->department = strdup(get_var(db_row, "department"));
 	}
-	if (strlen(get_var(db_row, "employee_number")) > 0) {
+	if (IS_SET(get_var(db_row, "employee_number"))) {
 		free(fields->employee_number);
 		fields->employee_number = strdup(get_var(db_row,
 							"employee_number"));
 	}
-	if (strlen(get_var(db_row, "reason")) > 0) {
+	if (IS_SET(get_var(db_row, "reason"))) {
 		free(fields->reason);
 		fields->reason = strdup(get_var(db_row, "reason"));
 	}
-	if (strlen(get_var(db_row, "po_num")) > 0) {
+	if (IS_SET(get_var(db_row, "po_num"))) {
 		free(fields->po_num);
 		fields->po_num = strdup(get_var(db_row, "po_num"));
 	}
-	if (strlen(get_var(db_row, "cost_codes")) > 0) {
+	if (IS_SET(get_var(db_row, "cost_codes"))) {
 		free(fields->cost_codes);
 		fields->cost_codes = strdup(get_var(db_row, "cost_codes"));
 	}
-	if (strlen(get_var(db_row, "account_codes")) > 0) {
+	if (IS_SET(get_var(db_row, "account_codes"))) {
 		free(fields->account_codes);
 		fields->account_codes = strdup(get_var(db_row,
 							"account_codes"));
 	}
-	if (strlen(get_var(db_row, "supplier_name")) > 0) {
+	if (IS_SET(get_var(db_row, "supplier_name"))) {
 		free(fields->supplier_name);
 		fields->supplier_name = strdup(get_var(db_row,
 							"supplier_name"));
 	}
-	if (strlen(get_var(db_row, "supplier_town")) > 0) {
+	if (IS_SET(get_var(db_row, "supplier_town"))) {
 		free(fields->supplier_town);
 		fields->supplier_town = strdup(get_var(db_row,
 							"supplier_town"));
 	}
-	if (strlen(get_var(db_row, "vat_number")) > 0) {
+	if (IS_SET(get_var(db_row, "vat_number"))) {
 		free(fields->vat_number);
 		fields->vat_number = strdup(get_var(db_row, "vat_number"));
 	}
-	if (strlen(get_var(db_row, "gross_amount")) > 0) {
+	if (IS_SET(get_var(db_row, "gross_amount"))) {
 		free(fields->gross_amount);
 		fields->gross_amount = strdup(get_var(db_row, "gross_amount"));
 	}
-	if (strlen(get_var(db_row, "net_amount")) > 0) {
+	if (IS_SET(get_var(db_row, "net_amount"))) {
 		free(fields->net_amount);
 		fields->net_amount = strdup(get_var(db_row, "net_amount"));
 	}
-	if (strlen(get_var(db_row, "vat_amount")) > 0) {
+	if (IS_SET(get_var(db_row, "vat_amount"))) {
 		free(fields->vat_amount);
 		fields->vat_amount = strdup(get_var(db_row, "vat_amount"));
 	}
-	if (strlen(get_var(db_row, "vat_rate")) > 0) {
+	if (IS_SET(get_var(db_row, "vat_rate"))) {
 		free(fields->vat_rate);
 		fields->vat_rate = strdup(get_var(db_row, "vat_rate"));
 	}
-	if (strlen(get_var(db_row, "currency")) > 0) {
+	if (IS_SET(get_var(db_row, "currency"))) {
 		free(fields->currency);
 		fields->currency = strdup(get_var(db_row, "currency"));
 	}
-	if (strlen(get_var(db_row, "payment_method")) > 0) {
+	if (IS_SET(get_var(db_row, "payment_method"))) {
 		free(fields->payment_method);
 		fields->payment_method = strdup(get_var(db_row,
 							"payment_method"));
