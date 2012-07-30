@@ -65,16 +65,9 @@ unsigned long long log_login(void)
 
 	conn = db_conn();
 
-	username = alloca(strlen(get_var(qvars, "username")) * 2 + 1);
-	mysql_real_escape_string(conn, username, get_var(qvars, "username"),
-						strlen(get_var(qvars,
-						"username")));
-	hostname = alloca(strlen(host) * 2 + 1);
-	mysql_real_escape_string(conn, hostname, host, strlen(host));
-
-	ip_addr = alloca(strlen(env_vars.remote_addr) * 2 + 1);
-	mysql_real_escape_string(conn, ip_addr, env_vars.remote_addr,
-					strlen(env_vars.remote_addr));
+	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
+	hostname = make_mysql_safe_string(conn, host);
+	ip_addr = make_mysql_safe_string(conn, env_vars.remote_addr);
 
 	snprintf(sql, SQL_MAX, "SELECT uid FROM passwd WHERE username = '%s'",
 								username);
@@ -106,6 +99,9 @@ unsigned long long log_login(void)
 
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(username);
+	free(hostname);
+	free(ip_addr);
 
 	return sid;
 }
