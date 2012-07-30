@@ -76,6 +76,10 @@
 #define IS_ADMIN()	(((user_session.capabilities) & (ADMIN)) ? 1 : 0)
 /* Macro to check if a char *variable is set, i.e a len > 0 */
 #define IS_SET(var)	((strlen(var) > 0) ? 1 : 0)
+/* Macro to check if the request method is POST */
+#define IS_POST()	(strstr(env_vars.request_method, "POST"))
+/* Macro to check if the request method is GET */
+#define IS_GET()	(strstr(env_vars.request_method, "GET"))
 
 /* Unbreak __func__ by my_global.h */
 #ifdef __func__
