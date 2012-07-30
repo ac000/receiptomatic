@@ -31,15 +31,6 @@
 #include "common.h"
 #include "utils.h"
 
-/* Structure to hold information about uploaded files via POST */
-struct file_info {
-	char *orig_file_name;
-	char *temp_file_name;
-	char *name;
-	char *mime_type;
-} file_info;
-struct file_info file_info;
-
 /* Linked list to store file_info structures. */
 GList *u_files;
 /*

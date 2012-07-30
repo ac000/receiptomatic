@@ -157,6 +157,15 @@ struct env_vars {
 } env_vars;
 extern struct env_vars env_vars;
 
+/* Structure to hold information about uploaded files via POST */
+struct file_info {
+	char *orig_file_name;
+	char *temp_file_name;
+	char *name;
+	char *mime_type;
+} file_info;
+struct file_info file_info;
+
 /* Default Field Names */
 #define DFN_RECEIPT_DATE	"Receipt Date"
 #define DFN_DEPARTMENT		"Department"
