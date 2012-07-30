@@ -1051,15 +1051,9 @@ void do_update_user(void)
 		mysql_free_result(res);
 	}
 
-	username = alloca(strlen(get_var(qvars, "email1")) * 2 + 1);
-	mysql_real_escape_string(conn, username, get_var(qvars, "email1"),
-					strlen(get_var(qvars, "email1")));
-	name = alloca(strlen(get_var(qvars, "name")) * 2 + 1);
-	mysql_real_escape_string(conn, name, get_var(qvars, "name"),
-					strlen(get_var(qvars, "name")));
-	d_reason = alloca(strlen(get_var(qvars, "d_reason")) * 2 + 1);
-	mysql_real_escape_string(conn, d_reason, get_var(qvars, "d_reason"),
-					strlen(get_var(qvars, "d_reason")));
+	username = make_mysql_safe_string(conn, get_var(qvars, "email1"));
+	name = make_mysql_safe_string(conn, get_var(qvars, "name"));
+	d_reason = make_mysql_safe_string(conn, get_var(qvars, "d_reason"));
 
 	if (IS_SET(get_var(qvars, "ap_card")) ||
 	    IS_SET(get_var(qvars, "ap_cash")) ||
@@ -1093,6 +1087,9 @@ void do_update_user(void)
 
 	mysql_close(conn);
 	free(hash);
+	free(username);
+	free(name);
+	free(d_reason);
 
 	if (!enabled)
 		delete_user_session(uid);
