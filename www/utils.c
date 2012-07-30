@@ -460,7 +460,7 @@ void set_vars(void)
 
 	memset(buf, 0, sizeof(buf));
 
-	if (IS_GET() && strlen(env_vars.query_string) > 0) {
+	if (IS_GET() && IS_SET(env_vars.query_string)) {
 		snprintf(buf, BUF_SIZE, "%s", env_vars.query_string);
 		process_vars(buf);
 	} else if (IS_POST()) {
