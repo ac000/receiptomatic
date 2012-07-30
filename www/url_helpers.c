@@ -45,8 +45,7 @@ char *username_to_name(char *username)
 
 	conn = db_conn();
 
-	who = alloca(strlen(username) * 2 + 1);
-	mysql_real_escape_string(conn, who, username, strlen(username));
+	who = make_mysql_safe_string(conn, username);
 
 	snprintf(sql, SQL_MAX, "SELECT name FROM passwd WHERE username = '%s'",
 									who);
@@ -58,6 +57,7 @@ char *username_to_name(char *username)
 
 	mysql_free_result(res);
 	mysql_close(conn);
+	free(who);
 
 	return name;
 }
