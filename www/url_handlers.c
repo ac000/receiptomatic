@@ -19,7 +19,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h>
-#include <alloca.h>
 #include <netdb.h>
 #include <stdbool.h>
 
