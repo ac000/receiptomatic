@@ -18,6 +18,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <math.h>
+#include <netdb.h>
 
 /* Hashing algorithms */
 #include <mhash.h>
@@ -29,6 +30,7 @@
 
 #include "common.h"
 #include "utils.h"
+#include "audit.h"
 
 /*
  * Given a username return the real name, which should be free'd.
@@ -542,6 +544,30 @@ bool valid_csrf_token(void)
 		return true;
 	else
 		return false;
+}
+
+/*
+ * Adds last login information to the page. Time and location of
+ * last login.
+ *
+ * If this is the users first login, then "First login" is simply
+ * displayed.
+ */
+void display_last_login(TMPL_varlist *varlist)
+{
+	char host[NI_MAXHOST];
+	time_t login;
+
+	login = get_last_login(host);
+	if (login > 0) {
+		char tbuf[32];
+
+		strftime(tbuf, 32, "%a %b %e %H:%M %Y", localtime(&login));
+		varlist = add_html_var(varlist, "last_login", tbuf);
+		varlist = add_html_var(varlist, "last_login_from", host);
+	} else {
+		varlist = add_html_var(varlist, "last_login", "First login");
+	}
 }
 
 /*

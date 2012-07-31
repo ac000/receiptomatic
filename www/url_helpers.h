@@ -21,6 +21,7 @@ char *create_session_id(void);
 char *generate_csrf_token(void);
 void add_csrf_token(TMPL_varlist *varlist);
 bool valid_csrf_token(void);
+void display_last_login(TMPL_varlist *varlist);
 void create_session(unsigned long long sid);
 int check_amounts(double gross, double net, double vat, double vr);
 void set_default_field_names(struct field_names *fields);

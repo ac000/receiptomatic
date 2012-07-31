@@ -19,7 +19,6 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h>
-#include <netdb.h>
 #include <stdbool.h>
 
 #include <mhash.h>
@@ -2396,14 +2395,12 @@ static void receipts(void)
 	unsigned long i;
 	unsigned long nr_rows;
 	char sql[SQL_MAX];
-	char llogin_from[NI_MAXHOST];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
-	time_t llogin;
 
 	if (IS_APPROVER())
 		ml = add_html_var(ml, "approver", "yes");
@@ -2417,16 +2414,7 @@ static void receipts(void)
 	 * Display the users last login time and location, we only show
 	 * this on the /receipts/ page.
 	 */
-	llogin = get_last_login(llogin_from);
-	if (llogin > 0) {
-		char tbuf[32];
-
-		strftime(tbuf, 32, "%a %b %e %H:%M %Y", localtime(&llogin));
-		ml = add_html_var(ml, "last_login", tbuf);
-		ml = add_html_var(ml, "last_login_from", llogin_from);
-	} else {
-		ml = add_html_var(ml, "last_login", "First login");
-	}
+	display_last_login(ml);
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT id, timestamp, path, name FROM images "
