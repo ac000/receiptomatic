@@ -954,7 +954,7 @@ void tag_image(void)
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 
-	snprintf(sql, SQL_MAX, "UPDATE images SET processed = 1 WHERE id "
+	snprintf(sql, SQL_MAX, "UPDATE images SET tagged = 1 WHERE id "
 							"= '%s'", image_id);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
@@ -1381,11 +1381,11 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 	/* Number of un-tagged receipts */
 	if (uid > -1)
 		snprintf(sql, SQL_MAX, "SELECT COUNT(*) AS nr_rows FROM "
-				"images WHERE uid = %u AND processed = 0",
+				"images WHERE uid = %u AND tagged = 0",
 				(unsigned int)uid);
 	else
 		snprintf(sql, SQL_MAX, "SELECT COUNT(*) AS nr_rows FROM "
-				"images WHERE processed = 0");
+				"images WHERE tagged = 0");
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_query(conn, sql);
 	res = mysql_store_result(conn);

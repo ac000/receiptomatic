@@ -141,7 +141,7 @@ static void delete_image(void)
 
 	/* Only allow to delete images that are un-tagged */
 	snprintf(sql, SQL_MAX, "SELECT path, name FROM images WHERE id = '%s' "
-						"AND processed = 0", image_id);
+						"AND tagged = 0", image_id);
 	d_fprintf(sql_log, "%s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
@@ -2084,14 +2084,14 @@ static void tagged_receipts(void)
 	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM tags "
 				"INNER JOIN images ON "
 				"(tags.id = images.id) WHERE "
-				"images.processed = 1 AND images.uid = "
+				"images.tagged = 1 AND images.uid = "
 				"%u) AS nrows, tags.receipt_date, "
 				"images.id, images.path, images.name, "
 				"images.approved, reviewed.timestamp FROM "
 				"tags INNER JOIN images ON "
 				"(tags.id = images.id) LEFT JOIN reviewed ON "
 				"(tags.id = reviewed.id) WHERE "
-				"images.processed = 1 AND images.uid = "
+				"images.tagged = 1 AND images.uid = "
 				"%u ORDER BY tags.timestamp DESC LIMIT "
 				"%d, %d",
 				user_session.uid, user_session.uid,
@@ -2418,9 +2418,7 @@ static void receipts(void)
 
 	conn = db_conn();
 	snprintf(sql, SQL_MAX, "SELECT id, timestamp, path, name FROM images "
-						"WHERE processed = 0 AND "
-						"uid = %u",
-						user_session.uid);
+			"WHERE tagged = 0 AND uid = %u", user_session.uid);
 	d_fprintf(sql_log, "%s\n", sql);
 
 	mysql_query(conn, sql);
