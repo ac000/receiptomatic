@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Aug 01, 2012 at 11:14 AM
+-- Generation Time: Aug 02, 2012 at 01:12 AM
 -- Server version: 5.0.95
 -- PHP Version: 5.1.6
 
@@ -78,10 +78,10 @@ CREATE TABLE IF NOT EXISTS `images` (
   `tagged` tinyint(4) unsigned NOT NULL default '0',
   `approved` tinyint(3) unsigned NOT NULL default '1',
   UNIQUE KEY `id` (`id`),
-  KEY `processed` (`tagged`),
-  KEY `who` (`username`),
   KEY `approved` (`approved`),
-  KEY `uid` (`uid`)
+  KEY `uid` (`uid`),
+  KEY `tagged` (`tagged`),
+  KEY `username` (`username`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
