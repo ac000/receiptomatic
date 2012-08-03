@@ -847,7 +847,6 @@ void update_fmap(void)
  */
 void tag_image(void)
 {
-	char sql[SQL_MAX];
 	char *image_id;
 	char *username;
 	char *employee_number;
@@ -902,10 +901,10 @@ void tag_image(void)
 	payment_method = make_mysql_safe_string(
 			conn, get_var(qvars, "payment_method"));
 
-	snprintf(sql, SQL_MAX, "REPLACE INTO tags VALUES ('%s', %u, '%s', "
-				"%ld, '%s', '%s', '%s', '%s', '%s', '%s', "
-				"'%s', '%s', %.2f, %.2f, %.2f, %.2f, '%s', "
-				"%ld, '%s', '%s')",
+	sql_query(conn, "REPLACE INTO tags VALUES ('%s', %u, '%s', %ld, '%s', "
+				"'%s', '%s', '%s', '%s', '%s', '%s', '%s', "
+				"%.2f, %.2f, %.2f, %.2f, '%s', %ld, '%s', "
+				"'%s')",
 				image_id, user_session.uid, username,
 				time(NULL), employee_number, department,
 				po_num, cost_codes, account_codes,
@@ -913,13 +912,8 @@ void tag_image(void)
 				gross_amount, vat_amount, net_amount,
 				vat_rate, vat_number, atol(secs), reason,
 				payment_method);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-
-	snprintf(sql, SQL_MAX, "UPDATE images SET tagged = 1 WHERE id "
-							"= '%s'", image_id);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
+	sql_query(conn, "UPDATE images SET tagged = 1 WHERE id = '%s'",
+			image_id);
 
 	mysql_close(conn);
 	free(image_id);
