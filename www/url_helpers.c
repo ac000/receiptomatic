@@ -1168,23 +1168,15 @@ void do_edit_user(void)
  */
 void do_activate_user(const char *uid, const char *key, const char *password)
 {
-	char sql[SQL_MAX];
 	char *hash;
 	MYSQL *conn;
 
 	hash = generate_password_hash(SHA512, password);
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "UPDATE passwd SET password = '%s', "
-				"activated = 1, enabled = 1 WHERE uid = %s",
-				hash, uid);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-
-	snprintf(sql, SQL_MAX, "DELETE FROM activations WHERE akey = '%s'",
-									key);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
+	sql_query(conn, "UPDATE passwd SET password = '%s', activated = 1, "
+			"enabled = 1 WHERE uid = %s", hash, uid);
+	sql_query(conn, "DELETE FROM activations WHERE akey = '%s'", key);
 
 	mysql_close(conn);
 	free(hash);
