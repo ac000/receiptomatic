@@ -764,7 +764,6 @@ out:
 void update_fmap(void)
 {
 	MYSQL *conn;
-	char sql[SQL_MAX];
 	char *username;
 	char *receipt_date;
 	char *department;
@@ -815,20 +814,14 @@ void update_fmap(void)
 	payment_method = make_mysql_safe_string(
 			conn, get_var(qvars, "payment_method"));
 
-	snprintf(sql, SQL_MAX, "REPLACE INTO field_names VALUES (%u, '%s', "
-					"'%s', '%s', '%s', '%s', '%s', '%s', "
-					"'%s', '%s', '%s', '%s', '%s', "
-					"'%s', '%s', '%s', '%s', '%s')",
-					user_session.uid, username,
-					receipt_date, department,
-					employee_number, reason, po_num,
-					cost_codes, account_codes,
-					supplier_name, supplier_town,
-					vat_number, gross_amount, net_amount,
-					vat_amount, vat_rate, currency,
-					payment_method);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
+	sql_query(conn, "REPLACE INTO field_names VALUES (%u, '%s', '%s', "
+			"'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "
+			"'%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+			user_session.uid, username, receipt_date, department,
+			employee_number, reason, po_num, cost_codes,
+			account_codes, supplier_name, supplier_town,
+			vat_number, gross_amount, net_amount, vat_amount,
+			vat_rate, currency, payment_method);
 	mysql_close(conn);
 	free(username);
 	free(receipt_date);
