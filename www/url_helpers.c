@@ -177,7 +177,6 @@ out:
  */
 bool is_users_receipt(const char *id)
 {
-	char sql[SQL_MAX];
 	char *s_id;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -186,13 +185,8 @@ bool is_users_receipt(const char *id)
 	conn = db_conn();
 
 	s_id = make_mysql_safe_string(conn, id);
-
-	snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE id = '%s' AND "
-							"uid = %u", s_id,
-							user_session.uid);
-
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT id FROM images WHERE id = '%s' AND "
+			"uid = %u", s_id, user_session.uid);
 	if (mysql_num_rows(res) > 0)
 		users_recpt = true;
 
