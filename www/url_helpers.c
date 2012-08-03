@@ -141,7 +141,6 @@ out3:
 int check_auth(void)
 {
 	int ret = -1;
-	char sql[SQL_MAX];
 	char *username;
 	char *enc_passwd;
 	MYSQL *conn;
@@ -150,17 +149,12 @@ int check_auth(void)
 
 	conn = db_conn();
 	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
-	snprintf(sql, SQL_MAX, "SELECT password, enabled FROM passwd WHERE "
-						"username = '%s'", username);
-	mysql_real_query(conn, sql, strlen(sql));
-	d_fprintf(sql_log, "%s\n", sql);
-	res = mysql_store_result(conn);
-
+	res = sql_query(conn, "SELECT password, enabled FROM passwd WHERE "
+			"username = '%s'", username);
 	if (mysql_num_rows(res) < 1)
 		goto out;
 
 	row = mysql_fetch_row(res);
-
 	if (atoi(row[1]) == 0) {
 		ret = -2;
 		goto out;
