@@ -1074,7 +1074,6 @@ void do_edit_user(void)
 	int primary_key_size;
 	char pkbuf[256];
 	const char *rbuf;
-	char sql[SQL_MAX];
 	char login_at[21];
 	char last_seen[21];
 	char uid[11];
@@ -1094,12 +1093,8 @@ void do_edit_user(void)
 		MYSQL_RES *res;
 		MYSQL_ROW row;
 
-		snprintf(sql, SQL_MAX, "SELECT password FROM passwd WHERE "
-							"uid = %u",
-							user_session.uid);
-		d_fprintf(sql_log, "%s\n", sql);
-		mysql_query(conn, sql);
-		res = mysql_store_result(conn);
+		res = sql_query(conn, "SELECT password FROM passwd WHERE "
+				"uid = %u", user_session.uid);
 		row = mysql_fetch_row(res);
 		hash = malloc(strlen(row[0]) + 1);
 		if (!hash) {
@@ -1112,14 +1107,10 @@ void do_edit_user(void)
 
 	username = make_mysql_safe_string(conn, get_var(qvars, "email1"));
 	name = make_mysql_safe_string(conn, get_var(qvars, "name"));
-
-	snprintf(sql, SQL_MAX, "REPLACE INTO passwd VALUES (%d, '%s', '%s', "
-						"'%s', %d, 1, 1, '')",
-						user_session.uid, username,
-						hash, name,
-						user_session.capabilities);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
+	sql_query(conn, "REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', "
+			"%d, 1, 1, '')",
+			user_session.uid, username, hash, name,
+			user_session.capabilities);
 
 	mysql_close(conn);
 	free(hash);
