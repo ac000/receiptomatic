@@ -682,7 +682,6 @@ static void admin_stats(void)
  */
 static void admin_user_stats(void)
 {
-	char sql[SQL_MAX];
 	unsigned int uid;
 	GHashTable *db_row = NULL;
 	MYSQL *conn;
@@ -702,10 +701,7 @@ static void admin_user_stats(void)
 	uid = atoi(get_var(qvars, "uid"));
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT name FROM passwd WHERE uid = %u", uid);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT name FROM passwd WHERE uid = %u", uid);
 	if (mysql_num_rows(res) == 0)
 		goto out;
 
