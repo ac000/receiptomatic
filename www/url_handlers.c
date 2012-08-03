@@ -1751,7 +1751,6 @@ out:
  */
 static void receipt_info(void)
 {
-	char sql[SQL_MAX];
 	char tbuf[60];
 	char *image_id;
 	struct field_names fields;
@@ -1777,34 +1776,24 @@ static void receipt_info(void)
 	conn = db_conn();
 
 	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
-	snprintf(sql, SQL_MAX, "SELECT (SELECT passwd.name FROM passwd "
-				"INNER JOIN reviewed ON "
-				"(reviewed.r_uid = passwd.uid) WHERE "
-				"reviewed.id = '%s') AS reviewed_by_n, "
-				"reviewed.r_uid AS reviewed_by_u, "
-				"images.timestamp AS images_timestamp, "
-				"images.path, images.name, images.approved, "
-				"tags.timestamp AS tags_timestamp, "
-				"tags.employee_number, tags.department, "
-				"tags.po_num, tags.cost_codes, "
-				"tags.account_codes, tags.supplier_name, "
-				"tags.supplier_town, tags.currency, "
-				"tags.gross_amount, tags.vat_amount, "
-				"tags.net_amount, tags.vat_rate, "
-				"tags.vat_number, tags.receipt_date, "
-				"tags.reason, tags.payment_method, "
-				"reviewed.reason AS r_reason, "
-				"reviewed.timestamp AS a_time, passwd.name AS "
-				"user, passwd.uid FROM images INNER JOIN tags "
-				"ON (images.id = tags.id) LEFT JOIN reviewed "
-				"ON (reviewed.id = tags.id) INNER JOIN passwd "
-				"ON (images.uid = passwd.uid) WHERE "
-				"images.id = '%s' LIMIT 1",
-				image_id, image_id);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
-
+	res = sql_query(conn, "SELECT (SELECT passwd.name FROM passwd "
+			"INNER JOIN reviewed ON (reviewed.r_uid = passwd.uid) "
+			"WHERE reviewed.id = '%s') AS reviewed_by_n, "
+			"reviewed.r_uid AS reviewed_by_u, images.timestamp AS "
+			"images_timestamp, images.path, images.name, "
+			"images.approved, tags.timestamp AS tags_timestamp, "
+			"tags.employee_number, tags.department, tags.po_num, "
+			"tags.cost_codes, tags.account_codes, "
+			"tags.supplier_name, tags.supplier_town, "
+			"tags.currency, tags.gross_amount, tags.vat_amount, "
+			"tags.net_amount, tags.vat_rate, tags.vat_number, "
+			"tags.receipt_date, tags.reason, tags.payment_method, "
+			"reviewed.reason AS r_reason, reviewed.timestamp AS "
+			"a_time, passwd.name AS user, passwd.uid FROM images "
+			"INNER JOIN tags ON (images.id = tags.id) LEFT JOIN "
+			"reviewed ON (reviewed.id = tags.id) INNER JOIN "
+			"passwd ON (images.uid = passwd.uid) WHERE "
+			"images.id = '%s' LIMIT 1", image_id, image_id);
 	if (mysql_num_rows(res) == 0) {
 		vl = add_html_var(vl, "show_info", "no");
 		goto out1;
