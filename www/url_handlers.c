@@ -1275,7 +1275,6 @@ static void extract_data(void)
  */
 static void process_receipt_approval(void)
 {
-	char sql[SQL_MAX];
 	char *username;
 	unsigned int list_size;
 	unsigned int i;
@@ -1294,9 +1293,7 @@ static void process_receipt_approval(void)
 	conn = db_conn();
 
 	username = make_mysql_safe_string(conn, user_session.username);
-
-	mysql_query(conn, "LOCK TABLES reviewed WRITE, images WRITE, "
-								"tags READ");
+	sql_query(conn, "LOCK TABLES reviewed WRITE, images WRITE,tags READ");
 
 	list_size = g_list_length(avars);
 	for (i = 0; i < list_size; i++) {
@@ -1314,108 +1311,80 @@ static void process_receipt_approval(void)
 
 		/* Can user approve their own receipts? */
 		if (!(user_session.capabilities & APPROVER_SELF)) {
-			snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE "
-						"id = '%s' AND uid = %u",
-						image_id, user_session.uid);
-			d_fprintf(sql_log, "%s\n", sql);
-			mysql_real_query(conn, sql, strlen(sql));
-			res = mysql_store_result(conn);
+			res = sql_query(conn, "SELECT id FROM images WHERE "
+					"id = '%s' AND uid = %u",
+					image_id, user_session.uid);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
 			mysql_free_result(res);
 		}
 		/* Can user approve card transactions? */
 		if (!(user_session.capabilities & APPROVER_CARD)) {
-			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
-						"id = '%s' AND payment_method "
-						"= 'card'", image_id);
-			d_fprintf(sql_log, "%s\n", sql);
-			mysql_real_query(conn, sql, strlen(sql));
-			res = mysql_store_result(conn);
+			res = sql_query(conn, "SELECT id FROM tags WHERE "
+					"id = '%s' AND payment_method = "
+					"'card'", image_id);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
 			mysql_free_result(res);
 		}
 		/* Can user approve cash transactions? */
 		if (!(user_session.capabilities & APPROVER_CASH)) {
-			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
-						"id = '%s' AND payment_method "
-						"= 'cash'", image_id);
-			d_fprintf(sql_log, "%s\n", sql);
-			mysql_real_query(conn, sql, strlen(sql));
-			res = mysql_store_result(conn);
+			res = sql_query(conn, "SELECT id FROM tags WHERE "
+					"id = '%s' AND payment_method = "
+					"'cash'", image_id);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
 			mysql_free_result(res);
 		}
 		/* Can user approve cheque transactions? */
 		if (!(user_session.capabilities & APPROVER_CHEQUE)) {
-			snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE "
-						"id = '%s' AND payment_method "
-						"= 'cheque'", image_id);
-			d_fprintf(sql_log, "%s\n", sql);
-			mysql_real_query(conn, sql, strlen(sql));
-			res = mysql_store_result(conn);
+			res = sql_query(conn, "SELECT id FROM tags WHERE "
+					"id = '%s' AND payment_method = "
+					"'cheque'", image_id);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
 			mysql_free_result(res);
 		}
 
 		/* Make sure this reciept hasn't already been processed */
-		snprintf(sql, SQL_MAX, "SELECT status from reviewed WHERE "
-							"id = '%s'", image_id);
-		d_fprintf(sql_log, "%s\n", sql);
-		mysql_real_query(conn, sql, strlen(sql));
-		res = mysql_store_result(conn);
+		res = sql_query(conn, "SELECT status from reviewed WHERE "
+				"id = '%s'", image_id);
 		if (mysql_num_rows(res) > 0)
 			action[0] = 's'; /* This receipt is already done */
 		mysql_free_result(res);
 
 		/* Make sure it is a valid tagged-receipt */
-		snprintf(sql, SQL_MAX, "SELECT id FROM tags WHERE id = '%s'",
-								image_id);
-		d_fprintf(sql_log, "%s\n", sql);
-		mysql_real_query(conn, sql, strlen(sql));
-		res = mysql_store_result(conn);
+		res = sql_query(conn, "SELECT id FROM tags WHERE id = '%s'",
+				image_id);
 		if (mysql_num_rows(res) == 0)
 			action[0] = 's'; /* Not a valid receipt */
 		mysql_free_result(res);
 
 		if (action[0] == 'a') { /* approved */
-			snprintf(sql, SQL_MAX, "INSERT INTO reviewed VALUES ("
-						"'%s', %u, '%s', %ld, %d, "
-						"'%s')",
-						image_id, user_session.uid,
-						username, time(NULL), APPROVED,
-						reason);
-			d_fprintf(sql_log, "%s\n", sql);
-			mysql_real_query(conn, sql, strlen(sql));
-			snprintf(sql, SQL_MAX, "UPDATE images SET approved = "
-						"%d WHERE id = '%s'",
-						APPROVED, image_id);
-			d_fprintf(sql_log, "%s\n", sql);
-			mysql_query(conn, sql);
+			sql_query(conn, "INSERT INTO reviewed VALUES ("
+					"'%s', %u, '%s', %ld, %d, '%s')",
+					image_id, user_session.uid,
+					username, time(NULL), APPROVED,
+					reason);
+			sql_query(conn, "UPDATE images SET approved = %d "
+					"WHERE id = '%s'", APPROVED, image_id);
 		} else if (action[0] == 'r') { /* rejected */
-			snprintf(sql, SQL_MAX, "INSERT INTO reviewed VALUES ("
-						"'%s', %u, '%s', %ld, %d, "
-						"'%s')",
-						image_id, user_session.uid,
-						username, time(NULL), REJECTED,
-						reason);
-			d_fprintf(sql_log, "%s\n", sql);
-			mysql_real_query(conn, sql, strlen(sql));
-			snprintf(sql, SQL_MAX, "UPDATE images SET approved = "
-						"%d WHERE id = '%s'",
-						REJECTED, image_id);
-			d_fprintf(sql_log, "%s\n", sql);
-			mysql_query(conn, sql);
+			sql_query(conn, "INSERT INTO reviewed VALUES ("
+					"'%s', %u, '%s', %ld, %d, "
+					"'%s')",
+					image_id, user_session.uid,
+					username, time(NULL), REJECTED,
+					reason);
+			sql_query(conn, "UPDATE images SET approved = %d "
+					"WHERE id = '%s'",
+					REJECTED, image_id);
 		}
 		free(image_id);
 		if (IS_SET(reason))
 			free(reason);
 	}
 
-	mysql_query(conn, "UNLOCK TABLES");
+	sql_query(conn, "UNLOCK TABLES");
 	mysql_close(conn);
 	free(username);
 
