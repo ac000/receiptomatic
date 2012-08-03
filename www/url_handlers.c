@@ -894,7 +894,6 @@ out2:
  */
 static void generate_new_key(void)
 {
-	char sql[SQL_MAX];
 	char *email_addr;
 	char *key;
 	time_t tm;
@@ -908,24 +907,16 @@ static void generate_new_key(void)
 	conn = db_conn();
 
 	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email"));
-
-	snprintf(sql, SQL_MAX, "SELECT user FROM activations WHERE user = "
-							"'%s'", email_addr);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT user FROM activations WHERE user = '%s'",
+			email_addr);
 	if (mysql_num_rows(res) == 0)
 		goto out;
 
 	key = generate_activation_key(email_addr);
 
 	tm = time(NULL);
-	snprintf(sql, SQL_MAX, "REPLACE INTO activations VALUES ('%s', '%s', "
-							"%ld)", email_addr,
-							key, tm + KEY_EXP);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
+	sql_query(conn, "REPLACE INTO activations VALUES ('%s', '%s', %ld)",
+			email_addr, key, tm + KEY_EXP);
 
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
 	free(key);
