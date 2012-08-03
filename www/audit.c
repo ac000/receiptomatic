@@ -104,7 +104,6 @@ unsigned long long log_login(void)
  */
 time_t get_last_login(char *from_host)
 {
-	char sql[SQL_MAX];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
@@ -120,12 +119,9 @@ time_t get_last_login(char *from_host)
 	 *
 	 * If the user has never logged in before, we will get an empty row.
 	 */
-	snprintf(sql, SQL_MAX, "SELECT login_at, hostname FROM utmp WHERE "
-					"uid = %u ORDER BY login_at DESC "
-					"LIMIT 1, 1", user_session.uid);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT login_at, hostname FROM utmp WHERE "
+			"uid = %u ORDER BY login_at DESC LIMIT 1, 1",
+			user_session.uid);
 	if (mysql_num_rows(res) > 0) {
 		row = mysql_fetch_row(res);
 		login = atol(row[0]);
