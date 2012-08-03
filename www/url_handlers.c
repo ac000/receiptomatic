@@ -2260,7 +2260,6 @@ static void receipts(void)
 {
 	unsigned long i;
 	unsigned long nr_rows;
-	char sql[SQL_MAX];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
@@ -2283,13 +2282,8 @@ static void receipts(void)
 	display_last_login(ml);
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT id, timestamp, path, name FROM images "
+	res = sql_query(conn, "SELECT id, timestamp, path, name FROM images "
 			"WHERE tagged = 0 AND uid = %u", user_session.uid);
-	d_fprintf(sql_log, "%s\n", sql);
-
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
-
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
 		ml = add_html_var(ml, "receipts", "no");
