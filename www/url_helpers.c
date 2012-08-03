@@ -555,7 +555,6 @@ void create_session(unsigned long long sid)
 {
 	char *session_id;
 	char restrict_ip[2] = "0\0";
-	char sql[SQL_MAX];
 	char pkbuf[256];
 	char timestamp[21];
 	char ssid[21];
@@ -570,12 +569,8 @@ void create_session(unsigned long long sid)
 	conn = db_conn();
 
 	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
-	snprintf(sql, SQL_MAX, "SELECT uid, name, capabilities FROM passwd "
-						"WHERE username = '%s'",
-						username);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT uid, name, capabilities FROM passwd "
+			"WHERE username = '%s'", username);
 	db_row = get_dbrow(res);
 
 	session_id = create_session_id();
