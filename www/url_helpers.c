@@ -989,7 +989,6 @@ out:
  */
 void do_update_user(void)
 {
-	char sql[SQL_MAX];
 	char *hash;
 	char *username;
 	char *name;
@@ -1009,11 +1008,8 @@ void do_update_user(void)
 		MYSQL_RES *res;
 		MYSQL_ROW row;
 
-		snprintf(sql, SQL_MAX, "SELECT password FROM passwd WHERE "
-							"uid = %u", uid);
-		d_fprintf(sql_log, "%s\n", sql);
-		mysql_query(conn, sql);
-		res = mysql_store_result(conn);
+		res = sql_query(conn, "SELECT password FROM passwd WHERE "
+				"uid = %u", uid);
 		row = mysql_fetch_row(res);
 		hash = malloc(strlen(row[0]) + 1);
 		if (!hash) {
@@ -1050,13 +1046,10 @@ void do_update_user(void)
 	if (atoi(get_var(qvars, "activated")) == 1)
 		activated = 1;
 
-	snprintf(sql, SQL_MAX, "REPLACE INTO passwd VALUES (%d, '%s', '%s', "
-						"'%s', %d, %d, %d, '%s')",
-						uid, username, hash, name,
-						capabilities, enabled,
-						activated, d_reason);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
+	sql_query(conn, "REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', "
+			"%d, %d, %d, '%s')",
+			uid, username, hash, name, capabilities, enabled,
+			activated, d_reason);
 
 	mysql_close(conn);
 	free(hash);
