@@ -1943,7 +1943,6 @@ static void tagged_receipts(void)
 	int from = 0;
 	int page = 1;
 	int nr_pages = 0;
-	char sql[SQL_MAX];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
@@ -1963,25 +1962,16 @@ static void tagged_receipts(void)
 	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM tags "
-				"INNER JOIN images ON "
-				"(tags.id = images.id) WHERE "
-				"images.tagged = 1 AND images.uid = "
-				"%u) AS nrows, tags.receipt_date, "
-				"images.id, images.path, images.name, "
-				"images.approved, reviewed.timestamp FROM "
-				"tags INNER JOIN images ON "
-				"(tags.id = images.id) LEFT JOIN reviewed ON "
-				"(tags.id = reviewed.id) WHERE "
-				"images.tagged = 1 AND images.uid = "
-				"%u ORDER BY tags.timestamp DESC LIMIT "
-				"%d, %d",
-				user_session.uid, user_session.uid,
-				from, GRID_SIZE);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
-
+	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM tags INNER JOIN "
+			"images ON (tags.id = images.id) WHERE "
+			"images.tagged = 1 AND images.uid = %u) AS nrows, "
+			"tags.receipt_date, images.id, images.path, "
+			"images.name, images.approved, reviewed.timestamp "
+			"FROM tags INNER JOIN images ON (tags.id = images.id) "
+			"LEFT JOIN reviewed ON (tags.id = reviewed.id) WHERE "
+			"images.tagged = 1 AND images.uid = %u ORDER BY "
+			"tags.timestamp DESC LIMIT %d, %d",
+			user_session.uid, user_session.uid, from, GRID_SIZE);
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
 		ml = add_html_var(ml, "receipts", "no");
