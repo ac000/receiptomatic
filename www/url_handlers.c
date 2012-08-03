@@ -571,20 +571,15 @@ static void admin_edit_user(void)
 	 * from the POST'd form and not the database.
 	 */
 	if (!form_err) {
-		char sql[SQL_MAX];
 		unsigned char capabilities;
 		GHashTable *db_row = NULL;
 		MYSQL *conn;
 		MYSQL_RES *res;
 
 		conn = db_conn();
-		snprintf(sql, SQL_MAX, "SELECT username, name, capabilities, "
-						"enabled, activated, d_reason "
-						"FROM passwd WHERE uid = %u",
-						uid);
-		d_fprintf(sql_log, "%s\n", sql);
-		mysql_query(conn, sql);
-		res = mysql_store_result(conn);
+		res = sql_query(conn, "SELECT username, name, capabilities, "
+				"enabled, activated, d_reason FROM passwd "
+				"WHERE uid = %u", uid);
 		if (mysql_num_rows(res) == 0)
 			goto mysql_cleanup;
 
