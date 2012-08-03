@@ -1644,7 +1644,6 @@ static void reviewed_receipts(void)
 	int from = 0;
 	int page = 1;
 	int nr_pages = 0;
-	char sql[SQL_MAX];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	struct field_names fields;
@@ -1666,21 +1665,16 @@ static void reviewed_receipts(void)
 	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM reviewed "
-				"INNER JOIN images ON "
-				"(reviewed.id = images.id)) AS nrows, "
-				"reviewed.timestamp AS ats, images.id, "
-				"images.path, images.name, images.timestamp "
-				"AS its, reviewed.status, passwd.name AS "
-				"user, passwd.uid FROM reviewed INNER JOIN "
-				"images ON (reviewed.id = images.id) "
-				"INNER JOIN passwd ON "
-				"(images.uid = passwd.uid) ORDER BY "
-				"reviewed.timestamp DESC LIMIT %d, %d",
-				from, GRID_SIZE);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM reviewed "
+			"INNER JOIN images ON (reviewed.id = images.id)) AS "
+			"nrows, reviewed.timestamp AS ats, images.id, "
+			"images.path, images.name, images.timestamp "
+			"AS its, reviewed.status, passwd.name AS "
+			"user, passwd.uid FROM reviewed INNER JOIN "
+			"images ON (reviewed.id = images.id) INNER JOIN "
+			"passwd ON (images.uid = passwd.uid) ORDER BY "
+			"reviewed.timestamp DESC LIMIT %d, %d",
+			from, GRID_SIZE);
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
 		ml = add_html_var(ml, "receipts", "no");
