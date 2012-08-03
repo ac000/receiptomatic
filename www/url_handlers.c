@@ -1400,7 +1400,6 @@ static void process_receipt_approval(void)
  */
 static void approve_receipts(void)
 {
-	char sql[SQL_MAX];
 	char pmsql[128];
 	char assql[512];
 	static const char *pm = "tags.payment_method = ";
@@ -1422,6 +1421,12 @@ static void approve_receipts(void)
 
 	if (!IS_APPROVER())
 		return;
+
+	ml = add_html_var(ml, "approver", "yes");
+	if (IS_ADMIN())
+		ml = add_html_var(ml, "admin", "yes");
+
+	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
 	memset(pmsql, 0, sizeof(pmsql));
 	/*
@@ -1480,40 +1485,21 @@ static void approve_receipts(void)
 	else
 		assql[0] = '\0';
 
-	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM images "
-					"INNER JOIN tags ON "
-					"(images.id = tags.id) WHERE "
-					"images.approved = 1 AND (%s) %s) AS "
-					"nrows, images.id, images.username, "
-					"images.timestamp AS its, "
-					"images.path, images.name, "
-					"tags.username, "
-					"tags.timestamp AS tts, "
-					"tags.employee_number, "
-					"tags.department, tags.po_num, "
-					"tags.cost_codes, tags.account_codes, "
-					"tags.supplier_town, "
-					"tags.supplier_name, tags.currency, "
-					"tags.gross_amount, tags.vat_amount, "
-					"tags.net_amount, tags.vat_rate, "
-					"tags.vat_number, tags.receipt_date, "
-					"tags.reason, tags.payment_method "
-					"FROM images INNER JOIN tags ON "
-					"(images.id = tags.id) WHERE "
-					"images.approved = 1 AND (%s) %s "
-					"LIMIT %d, %d",
-					pmsql, assql, pmsql, assql, from,
-					APPROVER_ROWS);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
-
-	ml = add_html_var(ml, "approver", "yes");
-	if (IS_ADMIN())
-		ml = add_html_var(ml, "admin", "yes");
-
-	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
-
+	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM images INNER JOIN "
+			"tags ON (images.id = tags.id) WHERE "
+			"images.approved = 1 AND (%s) %s) AS nrows, "
+			"images.id, images.username, images.timestamp AS "
+			"its, images.path, images.name, tags.username, "
+			"tags.timestamp AS tts, tags.employee_number, "
+			"tags.department, tags.po_num, tags.cost_codes, "
+			"tags.account_codes, tags.supplier_town, "
+			"tags.supplier_name, tags.currency, "
+			"tags.gross_amount, tags.vat_amount, "
+			"tags.net_amount, tags.vat_rate, tags.vat_number, "
+			"tags.receipt_date, tags.reason, tags.payment_method "
+			"FROM images INNER JOIN tags ON (images.id = tags.id) "
+			"WHERE images.approved = 1 AND (%s) %s LIMIT %d, %d",
+			pmsql, assql, pmsql, assql, from, APPROVER_ROWS);
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
 		ml = add_html_var(ml, "receipts", "no");
