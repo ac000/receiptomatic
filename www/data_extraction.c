@@ -45,7 +45,6 @@ void send_receipt_data(int fd)
 
 void extract_data_now(int fd)
 {
-	char sql[SQL_MAX];
 	char line[BUF_SIZE];
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -55,27 +54,18 @@ void extract_data_now(int fd)
 
 	conn = db_conn();
 
-	snprintf(sql, SQL_MAX, "SELECT tags.employee_number, tags.department, "
-					"tags.po_num, tags.cost_codes, "
-					"tags.account_codes, "
-					"tags.supplier_town, "
-					"tags.supplier_name, tags.currency, "
-					"tags.gross_amount, tags.vat_amount, "
-					"tags.net_amount, tags.vat_rate, "
-					"tags.vat_number, tags.receipt_date, "
-					"tags.reason, tags.payment_method "
-					"FROM tags INNER JOIN reviewed ON "
-					"(tags.id = reviewed.id) WHERE "
-					"reviewed.r_uid = %u AND "
-					"reviewed.timestamp > %ld AND "
-					"reviewed.status = %d",
-					user_session.uid,
-					user_session.login_at, APPROVED);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT tags.employee_number, tags.department, "
+			"tags.po_num, tags.cost_codes, tags.account_codes, "
+			"tags.supplier_town, tags.supplier_name, "
+			"tags.currency, tags.gross_amount, tags.vat_amount, "
+			"tags.net_amount, tags.vat_rate, tags.vat_number, "
+			"tags.receipt_date, tags.reason, tags.payment_method "
+			"FROM tags INNER JOIN reviewed ON "						"(tags.id = reviewed.id) WHERE "
+			"reviewed.r_uid = %u AND reviewed.timestamp > %ld AND "
+			"reviewed.status = %d",
+			user_session.uid,
+			user_session.login_at, APPROVED);
 	nr_rows = mysql_num_rows(res);
-
 	if (nr_rows == 0)
 		goto out;
 
