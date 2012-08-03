@@ -941,7 +941,6 @@ out:
  */
 static void forgotten_password(void)
 {
-	char sql[SQL_MAX];
 	char *email_addr;
 	char *key;
 	time_t tm;
@@ -957,25 +956,17 @@ static void forgotten_password(void)
 	vl = add_html_var(vl, "email", get_var(qvars, "email"));
 
 	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email"));
-
-	snprintf(sql, SQL_MAX, "SELECT username FROM passwd WHERE username = "
-							"'%s'", email_addr);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT username FROM passwd WHERE username = "
+			"'%s'", email_addr);
 	if (mysql_num_rows(res) == 0) {
 		vl = add_html_var(vl, "user_error", "yes");
 		goto mysql_cleanup;
 	}
 
 	key = generate_activation_key(email_addr);
-
 	tm = time(NULL);
-	snprintf(sql, SQL_MAX, "INSERT INTO activations VALUES ('%s', '%s', "
-							"%ld)", email_addr,
-							key, tm + KEY_EXP);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
+	sql_query(conn, "INSERT INTO activations VALUES ('%s', '%s', %ld)",
+			email_addr, key, tm + KEY_EXP);
 
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
 	free(key);
