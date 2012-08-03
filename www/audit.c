@@ -31,7 +31,6 @@
  */
 unsigned long long log_login(void)
 {
-	char sql[SQL_MAX];
 	char *username;
 	char *hostname;
 	char *ip_addr;
@@ -68,34 +67,25 @@ unsigned long long log_login(void)
 	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
 	hostname = make_mysql_safe_string(conn, host);
 	ip_addr = make_mysql_safe_string(conn, env_vars.remote_addr);
-
-	snprintf(sql, SQL_MAX, "SELECT uid FROM passwd WHERE username = '%s'",
-								username);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT uid FROM passwd WHERE username = '%s'",
+			username);
 	row = mysql_fetch_row(res);
 	uid = atoi(row[0]);
 	mysql_free_result(res);
 
 	/* We need to be sure a new sid isn't inserted here */
-	mysql_query(conn, "LOCK TABLES utmp WRITE");
-	mysql_query(conn, "SELECT IFNULL(MAX(sid), 0) FROM utmp");
-	res = mysql_store_result(conn);
+	sql_query(conn, "LOCK TABLES utmp WRITE");
+	res = sql_query(conn, "SELECT IFNULL(MAX(sid), 0) FROM utmp");
 	row = mysql_fetch_row(res);
 
 	sid = strtoull(row[0], NULL, 10) + 1;
 
 	/* Divide tv_nsec by 1000 to get a rough microseconds value */
-	snprintf(sql, SQL_MAX, "INSERT INTO utmp VALUES (%ld.%ld, %u, '%s', "
-					"'%s', '%s', %llu)",
-					login_at.tv_sec,
-					login_at.tv_nsec / NS_USEC,
-					uid, username, ip_addr, hostname, sid);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-
-	mysql_query(conn, "UNLOCK TABLES");
+	sql_query(conn, "INSERT INTO utmp VALUES (%ld.%ld, %u, '%s', '%s', "
+			"'%s', %llu)",
+			login_at.tv_sec, login_at.tv_nsec / NS_USEC,
+			uid, username, ip_addr, hostname, sid);
+	sql_query(conn, "UNLOCK TABLES");
 
 	mysql_free_result(res);
 	mysql_close(conn);
