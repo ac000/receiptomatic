@@ -8,6 +8,7 @@
  */
 
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "common.h"
 #include "receiptomatic_config.h"
@@ -36,4 +37,35 @@ MYSQL *db_conn(void)
 						"%s\n", mysql_error(conn));
 #endif
 	return conn;
+}
+
+/*
+ * This takes a mysql connection and sql query and returns the result set.
+ * It also takes __func__ to get the name of the calling function. It also
+ * logs the query into the sql log.
+ *
+ * This function should not be called directly and should instead be used via
+ * the sql_query() macro.
+ *
+ * This function will either return a result set or NULL. Note that some
+ * queries don't return result sets by design.
+ */
+MYSQL_RES *__sql_query(const char *func, MYSQL *conn, char *fmt, ...)
+{
+	va_list args;
+	char sql[SQL_MAX];
+	struct timespec tp;
+	int len;
+
+	va_start(args, fmt);
+	len = vsnprintf(sql, sizeof(sql), fmt, args);
+	va_end(args);
+
+	clock_gettime(CLOCK_REALTIME, &tp);
+	fprintf(sql_log, "%ld.%06ld %d %s: %s\n", tp.tv_sec,
+			tp.tv_nsec / NS_USEC, getpid(), func, sql);
+	fflush(sql_log);
+
+	mysql_real_query(conn, sql, len);
+	return mysql_store_result(conn);
 }
