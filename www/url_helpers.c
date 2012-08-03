@@ -667,7 +667,6 @@ void set_default_field_names(struct field_names *fields)
  */
 void set_custom_field_names(struct field_names *fields)
 {
-	char sql[SQL_MAX];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
@@ -675,11 +674,8 @@ void set_custom_field_names(struct field_names *fields)
 	set_default_field_names(fields);
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT * FROM field_names WHERE uid = %u",
-							user_session.uid);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT * FROM field_names WHERE uid = %u",
+			user_session.uid);
 	if (mysql_num_rows(res) < 1)
 		goto out;
 
