@@ -816,7 +816,6 @@ static void admin_pending_activations(void)
  */
 static void activate_user(void)
 {
-	char sql[SQL_MAX];
 	char *key;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -831,15 +830,10 @@ static void activate_user(void)
 	conn = db_conn();
 
 	key = make_mysql_safe_string(conn, get_var(qvars, "key"));
-
-	snprintf(sql, SQL_MAX, "SELECT uid, name, user, expires FROM passwd "
-					"INNER JOIN activations ON "
-					"(passwd.username = "
-					"activations.user) WHERE "
-					"activations.akey = '%s'", key);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT uid, name, user, expires FROM passwd "
+			"INNER JOIN activations ON (passwd.username = "
+			"activations.user) WHERE activations.akey = '%s'",
+			key);
 	if (mysql_num_rows(res) == 0) {
 		vl = add_html_var(vl, "key_error", "yes");
 		goto out;
