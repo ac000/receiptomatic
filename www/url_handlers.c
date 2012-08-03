@@ -1185,18 +1185,13 @@ static void prefs_edit_user(void)
 	 * from the POST'd form.
 	 */
 	if (!form_err) {
-		char sql[SQL_MAX];
 		MYSQL *conn;
 		MYSQL_RES *res;
 		GHashTable *db_row = NULL;
 
 		conn = db_conn();
-		snprintf(sql, SQL_MAX, "SELECT username, name FROM passwd "
-							"WHERE uid = %u",
-							user_session.uid);
-		d_fprintf(sql_log, "%s\n", sql);
-		mysql_query(conn, sql);
-		res = mysql_store_result(conn);
+		res = sql_query(conn, "SELECT username, name FROM passwd "
+				"WHERE uid = %u", user_session.uid);
 		db_row = get_dbrow(res);
 
 		vl = add_html_var(vl, "username", get_var(db_row, "username"));
