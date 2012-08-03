@@ -37,7 +37,6 @@
  */
 char *username_to_name(char *username)
 {
-	char sql[SQL_MAX];
 	char *who;
 	char *name;
 	MYSQL *conn;
@@ -47,11 +46,8 @@ char *username_to_name(char *username)
 	conn = db_conn();
 
 	who = make_mysql_safe_string(conn, username);
-
-	snprintf(sql, SQL_MAX, "SELECT name FROM passwd WHERE username = '%s'",
-									who);
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT name FROM passwd WHERE username = '%s'",
+			who);
 	row = mysql_fetch_row(res);
 
 	name = strdup(row[0]);
