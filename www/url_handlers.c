@@ -121,7 +121,6 @@ static void logout(void)
  */
 static void delete_image(void)
 {
-	char sql[SQL_MAX];
 	char path[PATH_MAX];
 	char image_path[PATH_MAX];
 	char uidir[PATH_MAX];
@@ -138,13 +137,9 @@ static void delete_image(void)
 	conn = db_conn();
 
 	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
-
 	/* Only allow to delete images that are un-tagged */
-	snprintf(sql, SQL_MAX, "SELECT path, name FROM images WHERE id = '%s' "
-						"AND tagged = 0", image_id);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT path, name FROM images WHERE id = '%s' "
+			"AND tagged = 0", image_id);
 	if (mysql_num_rows(res) == 0)
 		goto out1;
 
@@ -192,11 +187,8 @@ static void delete_image(void)
 
 		unlink(image_path);
 
-		snprintf(sql, SQL_MAX, "DELETE FROM images WHERE id = '%s'",
-								image_id);
-		d_fprintf(sql_log, "%s\n", sql);
-		mysql_real_query(conn, sql, strlen(sql));
-
+		sql_query(conn, "DELETE FROM images WHERE id = '%s'",
+				image_id);
 		/* We don't want to display the delete_image page again */
 		goto out1;
 	}
