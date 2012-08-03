@@ -761,7 +761,6 @@ void delete_user_session(unsigned int uid)
  */
 bool user_already_exists(const char *username)
 {
-	char sql[SQL_MAX];
 	char *user;
 	bool ret = false;
 	MYSQL *conn;
@@ -770,11 +769,8 @@ bool user_already_exists(const char *username)
 	conn = db_conn();
 
 	user = make_mysql_safe_string(conn, username);
-	snprintf(sql, SQL_MAX, "SELECT username FROM passwd WHERE "
-						"username = '%s'", user);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT username FROM passwd WHERE username = "
+			"'%s'", user);
 	if (mysql_num_rows(res) > 0)
 		ret = true;
 
