@@ -2059,7 +2059,6 @@ out:
  */
 static void process_receipt(void)
 {
-	char sql[SQL_MAX];
 	char secs[11];
 	char *image_id;
 	struct tm tm;
@@ -2090,13 +2089,8 @@ static void process_receipt(void)
 
 	/* Receipt must be in PENDING status */
 	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
-	snprintf(sql, SQL_MAX, "SELECT id FROM images WHERE id = '%s' AND "
-						"approved = %d",
-						get_var(qvars, "image_id"),
-						PENDING);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT id FROM images WHERE id = '%s' AND "
+			"approved = %d", get_var(qvars, "image_id"), PENDING);
 	if (mysql_num_rows(res) == 0)
 		goto out;
 
