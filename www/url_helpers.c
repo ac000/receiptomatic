@@ -202,7 +202,6 @@ bool is_users_receipt(const char *id)
  */
 bool tag_info_allowed(const char *image_id)
 {
-	char sql[SQL_MAX];
 	char *s_image_id;
 	bool tag_allowed = false;
 	MYSQL *conn;
@@ -217,13 +216,8 @@ bool tag_info_allowed(const char *image_id)
 	conn = db_conn();
 
 	s_image_id = make_mysql_safe_string(conn, image_id);
-
-	snprintf(sql, SQL_MAX, "SELECT path FROM images WHERE id = '%s' AND "
-							"uid = %u", s_image_id,
-							user_session.uid);
-
-	mysql_real_query(conn, sql, strlen(sql));
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT path FROM images WHERE id = '%s' AND "
+			"uid = %u", s_image_id, user_session.uid);
 	if (mysql_num_rows(res) > 0)
 		tag_allowed = true;
 
