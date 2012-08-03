@@ -936,7 +936,6 @@ void tag_image(void)
  */
 int do_add_user(unsigned char capabilities)
 {
-	char sql[SQL_MAX];
 	char *key;
 	char *email_addr;
 	char *name;
@@ -960,25 +959,18 @@ int do_add_user(unsigned char capabilities)
 	key = generate_activation_key(email_addr);
 
 	/* We need to be sure a new uid isn't inserted here */
-	mysql_query(conn, "LOCK TABLES passwd WRITE");
-	mysql_query(conn, "SELECT MAX(uid) FROM passwd");
-	res = mysql_store_result(conn);
+	sql_query(conn, "LOCK TABLES passwd WRITE");
+	res = sql_query(conn, "SELECT MAX(uid) FROM passwd");
 	row = mysql_fetch_row(res);
 
-	snprintf(sql, SQL_MAX, "INSERT INTO passwd VALUES (%d, '%s', '!!', "
-						"'%s', %d, 0, 0, '')",
-						atoi(row[0]) + 1, email_addr,
-						name, capabilities);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
-	mysql_query(conn, "UNLOCK TABLES");
+	sql_query(conn, "INSERT INTO passwd VALUES (%d, '%s', '!!', '%s', %d, "
+			"0, 0, '')",
+			atoi(row[0]) + 1, email_addr, name, capabilities);
+	sql_query(conn, "UNLOCK TABLES");
 
 	tm = time(NULL);
-	snprintf(sql, SQL_MAX, "INSERT INTO activations VALUES ('%s', '%s', "
-						"%ld)", email_addr, key,
-						tm + KEY_EXP);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_real_query(conn, sql, strlen(sql));
+	sql_query(conn, "INSERT INTO activations VALUES ('%s', '%s', %ld)",
+			email_addr, key, tm + KEY_EXP);
 
 	send_activation_mail(name, email_addr, key);
 
