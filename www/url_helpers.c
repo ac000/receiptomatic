@@ -1195,7 +1195,6 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 {
 	unsigned long i;
 	unsigned long nr_rows;
-	char sql[SQL_MAX];
 	MYSQL *conn;
 	MYSQL_RES *res;
 	TMPL_loop *loop = NULL;
@@ -1203,22 +1202,19 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 	conn = db_conn();
 	/* Total of approved receipts */
 	if (uid > -1)
-		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
 				(unsigned int)uid, APPROVED);
 	else
-		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE "
 				"images.approved = %d GROUP BY currency",
 				APPROVED);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
 	nr_rows = mysql_num_rows(res);
 	for (i = 0; i < nr_rows; i++) {
 		GHashTable *db_row = NULL;
@@ -1236,22 +1232,19 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 
 	/* Total of rejected receipts */
 	if (uid > -1)
-		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
 				(unsigned int)uid, REJECTED);
 	else
-		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE "
 				"images.approved = %d GROUP BY currency",
 				REJECTED);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
 	nr_rows = mysql_num_rows(res);
 	loop = NULL;
 	for (i = 0; i < nr_rows; i++) {
@@ -1270,22 +1263,19 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 
 	/* Total of pending receipts */
 	if (uid > -1)
-		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
 				(unsigned int)uid, PENDING);
 	else
-		snprintf(sql, SQL_MAX, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE "
 				"images.approved = %d GROUP BY currency",
 				PENDING);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
 	nr_rows = mysql_num_rows(res);
 	loop = NULL;
 	for (i = 0; i < nr_rows; i++) {
@@ -1304,15 +1294,12 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 
 	/* Number of un-tagged receipts */
 	if (uid > -1)
-		snprintf(sql, SQL_MAX, "SELECT COUNT(*) AS nr_rows FROM "
-				"images WHERE uid = %u AND tagged = 0",
+		sql_query(conn, "SELECT COUNT(*) AS nr_rows FROM images "
+				"WHERE uid = %u AND tagged = 0",
 				(unsigned int)uid);
 	else
-		snprintf(sql, SQL_MAX, "SELECT COUNT(*) AS nr_rows FROM "
-				"images WHERE tagged = 0");
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
+		sql_query(conn, "SELECT COUNT(*) AS nr_rows FROM images "
+				"WHERE tagged = 0");
 	if (mysql_num_rows(res) > 0) {
 		GHashTable *db_row = NULL;
 
