@@ -728,7 +728,6 @@ out:
  */
 static void admin_pending_activations(void)
 {
-	char sql[SQL_MAX];
 	int rpp = 15;	/* Rows Per Page to display */
 	unsigned long nr_rows;
 	unsigned long i;
@@ -756,16 +755,13 @@ static void admin_pending_activations(void)
 									&from);
 
 	conn = db_conn();
-	snprintf(sql, SQL_MAX, "SELECT (SELECT COUNT(*) FROM activations "
-				"INNER JOIN passwd ON (activations.user = "
-				"passwd.username)) AS nrows, passwd.name, "
-				"activations.user, activations.expires FROM "
-				"activations INNER JOIN passwd ON "
-				"(activations.user = passwd.username) LIMIT "
-				"%d, %d", from, rpp);
-	d_fprintf(sql_log, "%s\n", sql);
-	mysql_query(conn, sql);
-	res = mysql_store_result(conn);
+	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM activations "
+			"INNER JOIN passwd ON (activations.user = "
+			"passwd.username)) AS nrows, passwd.name, "
+			"activations.user, activations.expires FROM "
+			"activations INNER JOIN passwd ON "
+			"(activations.user = passwd.username) LIMIT %d, %d",
+			from, rpp);
 
 	nr_rows = mysql_num_rows(res);
 	for (i = 0; i < nr_rows; i++) {
