@@ -372,7 +372,6 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 		content = g_mime_part_get_content_object((GMimePart *)part);
 		g_mime_data_wrapper_write_to_stream(content, stream);
 		g_mime_stream_flush(stream);
-		g_object_unref(stream);
 		close(fd);
 
 		u_files = g_list_append(u_files, file_info);
@@ -394,9 +393,11 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 		else
 			add_multipart_var(g_mime_disposition_get_parameter(
 						disposition, "name"), buf);
-
-		g_object_unref(stream);
 	}
+
+	g_object_unref(content);
+	g_object_unref(disposition);
+	g_object_unref(stream);
 }
 
 /*
@@ -437,6 +438,7 @@ static void process_mime(void)
 	g_mime_multipart_foreach((GMimeMultipart *)parts,
 				(GMimePartFunc)process_mime_part, NULL);
 
+	g_object_unref(parts);
 	g_object_unref(stream);
 	g_object_unref(parser);
 	close(fd);
