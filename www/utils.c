@@ -395,8 +395,8 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 						disposition, "name"), buf);
 	}
 
+	g_mime_disposition_destroy(disposition);
 	g_object_unref(content);
-	g_object_unref(disposition);
 	g_object_unref(stream);
 }
 
