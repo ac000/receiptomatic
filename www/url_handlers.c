@@ -1406,7 +1406,7 @@ static void approve_receipts(void)
 	static const char *cash = "'cash'";
 	static const char *card = "'card'";
 	static const char *cheque = "'cheque'";
-	char join[5];
+	const char *join;
 	MYSQL *conn;
 	MYSQL_RES *res;
 	unsigned long i;
@@ -1439,18 +1439,18 @@ static void approve_receipts(void)
 	}
 	if (user_session.capabilities & APPROVER_CARD) {
 		if (IS_SET(pmsql))
-			strcpy(join, " OR ");
+			join = " OR ";
 		else
-			strcpy(join, "\0");
+			join = "";
 		strcat(pmsql, join);
 		strcat(pmsql, pm);
 		strcat(pmsql, card);
 	}
 	if (user_session.capabilities & APPROVER_CHEQUE) {
 		if (IS_SET(pmsql))
-			strcpy(join, " OR ");
+			join = " OR ";
 		else
-			strcpy(join, "\0");
+			join = "";
 		strcat(pmsql, join);
 		strcat(pmsql, pm);
 		strcat(pmsql, cheque);
