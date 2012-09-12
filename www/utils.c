@@ -313,18 +313,15 @@ static void process_vars(const char *query)
 	int avars = 0;
 
 	string = strdupa(query);
-	for (;;) {
-		token = strtok_r(string, "&", &saveptr1);
-		if (token == NULL)
-			break;
-
+	token = strtok_r(string, "&", &saveptr1);
+	while (token != NULL) {
 		if (strstr(token, "%5D=")) {
 			add_avar(token, 0);
 			avars = 1;
 		} else {
 			add_var(token);
 		}
-		string = NULL;
+		token = strtok_r(NULL, "&", &saveptr1);
 	}
 	if (avars)
 		add_avar(NULL, 1);
