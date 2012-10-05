@@ -32,4 +32,4 @@ audit.o: common.h audit.h audit.c
 	$(CC) $(CFLAGS) -c audit.c ${INCS}
 
 clean:
-	rm receiptomatic-www *.o
+	rm -f receiptomatic-www *.o
