@@ -37,8 +37,10 @@
 #define IMG_MEDIUM	1
 #define IMG_SMALL	0
 
-/* dummy declaration for extern declaration in receiptomatic_config.h */
+/* dummy declarations for extern declarations in receiptomatic_config.h */
 char *log_dir;
+char *sql_log;
+int debug_level;
 
 static int do_config(void)
 {
