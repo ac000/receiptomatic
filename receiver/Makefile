@@ -9,4 +9,4 @@ receiptomatic: receiptomatic.c
 	$(CC) $(CFLAGS) -o receiptomatic receiptomatic.c get_config.o db.o ${LIBS} ${INCS}
 
 clean:
-	rm receiptomatic db.o get_config.o
+	rm -f receiptomatic db.o get_config.o
