@@ -1294,11 +1294,11 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 
 	/* Number of un-tagged receipts */
 	if (uid > -1)
-		sql_query(conn, "SELECT COUNT(*) AS nr_rows FROM images "
+		res = sql_query(conn, "SELECT COUNT(*) AS nr_rows FROM images "
 				"WHERE uid = %u AND tagged = 0",
 				(unsigned int)uid);
 	else
-		sql_query(conn, "SELECT COUNT(*) AS nr_rows FROM images "
+		res = sql_query(conn, "SELECT COUNT(*) AS nr_rows FROM images "
 				"WHERE tagged = 0");
 	if (mysql_num_rows(res) > 0) {
 		GHashTable *db_row = NULL;
