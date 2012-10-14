@@ -160,7 +160,7 @@ de_xss() is defined in www/utils.c
 SQL Injection Countermeasures
 -----------------------------
 
-SQL injections attacks are when an attacker tries to put some SQL into a input
+SQL injection attacks are when an attacker tries to put some SQL into an input
 field on a form for example and have that executed by the database. e.g
 
 In a 'mail me my password input box', an attacker might input
