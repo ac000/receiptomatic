@@ -46,3 +46,9 @@ DEBUG_LEVEL	Set the debug level. While useful, the debugging can be a
 		passwords in plain text. Defaults to off (0). Set it to a
 		positive number to enable debugging. Currently there is only
 		two levels, off and on.
+
+
+Misc
+====
+
+Blank lines and lines starting with a # will be ignored.

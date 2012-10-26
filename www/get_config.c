@@ -31,8 +31,8 @@ int get_config(const char *filename)
 		option = token;
 		token = strtok(NULL, "=");
 		value = token;
-		/* Skip blank lines */
-		if (!value)
+		/* Skip blank lines and comment lines beginning with a # */
+		if (!value || option[0] == '#')
 			continue;
 		/* Loose the trailing \n */
 		value[strlen(value) - 1] = '\0';
