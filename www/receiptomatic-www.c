@@ -116,7 +116,7 @@ static void set_proc_title(const char *title)
 }
 
 /*
- * signal handler for SIGUSR1, sets a flag to inform that
+ * Signal handler for SIGUSR2, sets a flag to inform that
  * dump_sessions_state() should be run.
  */
 static void sh_dump_session_state(int signo)
@@ -227,7 +227,7 @@ static void terminate(int signo)
 }
 
 /*
- * signal handler for SIGRTMIN, sets a flag to inform that
+ * Signal handler for SIGRTMIN, sets a flag to inform that
  * clear_old_sessions() should be run.
  */
 static void sh_clear_old_sessions(int sig, siginfo_t *si, void *uc)
@@ -307,7 +307,7 @@ static void init_clear_session_timer(void)
 }
 
 /*
- * signal handler for SIGHUP, sets a flag to inform that
+ * Signal handler for SIGHUP, sets a flag to inform that
  * the log files should be closed and reopened for log file
  * rotation.
  */
