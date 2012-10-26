@@ -159,6 +159,7 @@ struct field_names {
 	char *currency;
 	char *payment_method;
 } field_names;
+struct field_names fields;
 
 /*
  * This structure maps to the environment variable list sent

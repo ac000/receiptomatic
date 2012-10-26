@@ -642,36 +642,36 @@ int check_amounts(double gross, double net, double vat, double vr)
 /*
  * Set the default tag field names.
  */
-void set_default_field_names(struct field_names *fields)
+void set_default_field_names(void)
 {
-	fields->receipt_date = strdup(DFN_RECEIPT_DATE);
-	fields->department = strdup(DFN_DEPARTMENT);
-	fields->employee_number = strdup(DFN_EMPLOYEE_NUMBER);
-	fields->reason = strdup(DFN_REASON);
-	fields->po_num = strdup(DFN_PO_NUM);
-	fields->cost_codes = strdup(DFN_COST_CODES);
-	fields->account_codes = strdup(DFN_ACCOUNT_CODES);
-	fields->supplier_name = strdup(DFN_SUPPLIER_NAME);
-	fields->supplier_town = strdup(DFN_SUPPLIER_TOWN);
-	fields->vat_number = strdup(DFN_VAT_NUMBER);
-	fields->gross_amount = strdup(DFN_GROSS_AMOUNT);
-	fields->net_amount = strdup(DFN_NET_AMOUNT);
-	fields->vat_amount = strdup(DFN_VAT_AMOUNT);
-	fields->vat_rate = strdup(DFN_VAT_RATE);
-	fields->currency = strdup(DFN_CURRENCY);
-	fields->payment_method = strdup(DFN_PAYMENT_METHOD);
+	fields.receipt_date = strdup(DFN_RECEIPT_DATE);
+	fields.department = strdup(DFN_DEPARTMENT);
+	fields.employee_number = strdup(DFN_EMPLOYEE_NUMBER);
+	fields.reason = strdup(DFN_REASON);
+	fields.po_num = strdup(DFN_PO_NUM);
+	fields.cost_codes = strdup(DFN_COST_CODES);
+	fields.account_codes = strdup(DFN_ACCOUNT_CODES);
+	fields.supplier_name = strdup(DFN_SUPPLIER_NAME);
+	fields.supplier_town = strdup(DFN_SUPPLIER_TOWN);
+	fields.vat_number = strdup(DFN_VAT_NUMBER);
+	fields.gross_amount = strdup(DFN_GROSS_AMOUNT);
+	fields.net_amount = strdup(DFN_NET_AMOUNT);
+	fields.vat_amount = strdup(DFN_VAT_AMOUNT);
+	fields.vat_rate = strdup(DFN_VAT_RATE);
+	fields.currency = strdup(DFN_CURRENCY);
+	fields.payment_method = strdup(DFN_PAYMENT_METHOD);
 }
 
 /*
  * Get the users custom image tag field names for display.
  */
-void set_custom_field_names(struct field_names *fields)
+void set_custom_field_names(void)
 {
 	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
 
-	set_default_field_names(fields);
+	set_default_field_names();
 
 	conn = db_conn();
 	res = sql_query(conn, "SELECT * FROM field_names WHERE uid = %u",
@@ -682,73 +682,73 @@ void set_custom_field_names(struct field_names *fields)
 	db_row = get_dbrow(res);
 
 	if (IS_SET(get_var(db_row, "receipt_date"))) {
-		free(fields->receipt_date);
-		fields->receipt_date = strdup(get_var(db_row, "receipt_date"));
+		free(fields.receipt_date);
+		fields.receipt_date = strdup(get_var(db_row, "receipt_date"));
 	}
 	if (IS_SET(get_var(db_row, "department"))) {
-		free(fields->department);
-		fields->department = strdup(get_var(db_row, "department"));
+		free(fields.department);
+		fields.department = strdup(get_var(db_row, "department"));
 	}
 	if (IS_SET(get_var(db_row, "employee_number"))) {
-		free(fields->employee_number);
-		fields->employee_number = strdup(get_var(db_row,
-							"employee_number"));
+		free(fields.employee_number);
+		fields.employee_number = strdup(get_var(db_row,
+					"employee_number"));
 	}
 	if (IS_SET(get_var(db_row, "reason"))) {
-		free(fields->reason);
-		fields->reason = strdup(get_var(db_row, "reason"));
+		free(fields.reason);
+		fields.reason = strdup(get_var(db_row, "reason"));
 	}
 	if (IS_SET(get_var(db_row, "po_num"))) {
-		free(fields->po_num);
-		fields->po_num = strdup(get_var(db_row, "po_num"));
+		free(fields.po_num);
+		fields.po_num = strdup(get_var(db_row, "po_num"));
 	}
 	if (IS_SET(get_var(db_row, "cost_codes"))) {
-		free(fields->cost_codes);
-		fields->cost_codes = strdup(get_var(db_row, "cost_codes"));
+		free(fields.cost_codes);
+		fields.cost_codes = strdup(get_var(db_row, "cost_codes"));
 	}
 	if (IS_SET(get_var(db_row, "account_codes"))) {
-		free(fields->account_codes);
-		fields->account_codes = strdup(get_var(db_row,
-							"account_codes"));
+		free(fields.account_codes);
+		fields.account_codes = strdup(get_var(db_row,
+					"account_codes"));
 	}
 	if (IS_SET(get_var(db_row, "supplier_name"))) {
-		free(fields->supplier_name);
-		fields->supplier_name = strdup(get_var(db_row,
-							"supplier_name"));
+		free(fields.supplier_name);
+		fields.supplier_name = strdup(get_var(db_row,
+					"supplier_name"));
 	}
 	if (IS_SET(get_var(db_row, "supplier_town"))) {
-		free(fields->supplier_town);
-		fields->supplier_town = strdup(get_var(db_row,
-							"supplier_town"));
+		free(fields.supplier_town);
+		fields.supplier_town = strdup(get_var(db_row,
+					"supplier_town"));
 	}
 	if (IS_SET(get_var(db_row, "vat_number"))) {
-		free(fields->vat_number);
-		fields->vat_number = strdup(get_var(db_row, "vat_number"));
+		free(fields.vat_number);
+		fields.vat_number = strdup(get_var(db_row, "vat_number"));
 	}
 	if (IS_SET(get_var(db_row, "gross_amount"))) {
-		free(fields->gross_amount);
-		fields->gross_amount = strdup(get_var(db_row, "gross_amount"));
+		free(fields.gross_amount);
+		fields.gross_amount = strdup(get_var(db_row, "gross_amount"));
 	}
 	if (IS_SET(get_var(db_row, "net_amount"))) {
-		free(fields->net_amount);
-		fields->net_amount = strdup(get_var(db_row, "net_amount"));
+		free(fields.net_amount);
+		fields.net_amount = strdup(get_var(db_row, "net_amount"));
 	}
 	if (IS_SET(get_var(db_row, "vat_amount"))) {
-		free(fields->vat_amount);
-		fields->vat_amount = strdup(get_var(db_row, "vat_amount"));
+		free(fields.vat_amount);
+		fields.vat_amount = strdup(get_var(db_row, "vat_amount"));
 	}
 	if (IS_SET(get_var(db_row, "vat_rate"))) {
-		free(fields->vat_rate);
-		fields->vat_rate = strdup(get_var(db_row, "vat_rate"));
+		free(fields.vat_rate);
+		fields.vat_rate = strdup(get_var(db_row, "vat_rate"));
 	}
 	if (IS_SET(get_var(db_row, "currency"))) {
-		free(fields->currency);
-		fields->currency = strdup(get_var(db_row, "currency"));
+		free(fields.currency);
+		fields.currency = strdup(get_var(db_row, "currency"));
 	}
 	if (IS_SET(get_var(db_row, "payment_method"))) {
-		free(fields->payment_method);
-		fields->payment_method = strdup(get_var(db_row,
-							"payment_method"));
+		free(fields.payment_method);
+		fields.payment_method = strdup(get_var(db_row,
+					"payment_method"));
 	}
 
 	free_vars(db_row);

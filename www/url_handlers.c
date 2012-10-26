@@ -1011,7 +1011,6 @@ static void prefs(void)
  */
 static void prefs_fmap(void)
 {
-	struct field_names fields;
 	bool updated = false;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -1031,12 +1030,10 @@ static void prefs_fmap(void)
 
 	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 
-	fields = field_names;
-	set_custom_field_names(&fields);
-
 	if (updated)
 		vl = add_html_var(vl, "fields_updated", "yes");
 
+	set_custom_field_names();
 	vl = add_html_var(vl, "receipt_date", DFN_RECEIPT_DATE);
 	vl = add_html_var(vl, "alt_receipt_date", !strcmp(DFN_RECEIPT_DATE,
 			fields.receipt_date) ? "" : fields.receipt_date);
@@ -1102,13 +1099,13 @@ static void prefs_fmap(void)
 	vl = add_html_var(vl, "alt_payment_method",
 			!strcmp(DFN_PAYMENT_METHOD, fields.payment_method) ?
 			"" : fields.payment_method);
+	free_fields();
 
 	add_csrf_token(vl);
 	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/prefs_fmap.tmpl", vl, fmtlist);
 	TMPL_free_varlist(vl);
 	TMPL_free_fmtlist(fmtlist);
-	free_fields(&fields);
 }
 
 /*
@@ -1414,7 +1411,6 @@ static void approve_receipts(void)
 	int from = 0;
 	int page = 1;
 	int nr_pages = 0;
-	struct field_names fields;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -1506,9 +1502,7 @@ static void approve_receipts(void)
 		goto out;
 	}
 
-	fields = field_names;
-	set_custom_field_names(&fields);
-
+	set_custom_field_names();
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
 		char *name;
@@ -1614,7 +1608,7 @@ static void approve_receipts(void)
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
-	free_fields(&fields);
+	free_fields();
 	ml = TMPL_add_loop(ml, "table", loop);
 	do_pagination(ml, page, nr_pages);
 	/* Only use csrf if there is receipts to process */
@@ -1646,7 +1640,6 @@ static void reviewed_receipts(void)
 	int nr_pages = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	struct field_names fields;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -1681,9 +1674,7 @@ static void reviewed_receipts(void)
 		goto out;
 	}
 
-	fields = field_names;
-	set_custom_field_names(&fields);
-
+	set_custom_field_names();
 	ml = add_html_var(ml, "receipts", "yes");
 	/* Draw gallery grid */
 	for (i = 0; i < nr_rows; i++) {
@@ -1729,8 +1720,8 @@ static void reviewed_receipts(void)
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
-	free_fields(&fields);
 	ml = TMPL_add_loop(ml, "table", loop);
+	free_fields();
 	do_pagination(ml, page, nr_pages);
 
 out:
@@ -1753,7 +1744,6 @@ static void receipt_info(void)
 {
 	char tbuf[60];
 	char *image_id;
-	struct field_names fields;
 	time_t secs;
 	MYSQL *conn;
 	MYSQL_RES *res;
@@ -1798,11 +1788,8 @@ static void receipt_info(void)
 		vl = add_html_var(vl, "show_info", "no");
 		goto out1;
 	}
-
-	fields = field_names;
-	set_custom_field_names(&fields);
-
 	db_row = get_dbrow(res);
+	set_custom_field_names();
 
 	/* image url */
 	vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
@@ -1916,7 +1903,7 @@ static void receipt_info(void)
 	add_csrf_token(vl);
 
 	free_vars(db_row);
-	free_fields(&fields);
+	free_fields();
 
 out1:
 	mysql_free_result(res);
@@ -1945,7 +1932,6 @@ static void tagged_receipts(void)
 	int nr_pages = 0;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	struct field_names fields;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -1978,8 +1964,7 @@ static void tagged_receipts(void)
 		goto out;
 	}
 
-	fields = field_names;
-	set_custom_field_names(&fields);
+	set_custom_field_names();
 	ml = add_html_var(ml, "receipts", "yes");
 	/* Draw gallery grid */
 	for (i = 0; i < nr_rows; i++) {
@@ -2033,8 +2018,8 @@ static void tagged_receipts(void)
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
-	free_fields(&fields);
 	ml = TMPL_add_loop(ml, "table", loop);
+	free_fields();
 	do_pagination(ml, page, nr_pages);
 
 out:
@@ -2068,7 +2053,6 @@ static void process_receipt(void)
 	double net;
 	double vat;
 	double vr;
-	struct field_names fields;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 	MYSQL *conn;
@@ -2097,8 +2081,7 @@ static void process_receipt(void)
 	vl = add_html_var(vl, "image_id", get_var(qvars, "image_id"));
 	vl = add_html_var(vl, "image_path", get_var(qvars, "image_path"));
 	vl = add_html_var(vl, "image_name", get_var(qvars, "image_name"));
-	fields = field_names;
-	set_custom_field_names(&fields);
+	set_custom_field_names();
 
 	if (!IS_SET(get_var(qvars, "department"))) {
 		tag_error = true;
@@ -2216,7 +2199,7 @@ static void process_receipt(void)
 		TMPL_free_fmtlist(fmtlist);
 	}
 	TMPL_free_varlist(vl);
-	free_fields(&fields);
+	free_fields();
 
 out:
 	mysql_free_result(res);
@@ -2262,7 +2245,6 @@ static void receipts(void)
 	unsigned long nr_rows;
 	MYSQL *conn;
 	MYSQL_RES *res;
-	struct field_names fields;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -2290,8 +2272,7 @@ static void receipts(void)
 		goto out;
 	}
 
-	fields = field_names;
-	set_custom_field_names(&fields);
+	set_custom_field_names();
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
 		time_t secs;
@@ -2336,7 +2317,7 @@ static void receipts(void)
 		free_vars(db_row);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
-	free_fields(&fields);
+	free_fields();
 	/* Only use csrf if there are receipts to process */
 	add_csrf_token(ml);
 
@@ -2415,14 +2396,16 @@ void handle_request(void)
 	memset(&user_session, 0, sizeof(user_session));
 	if (match_uri(request_uri, "/login/")) {
 		login();
-		goto out;
+		goto out2;
 	}
 
 	logged_in = is_logged_in();
 	if (!logged_in) {
 		printf("Location: /login/\r\n\r\n");
-		goto out;
+		goto out2;
 	}
+
+	/* Logged in, set-up the users session */
 	set_user_session();
 
 	/* Add new url handlers after here */
