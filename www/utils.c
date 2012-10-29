@@ -698,7 +698,7 @@ char *generate_activation_key(const char *email_addr)
  * Send an account activation email to the required user.
  */
 void send_activation_mail(const char *name, const char *address,
-							const char *key)
+			  const char *key)
 {
 	FILE *fp = popen(MAIL_CMD, "w");
 
@@ -713,10 +713,11 @@ void send_activation_mail(const char *name, const char *address,
 	fputs("Your account has been created and awaits activation.\r\n", fp);
 	fputs("\r\n", fp);
 	fputs("Please follow the below url to complete your account setup."
-								"\r\n", fp);
+			"\r\n", fp);
 	fputs("Note that this activation key is valid for 24 hours.\r\n", fp);
 	fputs("\r\n", fp);
-	fprintf(fp, "%s/activate_user/?key=%s\r\n", BASE_URL, key);
+	fprintf(fp, "https://%s/activate_user/?key=%s\r\n", env_vars.host,
+			key);
 
 	pclose(fp);
 }
