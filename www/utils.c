@@ -574,6 +574,13 @@ void set_env_vars(void)
 	else
 		env_vars.remote_addr = strdup(getenv("REMOTE_ADDR"));
 
+	if (getenv("HTTP_X_FORWARDED_HOST"))
+		env_vars.host = strdup(getenv("HTTP_X_FORWARDED_HOST"));
+	else if (getenv("HTTP_HOST"))
+		env_vars.host = strdup(getenv("HTTP_HOST"));
+	else
+		env_vars.host = strdup("");
+
 	if (getenv("QUERY_STRING"))
 		env_vars.query_string = strdup(getenv("QUERY_STRING"));
 	else
@@ -614,6 +621,7 @@ void free_env_vars(void)
 	free(env_vars.http_cookie);
 	free(env_vars.http_user_agent);
 	free(env_vars.remote_addr);
+	free(env_vars.host);
 	free(env_vars.query_string);
 }
 

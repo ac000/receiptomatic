@@ -172,6 +172,7 @@ struct env_vars {
 	char *http_cookie;
 	char *http_user_agent;
 	char *remote_addr;
+	char *host;
 	char *query_string;
 } env_vars;
 struct env_vars env_vars;
