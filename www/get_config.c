@@ -71,6 +71,8 @@ int get_config(const char *filename)
 			nr_procs = atoi(value);
 		else if (strcmp(option, "DEBUG_LEVEL") == 0)
 			debug_level = atoi(value);
+		else if (strcmp(option, "MULTI_TENANT") == 0)
+			multi_tenant = atoi(value);
 	}
 
 	fclose(fp);

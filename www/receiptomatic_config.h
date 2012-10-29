@@ -33,6 +33,8 @@ extern unsigned int db_flags;
 
 int nr_procs;
 
+int multi_tenant;
+
 /* Default debug level set in www/receiptomatic-www.c */
 extern int debug_level;
 
@@ -60,6 +62,8 @@ extern int debug_level;
 #define DB_FLAGS	db_flags
 
 #define NR_PROCS	nr_procs
+
+#define MULTI_TENANT	multi_tenant
 
 #define DEBUG_LEVEL	debug_level
 
