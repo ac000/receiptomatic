@@ -230,22 +230,34 @@ out:
 }
 
 /*
- * Determine if access to an image is allowed. It checks for /UID/ at the
- * start of the image path after IMAGE_PATH.
+ * Determine if access to an image is allowed. It checks for /[tenant/]UID/
+ * at the start of the image path after IMAGE_PATH.
  */
 bool image_access_allowed(const char *path)
 {
 	bool access_allowed = false;
-	char uidir[PATH_MAX];
+	char userdir[PATH_MAX];
 
-	memset(uidir, 0, sizeof(uidir));
-	snprintf(uidir, sizeof(uidir), "/%u/", user_session.uid);
+	memset(userdir, 0, sizeof(userdir));
+	snprintf(userdir, sizeof(userdir), "/%s%s%u/",
+			(MULTI_TENANT) ? user_session.tenant : "",
+			(MULTI_TENANT) ? "/" : "", user_session.uid);
 
-	/* Approvers can see all images */
-	if (IS_APPROVER())
+	/* In a non-multi-tenant, approvers can see all images */
+	if (IS_APPROVER() && !MULTI_TENANT) {
 		access_allowed = true;
-	else if (strncmp(path + strlen(IMAGE_PATH), uidir, strlen(uidir)) == 0)
+	} else if (IS_APPROVER()) {
+		char *str;
+		char *ptenant;
+
+		str = strdupa(path + strlen(IMAGE_PATH) + 1);
+		ptenant = strsep(&str, "/");
+		if (ptenant && strcmp(ptenant, user_session.tenant) == 0)
+			access_allowed = true;
+	} else if (strncmp(path + strlen(IMAGE_PATH), userdir,
+				strlen(userdir)) == 0) {
 		access_allowed = true;
+	}
 
 	return access_allowed;
 }
