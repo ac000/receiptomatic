@@ -39,8 +39,6 @@ int get_config(const char *filename)
 
 		if (strcmp(option, "IMAGE_PATH") == 0)
 			rec_image_path = strdup(value);
-		else if (strcmp(option, "BASE_URL") == 0)
-			rec_base_url = strdup(value);
 		else if (strcmp(option, "SESSION_DB") == 0)
 			rec_session_db = strdup(value);
 		else if (strcmp(option, "DB_USER") == 0)

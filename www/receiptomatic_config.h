@@ -11,7 +11,6 @@
 #define _RECEIPTOMATIC_CONFIG_H_
 
 char *rec_image_path;
-char *rec_base_url;
 char *rec_session_db;
 
 /* Default log path set in www/receiptomatic-www.c */
@@ -39,7 +38,6 @@ int multi_tenant;
 extern int debug_level;
 
 #define IMAGE_PATH	rec_image_path
-#define BASE_URL	rec_base_url
 #define SESSION_DB	rec_session_db
 
 #define LOG_DIR		log_dir
