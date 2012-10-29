@@ -17,6 +17,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <stdbool.h>
+#include <netdb.h>
 
 #include <mhash.h>
 
@@ -26,9 +27,11 @@
 
 #include <glib.h>
 
+#include <my_global.h>
+#include <mysql.h>
+
 #include "../www/receiptomatic_config.h"
 #include "../www/get_config.h"
-#include "../www/db.h"
 
 
 #define BUF_SIZE	4096
@@ -41,6 +44,31 @@
 char *log_dir;
 char *sql_log;
 int debug_level;
+
+char *db_host = "localhost";
+char *db_socket_name = NULL;
+unsigned int db_port_num = 3306;
+unsigned int db_flags = 0;
+
+struct email_headers {
+	char *from;
+	char *to;
+} email_headers;
+
+/*
+ * Opens up a MySQL connection and returns the connection handle.
+ */
+static MYSQL *db_conn(void)
+{
+	MYSQL *conn;
+	MYSQL *ret;
+
+	conn = mysql_init(NULL);
+	ret = mysql_real_connect(conn, DB_HOST, DB_USER, DB_PASS, DB_NAME,
+			DB_PORT_NUM, DB_SOCKET_NAME, DB_FLAGS);
+
+	return conn;
+}
 
 static int do_config(void)
 {
@@ -106,19 +134,19 @@ static void send_error_email(const char *email_addr)
  *
  * 	j.doe@example.com
  */
-static char *get_from_addr(const char *addr)
+static char *get_email_addr(const char *addr)
 {
-	char *from;
+	char *email;
 
 	if (!strstr(addr, " ")) {
 		if (strstr(addr, "<") && strstr(addr, ">")) {
 			/* Handle: <j.doe@example.com> */
-			from = malloc(strlen(addr));
-			strncpy(from, addr + 1, strlen(addr) - 2);
+			email = malloc(strlen(addr));
+			strncpy(email, addr + 1, strlen(addr) - 2);
 		} else {
 			/* Handle: j.doe@example.com */
-			from = malloc(strlen(addr) + 1);
-			strcpy(from, addr);
+			email = malloc(strlen(addr) + 1);
+			strcpy(email, addr);
 		}
 	} else {
 		/* Handle: John Doe <j.doe@example.com> */
@@ -133,11 +161,33 @@ static char *get_from_addr(const char *addr)
 
 		token[strlen(token) - 1] = '\0';
 
-		from = malloc(strlen(addr));
-		strcpy(from, token);
+		email = malloc(strlen(addr));
+		strcpy(email, token);
 	}
 
-	return from;
+	return email;
+}
+
+/*
+ * Given an email address in the form; receipts@<tenant>.domain
+ *
+ * It will return the tenant part.
+ */
+static void  get_tenant(const char *email_addr, char *tenant)
+{
+	char *email;
+	char *token;
+	char *string;
+
+	email = get_email_addr(email_addr);
+	string = strdupa(email);
+	free(email);
+
+	token = strtok(string, "@");
+	token = NULL;
+	token = strtok(token, ".");
+
+	snprintf(tenant, sizeof(tenant), "%s", token);
 }
 
 /*
@@ -258,7 +308,7 @@ static void save_image(GMimeObject *part, const char *path,
 /*
  * Process a MIME part of the mail message
  */
-static void process_part(GMimeObject *part, gpointer user_data)
+static void process_part(GMimeObject *part, struct email_headers *eh)
 {
 	const GMimeContentType *content_type;
 	char ymd[11];	/* YYYY/MM/DD */
@@ -295,19 +345,33 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	/*
 	 * Determine the path where to store the image.
 	 *
-	 *	UID/YYYY/MM/DD
+	 *	[tenant/]UID/YYYY/MM/DD
 	 */
-	from = get_from_addr((char *)user_data);
-	user = alloca(strlen(user_data) * 2 + 1);
+	from = get_email_addr(eh->from);
+	user = alloca(strlen(eh->from)*2 + 1);
 	mysql_real_escape_string(conn, user, from, strlen(from));
 	free(from);
+	if (MULTI_TENANT) {
+		char tenant[NI_MAXHOST];
+		char db[NI_MAXHOST + 3] = "rm_";
+
+		get_tenant(eh->to, tenant);
+		strncat(db, tenant, NI_MAXHOST);
+		free(db_name);
+		db_name = strdup(db);
+		fprintf(stderr, "Set db name to %s\n", db_name);
+	}
+	mysql_close(conn);
+
+	/* conn should now point to either receiptomatic or 'tenant' */
+	conn = db_conn();
 	snprintf(sql, sizeof(sql), "SELECT uid FROM passwd WHERE username = "
 								"'%s'", user);
 	printf("SQL: %s\n", sql);
 	mysql_real_query(conn, sql, strlen(sql));
 	res = mysql_store_result(conn);
 	if (mysql_num_rows(res) == 0) {
-		send_error_email((char *)user_data);
+		send_error_email(eh->from);
 		goto out;
 	}
 	row = mysql_fetch_row(res);
@@ -315,7 +379,9 @@ static void process_part(GMimeObject *part, gpointer user_data)
 
 	t = time(NULL);
 	strftime(ymd, sizeof(ymd), "%Y/%m/%d", localtime(&t));
-	bytes = snprintf(path, PATH_MAX, "%s/%u/%s", IMAGE_PATH, uid, ymd);
+	bytes = snprintf(path, PATH_MAX, "%s/%s%s%u/%s", IMAGE_PATH,
+			(MULTI_TENANT) ? db_name + 3 : "",
+			(MULTI_TENANT) ? "/" : "", uid, ymd);
 	if (bytes >= PATH_MAX)
 		goto out;
 	printf("Path: %s\n", path);
@@ -350,7 +416,7 @@ static void process_part(GMimeObject *part, gpointer user_data)
 	image_id = create_image_id(path, filename);
 
 	/* In the database we only store the path relative from IMAGE_PATH */
-	sprintf(path, "%s/%s", row[0], ymd);
+	sprintf(path, "%s", path + strlen(IMAGE_PATH)+1);
 	snprintf(sql, SQL_MAX,
 		"INSERT INTO images VALUES ('%s', %u, '%s', %ld, '%s', '%s', "
 						"0, 1)",
@@ -377,6 +443,7 @@ static void process_message(int dirfd, const char *filename)
 	const InternetAddressList *recips;
 	InternetAddress *addr;
 	int fd;
+	struct email_headers *eh;
 
 	g_mime_init(0);
 
@@ -391,8 +458,12 @@ static void process_message(int dirfd, const char *filename)
 	printf("To: %s\n", internet_address_to_string(addr, FALSE));
 	printf("Subject: %s\n", (char *)g_mime_message_get_subject(message));
 
+	eh = malloc(sizeof(struct email_headers));
+	eh->from = (char *)g_mime_message_get_sender(message);
+	eh->to = internet_address_to_string(addr, FALSE);
 	g_mime_message_foreach_part(message, (GMimePartFunc)process_part,
-				(void *)g_mime_message_get_sender(message));
+				(struct email_headers *)eh);
+	free(eh);
 
 	g_object_unref(stream);
 	g_object_unref(parser);
