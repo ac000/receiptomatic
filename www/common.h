@@ -30,11 +30,15 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <time.h>
+#include <netdb.h>
 
 #include <glib.h>
 
 #include "receiptomatic_config.h"
 #include "db.h"
+#ifdef _RECEIPTOMATIC_WWW_
+#include "utils.h"
+#endif
 
 #define GRID_SIZE	9
 #define ROW_SIZE	3
@@ -100,10 +104,12 @@
 		if (stream == debug_log && !DEBUG_LEVEL) \
 			break; \
 		struct timespec tp; \
+		char tenant[NI_MAXHOST]; \
+		get_tenant(env_vars.host, tenant); \
 		clock_gettime(CLOCK_REALTIME, &tp); \
-		fprintf(stream, "%ld.%06ld %d %s: " fmt, tp.tv_sec, \
-					tp.tv_nsec / NS_USEC, \
-					getpid(), __func__, ##__VA_ARGS__); \
+		fprintf(stream, "%ld.%06ld %d %s %s: " fmt, tp.tv_sec, \
+				tp.tv_nsec / NS_USEC, getpid(), tenant, \
+				__func__, ##__VA_ARGS__); \
 		fflush(stream); \
 	} while (0)
 

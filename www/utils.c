@@ -100,7 +100,11 @@ void get_tenant(const char *host, char *tenant)
 {
 	char *str;
 
-	if (!MULTI_TENANT) {
+	if (!MULTI_TENANT || !host) {
+		/*
+		 * We are either not in multi-tenancy mode and/or being run
+		 * due to a signal handler.
+		 */
 		strcpy(tenant, "");
 		return;
 	}
