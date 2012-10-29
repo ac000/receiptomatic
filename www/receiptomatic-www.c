@@ -152,6 +152,8 @@ static void dump_session_state(void)
 		cols = tctdbget(tdb, rbuf, rsize);
 		tcmapiterinit(cols);
 
+		fprintf(debug_log, "\ttenant       : %s\n", tcmapget2(cols,
+								"tenant"));
 		fprintf(debug_log, "\tsid          : %s\n", tcmapget2(cols,
 								"sid"));
 		fprintf(debug_log, "\tuid          : %s\n", tcmapget2(cols,

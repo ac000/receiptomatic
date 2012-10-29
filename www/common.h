@@ -125,6 +125,7 @@ static inline char *make_mysql_safe_string(MYSQL *conn, const char *string)
  * in a tokyocabinet database table inbetween requests.
  */
 struct user_session {
+	char *tenant;
 	unsigned long long sid;
 	unsigned int uid;
 	unsigned char capabilities;

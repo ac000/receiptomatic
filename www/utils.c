@@ -646,6 +646,7 @@ void free_env_vars(void)
  */
 void free_user_session(void)
 {
+	free(user_session.tenant);
 	free(user_session.username);
 	free(user_session.name);
 	free(user_session.origin_ip);

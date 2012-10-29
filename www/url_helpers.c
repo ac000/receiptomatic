@@ -297,6 +297,7 @@ void set_user_session(void)
 	cols = tctdbget(tdb, rbuf, rsize);
 	tcmapiterinit(cols);
 
+	user_session.tenant = strdup(tcmapget2(cols, "tenant"));
 	user_session.sid = strtoull(tcmapget2(cols, "sid"), NULL, 10);
 	user_session.uid = atoi(tcmapget2(cols, "uid"));
 	user_session.username = strdup(tcmapget2(cols, "username"));
@@ -359,18 +360,20 @@ void set_user_session(void)
 						user_session.restrict_ip);
 	snprintf(capabilities, sizeof(capabilities), "%d",
 						user_session.capabilities);
-	cols = tcmapnew3("sid", sid, "uid", uid,
-				"username", user_session.username,
-				"name", user_session.name,
-				"login_at", login_at,
-				"last_seen", last_seen,
-				"origin_ip", user_session.origin_ip,
-				"client_id", user_session.client_id,
-				"session_id", user_session.session_id,
-				"csrf_token", user_session.csrf_token,
-				"restrict_ip", restrict_ip,
-				"capabilities", capabilities,
-				NULL);
+	cols = tcmapnew3("tenant", user_session.tenant,
+			"sid", sid,
+			"uid", uid,
+			"username", user_session.username,
+			"name", user_session.name,
+			"login_at", login_at,
+			"last_seen", last_seen,
+			"origin_ip", user_session.origin_ip,
+			"client_id", user_session.client_id,
+			"session_id", user_session.session_id,
+			"csrf_token", user_session.csrf_token,
+			"restrict_ip", restrict_ip,
+			"capabilities", capabilities,
+			NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
 
 	tcmapdel(cols);
@@ -473,18 +476,20 @@ char *generate_csrf_token(void)
 						user_session.restrict_ip);
 	snprintf(capabilities, sizeof(capabilities), "%d",
 						user_session.capabilities);
-	cols = tcmapnew3("sid", sid, "uid", uid,
-				"username", user_session.username,
-				"name", user_session.name,
-				"login_at", login_at,
-				"last_seen", last_seen,
-				"origin_ip", user_session.origin_ip,
-				"client_id", user_session.client_id,
-				"session_id", user_session.session_id,
-				"csrf_token", csrf_token,
-				"restrict_ip", restrict_ip,
-				"capabilities", capabilities,
-				NULL);
+	cols = tcmapnew3("tenant", user_session.tenant,
+			"sid", sid,
+			"uid", uid,
+			"username", user_session.username,
+			"name", user_session.name,
+			"login_at", login_at,
+			"last_seen", last_seen,
+			"origin_ip", user_session.origin_ip,
+			"client_id", user_session.client_id,
+			"session_id", user_session.session_id,
+			"csrf_token", csrf_token,
+			"restrict_ip", restrict_ip,
+			"capabilities", capabilities,
+			NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
 
 	tcmapdel(cols);
@@ -558,6 +563,7 @@ void create_session(unsigned long long sid)
 	char pkbuf[256];
 	char timestamp[21];
 	char ssid[21];
+	char tenant[NI_MAXHOST];
 	char *username;
 	int primary_key_size;
 	MYSQL *conn;
@@ -573,6 +579,7 @@ void create_session(unsigned long long sid)
 			"WHERE username = '%s'", username);
 	db_row = get_dbrow(res);
 
+	get_tenant(env_vars.host, tenant);
 	session_id = create_session_id();
 
 	if (strcmp(get_var(qvars, "restrict_ip"), "true") == 0) {
@@ -586,18 +593,20 @@ void create_session(unsigned long long sid)
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
 	snprintf(timestamp, sizeof(timestamp), "%ld", (long)time(NULL));
 	snprintf(ssid, sizeof(ssid), "%llu", sid);
-	cols = tcmapnew3("sid", ssid, "uid", get_var(db_row, "uid"),
-					"username", get_var(qvars, "username"),
-					"name", get_var(db_row, "name"),
-					"login_at", timestamp,
-					"last_seen", timestamp, "origin_ip",
-					env_vars.remote_addr,
-					"client_id", env_vars.http_user_agent,
-					"session_id", session_id,
-					"csrf_token", "\0",
-					"restrict_ip", restrict_ip,
-					"capabilities", get_var(db_row,
-					"capabilities"), NULL);
+	cols = tcmapnew3("tenant", tenant,
+			"sid", ssid,
+			"uid", get_var(db_row, "uid"),
+			"username", get_var(qvars, "username"),
+			"name", get_var(db_row, "name"),
+			"login_at", timestamp,
+			"last_seen", timestamp,
+			"origin_ip", env_vars.remote_addr,
+			"client_id", env_vars.http_user_agent,
+			"session_id", session_id,
+			"csrf_token", "\0",
+			"restrict_ip", restrict_ip,
+			"capabilities", get_var(db_row, "capabilities"),
+			NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
 	tcmapdel(cols);
 	tctdbclose(tdb);
@@ -1144,15 +1153,20 @@ void do_edit_user(void)
 	sprintf(name, "%s", get_var(qvars, "name"));
 	username = realloc(username, strlen(get_var(qvars, "email1")) + 1);
 	sprintf(username, "%s", get_var(qvars, "email1"));
-	cols = tcmapnew3("sid", sid, "uid", uid, "username", username,
-				"name", name, "login_at", login_at,
-				"last_seen", last_seen,
-				"origin_ip", user_session.origin_ip,
-				"client_id", user_session.client_id,
-				"session_id", user_session.session_id,
-				"csrf_token", user_session.csrf_token,
-				"restrict_ip", restrict_ip,
-				"capabilities", capabilities, NULL);
+	cols = tcmapnew3("tenant", user_session.tenant,
+			"sid", sid,
+			"uid", uid,
+			"username", username,
+			"name", name,
+			"login_at", login_at,
+			"last_seen", last_seen,
+			"origin_ip", user_session.origin_ip,
+			"client_id", user_session.client_id,
+			"session_id", user_session.session_id,
+			"csrf_token", user_session.csrf_token,
+			"restrict_ip", restrict_ip,
+			"capabilities", capabilities,
+			NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
 
 	tcmapdel(cols);
