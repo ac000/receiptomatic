@@ -123,7 +123,7 @@ static void delete_image(void)
 {
 	char path[PATH_MAX];
 	char image_path[PATH_MAX];
-	char uidir[PATH_MAX];
+	char userdir[PATH_MAX];
 	char *image_id;
 	bool headers_sent = false;
 	MYSQL *conn;
@@ -155,11 +155,13 @@ static void delete_image(void)
 	vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
 	vl = add_html_var(vl, "image_id", get_var(qvars, "image_id"));
 
-	memset(uidir, 0, sizeof(uidir));
-	snprintf(uidir, sizeof(uidir), "/%u/", user_session.uid);
+	memset(userdir, 0, sizeof(userdir));
+	snprintf(userdir, sizeof(userdir), "/%s%s%u/",
+			(MULTI_TENANT) ? user_session.tenant : "",
+			(MULTI_TENANT) ? "/" : "", user_session.uid);
 	/* Is it one of the users images? */
-	if (strncmp(image_path + strlen(IMAGE_PATH), uidir, strlen(uidir))
-									!= 0)
+	if (strncmp(image_path + strlen(IMAGE_PATH), userdir, strlen(userdir))
+			!= 0)
 		goto out1;
 
 	if (strcmp(get_var(qvars, "confirm"), "yes") == 0) {
