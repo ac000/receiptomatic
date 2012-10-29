@@ -9,9 +9,11 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
+#include <netdb.h>
 
 #include "common.h"
 #include "receiptomatic_config.h"
+#include "utils.h"
 #include "db.h"
 
 char *db_host = "localhost";
@@ -27,15 +29,23 @@ MYSQL *db_conn(void)
 	MYSQL *conn;
 	MYSQL *ret;
 
+	if (MULTI_TENANT) {
+		char tenant[NI_MAXHOST];
+		char db[NI_MAXHOST + 3] = "rm_";
+
+		get_tenant(env_vars.host, tenant);
+		strncat(db, tenant, NI_MAXHOST);
+		free(db_name);
+		db_name = strdup(db);
+	}
 	conn = mysql_init(NULL);
 	ret = mysql_real_connect(conn, DB_HOST, DB_USER, DB_PASS, DB_NAME,
-					DB_PORT_NUM, DB_SOCKET_NAME,
-					DB_FLAGS);
-#ifdef _RECEIPTOMATIC_WWW_
+			DB_PORT_NUM, DB_SOCKET_NAME, DB_FLAGS);
+
 	if (!ret)
 		d_fprintf(error_log, "Failed to connect to database. Error: "
-						"%s\n", mysql_error(conn));
-#endif
+				"%s\n", mysql_error(conn));
+
 	return conn;
 }
 
@@ -54,6 +64,7 @@ MYSQL_RES *__sql_query(const char *func, MYSQL *conn, char *fmt, ...)
 {
 	va_list args;
 	char sql[SQL_MAX];
+	char tenant[NI_MAXHOST];
 	struct timespec tp;
 	int len;
 
@@ -61,9 +72,10 @@ MYSQL_RES *__sql_query(const char *func, MYSQL *conn, char *fmt, ...)
 	len = vsnprintf(sql, sizeof(sql), fmt, args);
 	va_end(args);
 
+	get_tenant(env_vars.host, tenant);
 	clock_gettime(CLOCK_REALTIME, &tp);
-	fprintf(sql_log, "%ld.%06ld %d %s: %s\n", tp.tv_sec,
-			tp.tv_nsec / NS_USEC, getpid(), func, sql);
+	fprintf(sql_log, "%ld.%06ld %d %s %s: %s\n", tp.tv_sec,
+			tp.tv_nsec / NS_USEC, getpid(), tenant, func, sql);
 	fflush(sql_log);
 
 	mysql_real_query(conn, sql, len);
