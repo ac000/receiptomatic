@@ -15,6 +15,7 @@
 #define IS_FIRST_PAGE(page)		(((page) == 1) ? 1 : 0)
 #define IS_LAST_PAGE(page, nr_pages)	(((page) == (nr_pages)) ? 1 : 0)
 
+void get_tenant(const char *host, char *tenant);
 void free_avars(void);
 void free_vars(GHashTable *vars);
 void free_u_files(void);

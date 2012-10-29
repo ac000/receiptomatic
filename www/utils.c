@@ -94,6 +94,22 @@ static char *url_decode(const char *str)
 }
 
 /*
+ * Given a hostname like host.example.com it returns just 'host'
+ */
+void get_tenant(const char *host, char *tenant)
+{
+	char *str;
+
+	if (!MULTI_TENANT) {
+		strcpy(tenant, "");
+		return;
+	}
+
+	str = strdupa(host);
+	snprintf(tenant, sizeof(tenant), "%s", strsep(&str, "."));
+}
+
+/*
  * Free's the avars GList
  */
 void free_avars(void)
