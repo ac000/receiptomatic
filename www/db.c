@@ -13,6 +13,7 @@
 
 #include "common.h"
 #include "receiptomatic_config.h"
+#include "url_helpers.h"
 #include "utils.h"
 #include "db.h"
 
@@ -42,11 +43,36 @@ MYSQL *db_conn(void)
 	ret = mysql_real_connect(conn, DB_HOST, DB_USER, DB_PASS, DB_NAME,
 			DB_PORT_NUM, DB_SOCKET_NAME, DB_FLAGS);
 
-	if (!ret)
+	if (!ret) {
 		d_fprintf(error_log, "Failed to connect to database. Error: "
 				"%s\n", mysql_error(conn));
+		switch (mysql_errno(conn)) {
+		case ER_BAD_DB_ERROR:	/* unknown database */
+			send_template("templates/invalid.tmpl", NULL, NULL);
+			break;
+		}
+		conn = NULL;
+	}
 
 	return conn;
+}
+
+/*
+ * Make sure we have a good db connection. The most likely case where this
+ * will fail is in multi-tenancy mode when someones uses an invalid hostname
+ * and there won't be a database to match.
+ */
+bool check_db_conn(void)
+{
+	MYSQL *conn;
+	bool ret = false;
+
+	conn = db_conn();
+	if (conn)
+		ret = true;
+
+	mysql_close(conn);
+	return ret;
 }
 
 /*

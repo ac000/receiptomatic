@@ -2376,6 +2376,9 @@ void handle_request(void)
 	set_vars();
 	request_uri = strdupa(env_vars.request_uri);
 
+	if (!check_db_conn())
+		goto out2;
+
 	/*
 	 * Some routes need to come before the login / session stuff as
 	 * they can't be logged in and have no session.

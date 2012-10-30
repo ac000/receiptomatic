@@ -36,6 +36,7 @@
 #endif
 
 #include <mysql.h>
+#include <mysqld_error.h>
 
 /*
  * Wrapper around mysql_real_query(), it uses __sql_query() to do the
@@ -47,6 +48,7 @@
 	__sql_query((const char *)__func__, conn, fmt, ##__VA_ARGS__)
 
 MYSQL *db_conn(void);
+bool check_db_conn(void);
 MYSQL_RES *__sql_query(const char *func, MYSQL *conn, char *fmt, ...);
 
 #endif /* _DB_H_ */
