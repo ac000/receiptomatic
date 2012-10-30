@@ -32,6 +32,8 @@
 #include "utils.h"
 #include "audit.h"
 
+extern MYSQL *conn;
+
 /*
  * Given a username return the real name, which should be free'd.
  */
@@ -39,11 +41,8 @@ char *username_to_name(char *username)
 {
 	char *who;
 	char *name;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
-
-	conn = db_conn();
 
 	who = make_mysql_safe_string(conn, username);
 	res = sql_query(conn, "SELECT name FROM passwd WHERE username = '%s'",
@@ -53,7 +52,6 @@ char *username_to_name(char *username)
 	name = strdup(row[0]);
 
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(who);
 
 	return name;
@@ -143,11 +141,9 @@ int check_auth(void)
 	int ret = -1;
 	char *username;
 	char *enc_passwd;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 
-	conn = db_conn();
 	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
 	res = sql_query(conn, "SELECT password, enabled FROM passwd WHERE "
 			"username = '%s'", username);
@@ -166,7 +162,6 @@ int check_auth(void)
 
 out:
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(username);
 
 	return ret;
@@ -178,11 +173,8 @@ out:
 bool is_users_receipt(const char *id)
 {
 	char *s_id;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	bool users_recpt = false;
-
-	conn = db_conn();
 
 	s_id = make_mysql_safe_string(conn, id);
 	res = sql_query(conn, "SELECT id FROM images WHERE id = '%s' AND "
@@ -191,7 +183,6 @@ bool is_users_receipt(const char *id)
 		users_recpt = true;
 
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(s_id);
 
 	return users_recpt;
@@ -204,7 +195,6 @@ bool tag_info_allowed(const char *image_id)
 {
 	char *s_image_id;
 	bool tag_allowed = false;
-	MYSQL *conn;
 	MYSQL_RES *res;
 
 	/* Approvers can see all tags */
@@ -213,8 +203,6 @@ bool tag_info_allowed(const char *image_id)
 		goto out;
 	}
 
-	conn = db_conn();
-
 	s_image_id = make_mysql_safe_string(conn, image_id);
 	res = sql_query(conn, "SELECT path FROM images WHERE id = '%s' AND "
 			"uid = %u", s_image_id, user_session.uid);
@@ -222,7 +210,6 @@ bool tag_info_allowed(const char *image_id)
 		tag_allowed = true;
 
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(s_image_id);
 
 out:
@@ -578,13 +565,10 @@ void create_session(unsigned long long sid)
 	char tenant[NI_MAXHOST];
 	char *username;
 	int primary_key_size;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	TCTDB *tdb;
 	TCMAP *cols;
 	GHashTable *db_row = NULL;
-
-	conn = db_conn();
 
 	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
 	res = sql_query(conn, "SELECT uid, name, capabilities FROM passwd "
@@ -626,7 +610,6 @@ void create_session(unsigned long long sid)
 
 	printf("Set-Cookie: session_id=%s; path=/; httponly\r\n", session_id);
 
-	mysql_close(conn);
 	mysql_free_result(res);
 	free_vars(db_row);
 	free(username);
@@ -688,13 +671,11 @@ void set_default_field_names(void)
  */
 void set_custom_field_names(void)
 {
-	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
 
 	set_default_field_names();
 
-	conn = db_conn();
 	res = sql_query(conn, "SELECT * FROM field_names WHERE uid = %u",
 			user_session.uid);
 	if (mysql_num_rows(res) < 1)
@@ -776,7 +757,6 @@ void set_custom_field_names(void)
 
 out:
 	mysql_free_result(res);
-	mysql_close(conn);
 }
 
 /*
@@ -784,7 +764,6 @@ out:
  */
 void update_fmap(void)
 {
-	MYSQL *conn;
 	char *username;
 	char *receipt_date;
 	char *department;
@@ -802,8 +781,6 @@ void update_fmap(void)
 	char *vat_rate;
 	char *currency;
 	char *payment_method;
-
-	conn = db_conn();
 
 	username = make_mysql_safe_string(conn, user_session.username);
 	receipt_date = make_mysql_safe_string(
@@ -843,7 +820,6 @@ void update_fmap(void)
 			account_codes, supplier_name, supplier_town,
 			vat_number, gross_amount, net_amount, vat_amount,
 			vat_rate, currency, payment_method);
-	mysql_close(conn);
 	free(username);
 	free(receipt_date);
 	free(department);
@@ -887,9 +863,6 @@ void tag_image(void)
 	char *payment_method;
 	struct tm tm;
 	char secs[11];
-	MYSQL *conn;
-
-	conn = db_conn();
 
 	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
 	username = make_mysql_safe_string(conn, user_session.username);
@@ -936,7 +909,6 @@ void tag_image(void)
 	sql_query(conn, "UPDATE images SET tagged = 1 WHERE id = '%s'",
 			image_id);
 
-	mysql_close(conn);
 	free(image_id);
 	free(username);
 	free(employee_number);
@@ -962,7 +934,6 @@ int do_add_user(unsigned char capabilities)
 	char *name;
 	int ret = 0;
 	time_t tm;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 
@@ -971,8 +942,6 @@ int do_add_user(unsigned char capabilities)
 		ret = -10;
 		goto out;
 	}
-
-	conn = db_conn();
 
 	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email1"));
 	name = make_mysql_safe_string(conn, get_var(qvars, "name"));
@@ -997,7 +966,6 @@ int do_add_user(unsigned char capabilities)
 
 	free(key);
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(email_addr);
 	free(name);
 
@@ -1018,9 +986,7 @@ void do_update_user(void)
 	unsigned int uid;
 	int enabled = 0;
 	int activated = 0;
-	MYSQL *conn;
 
-	conn = db_conn();
 	uid = atoi(get_var(qvars, "uid"));
 
 	if (IS_SET(get_var(qvars, "pass1"))) {
@@ -1072,7 +1038,6 @@ void do_update_user(void)
 			uid, username, hash, name, capabilities, enabled,
 			activated, d_reason);
 
-	mysql_close(conn);
 	free(hash);
 	free(username);
 	free(name);
@@ -1104,9 +1069,6 @@ void do_edit_user(void)
 	char *hash;
 	char *username;
 	char *name;
-	MYSQL *conn;
-
-	conn = db_conn();
 
 	if (IS_SET(get_var(qvars, "pass1"))) {
 		hash = generate_password_hash(SHA512, get_var(qvars, "pass1"));
@@ -1133,7 +1095,6 @@ void do_edit_user(void)
 			user_session.uid, username, hash, name,
 			user_session.capabilities);
 
-	mysql_close(conn);
 	free(hash);
 
 	/*
@@ -1195,16 +1156,13 @@ void do_edit_user(void)
 void do_activate_user(const char *uid, const char *key, const char *password)
 {
 	char *hash;
-	MYSQL *conn;
 
 	hash = generate_password_hash(SHA512, password);
 
-	conn = db_conn();
 	sql_query(conn, "UPDATE passwd SET password = '%s', activated = 1, "
 			"enabled = 1 WHERE uid = %s", hash, uid);
 	sql_query(conn, "DELETE FROM activations WHERE akey = '%s'", key);
 
-	mysql_close(conn);
 	free(hash);
 }
 
@@ -1221,11 +1179,9 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 {
 	unsigned long i;
 	unsigned long nr_rows;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	TMPL_loop *loop = NULL;
 
-	conn = db_conn();
 	/* Total of approved receipts */
 	if (uid > -1)
 		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
@@ -1335,8 +1291,6 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 		free_vars(db_row);
 	}
 	mysql_free_result(res);
-
-	mysql_close(conn);
 }
 
 /*

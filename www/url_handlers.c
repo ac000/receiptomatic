@@ -38,6 +38,8 @@
 #include "url_handlers.h"
 #include "audit.h"
 
+extern MYSQL *conn;
+
 /*
  * /login/
  *
@@ -126,15 +128,12 @@ static void delete_image(void)
 	char userdir[PATH_MAX];
 	char *image_id;
 	bool headers_sent = false;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
 	TMPL_varlist *vl = NULL;
 
 	if (!qvars)
 		goto out2;
-
-	conn = db_conn();
 
 	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
 	/* Only allow to delete images that are un-tagged */
@@ -201,7 +200,6 @@ static void delete_image(void)
 
 out1:
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(image_id);
 	free_vars(db_row);
 	TMPL_free_varlist(vl);
@@ -314,7 +312,6 @@ static void admin_list_users(void)
 	int nr_pages = 0;
 	int page = 1;
 	int from = 0;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
@@ -334,7 +331,6 @@ static void admin_list_users(void)
 		get_page_pagination(get_var(qvars, "page_no"), rpp, &page,
 									&from);
 
-	conn = db_conn();
 	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM passwd) AS nrows, "
 			"uid, username, name, capabilities, enabled, "
 			"activated FROM passwd LIMIT %d, %d", from, rpp);
@@ -392,7 +388,6 @@ static void admin_list_users(void)
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
 	mysql_free_result(res);
-	mysql_close(conn);
 }
 
 /*
@@ -575,10 +570,8 @@ static void admin_edit_user(void)
 	if (!form_err) {
 		unsigned char capabilities;
 		GHashTable *db_row = NULL;
-		MYSQL *conn;
 		MYSQL_RES *res;
 
-		conn = db_conn();
 		res = sql_query(conn, "SELECT username, name, capabilities, "
 				"enabled, activated, d_reason FROM passwd "
 				"WHERE uid = %u", uid);
@@ -613,7 +606,6 @@ static void admin_edit_user(void)
 		free_vars(db_row);
 mysql_cleanup:
 		mysql_free_result(res);
-		mysql_close(conn);
 	} else {
 		vl = add_html_var(vl, "username", get_var(qvars, "email1"));
 		vl = add_html_var(vl, "email1", get_var(qvars, "email1"));
@@ -686,7 +678,6 @@ static void admin_user_stats(void)
 {
 	unsigned int uid;
 	GHashTable *db_row = NULL;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
@@ -702,7 +693,6 @@ static void admin_user_stats(void)
 
 	uid = atoi(get_var(qvars, "uid"));
 
-	conn = db_conn();
 	res = sql_query(conn, "SELECT name FROM passwd WHERE uid = %u", uid);
 	if (mysql_num_rows(res) == 0)
 		goto out;
@@ -736,7 +726,6 @@ static void admin_pending_activations(void)
 	int nr_pages = 0;
 	int page = 1;
 	int from = 0;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
@@ -756,7 +745,6 @@ static void admin_pending_activations(void)
 		get_page_pagination(get_var(qvars, "page_no"), rpp, &page,
 									&from);
 
-	conn = db_conn();
 	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM activations "
 			"INNER JOIN passwd ON (activations.user = "
 			"passwd.username)) AS nrows, passwd.name, "
@@ -806,7 +794,6 @@ static void admin_pending_activations(void)
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
 	mysql_free_result(res);
-	mysql_close(conn);
 }
 
 /*
@@ -819,7 +806,6 @@ static void admin_pending_activations(void)
 static void activate_user(void)
 {
 	char *key;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
 	TMPL_varlist *vl = NULL;
@@ -828,8 +814,6 @@ static void activate_user(void)
 		vl = add_html_var(vl, "key_error", "yes");
 		goto out2;
 	}
-
-	conn = db_conn();
 
 	key = make_mysql_safe_string(conn, get_var(qvars, "key"));
 	res = sql_query(conn, "SELECT uid, name, user, expires FROM passwd "
@@ -878,7 +862,6 @@ static void activate_user(void)
 
 out:
 	mysql_free_result(res);
-	mysql_close(conn);
 	free_vars(db_row);
 	free(key);
 
@@ -899,14 +882,11 @@ static void generate_new_key(void)
 	char *email_addr;
 	char *key;
 	time_t tm;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	TMPL_varlist *vl = NULL;
 
 	if (!qvars)
 		return;
-
-	conn = db_conn();
 
 	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email"));
 	res = sql_query(conn, "SELECT user FROM activations WHERE user = '%s'",
@@ -930,7 +910,6 @@ out:
 	TMPL_free_varlist(vl);
 
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(email_addr);
 }
 
@@ -946,14 +925,11 @@ static void forgotten_password(void)
 	char *email_addr;
 	char *key;
 	time_t tm;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	TMPL_varlist *vl = NULL;
 
 	if (!qvars)
 		goto out;
-
-	conn = db_conn();
 
 	vl = add_html_var(vl, "email", get_var(qvars, "email"));
 
@@ -976,7 +952,6 @@ static void forgotten_password(void)
 
 mysql_cleanup:
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(email_addr);
 
 out:
@@ -1184,11 +1159,9 @@ static void prefs_edit_user(void)
 	 * from the POST'd form.
 	 */
 	if (!form_err) {
-		MYSQL *conn;
 		MYSQL_RES *res;
 		GHashTable *db_row = NULL;
 
-		conn = db_conn();
 		res = sql_query(conn, "SELECT username, name FROM passwd "
 				"WHERE uid = %u", user_session.uid);
 		db_row = get_dbrow(res);
@@ -1200,7 +1173,6 @@ static void prefs_edit_user(void)
 
 		free_vars(db_row);
 		mysql_free_result(res);
-		mysql_close(conn);
 	} else {
 		vl = add_html_var(vl, "username", get_var(qvars, "email1"));
 		vl = add_html_var(vl, "email1", get_var(qvars, "email1"));
@@ -1277,7 +1249,6 @@ static void process_receipt_approval(void)
 	char *username;
 	unsigned int list_size;
 	unsigned int i;
-	MYSQL *conn;
 
 	if (!IS_APPROVER())
 		return;
@@ -1288,8 +1259,6 @@ static void process_receipt_approval(void)
 
 	if (!avars)
 		return;
-
-	conn = db_conn();
 
 	username = make_mysql_safe_string(conn, user_session.username);
 	sql_query(conn, "LOCK TABLES reviewed WRITE, images WRITE,tags READ");
@@ -1382,9 +1351,7 @@ static void process_receipt_approval(void)
 		if (IS_SET(reason))
 			free(reason);
 	}
-
 	sql_query(conn, "UNLOCK TABLES");
-	mysql_close(conn);
 	free(username);
 
 	printf("Location: /approve_receipts/\r\n\r\n");
@@ -1406,7 +1373,6 @@ static void approve_receipts(void)
 	static const char *card = "'card'";
 	static const char *cheque = "'cheque'";
 	const char *join;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	unsigned long i;
 	unsigned long nr_rows;
@@ -1473,8 +1439,6 @@ static void approve_receipts(void)
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), APPROVER_ROWS,
 							&page, &from);
-
-	conn = db_conn();
 
 	memset(assql, 0, sizeof(assql));
 	/* If the user isn't APPROVER_SELF, don't show them their receipts */
@@ -1622,7 +1586,6 @@ out:
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
 	mysql_free_result(res);
-	mysql_close(conn);
 }
 
 /*
@@ -1640,7 +1603,6 @@ static void reviewed_receipts(void)
 	int from = 0;
 	int page = 1;
 	int nr_pages = 0;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
@@ -1659,7 +1621,6 @@ static void reviewed_receipts(void)
 
 	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
-	conn = db_conn();
 	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM reviewed "
 			"INNER JOIN images ON (reviewed.id = images.id)) AS "
 			"nrows, reviewed.timestamp AS ats, images.id, "
@@ -1732,7 +1693,6 @@ out:
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
 	mysql_free_result(res);
-	mysql_close(conn);
 }
 
 /*
@@ -1747,7 +1707,6 @@ static void receipt_info(void)
 	char tbuf[60];
 	char *image_id;
 	time_t secs;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
 	TMPL_varlist *vl = NULL;
@@ -1764,8 +1723,6 @@ static void receipt_info(void)
 		vl = add_html_var(vl, "show_info", "no");
 		goto out2;
 	}
-
-	conn = db_conn();
 
 	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
 	res = sql_query(conn, "SELECT (SELECT passwd.name FROM passwd "
@@ -1909,7 +1866,6 @@ static void receipt_info(void)
 
 out1:
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(image_id);
 
 out2:
@@ -1932,7 +1888,6 @@ static void tagged_receipts(void)
 	int from = 0;
 	int page = 1;
 	int nr_pages = 0;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
@@ -1949,7 +1904,6 @@ static void tagged_receipts(void)
 
 	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
-	conn = db_conn();
 	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM tags INNER JOIN "
 			"images ON (tags.id = images.id) WHERE "
 			"images.tagged = 1 AND images.uid = %u) AS nrows, "
@@ -2030,7 +1984,6 @@ out:
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
 	mysql_free_result(res);
-	mysql_close(conn);
 }
 
 /*
@@ -2057,7 +2010,6 @@ static void process_receipt(void)
 	double vr;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
-	MYSQL *conn;
 	MYSQL_RES *res;
 
 	if (!qvars)
@@ -2070,8 +2022,6 @@ static void process_receipt(void)
 	/* Prevent users from tagging other users receipts */
 	if (!is_users_receipt(get_var(qvars, "image_id")))
 		return;
-
-	conn = db_conn();
 
 	/* Receipt must be in PENDING status */
 	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
@@ -2205,7 +2155,6 @@ static void process_receipt(void)
 
 out:
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(image_id);
 }
 
@@ -2245,7 +2194,6 @@ static void receipts(void)
 {
 	unsigned long i;
 	unsigned long nr_rows;
-	MYSQL *conn;
 	MYSQL_RES *res;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
@@ -2265,7 +2213,6 @@ static void receipts(void)
 	 */
 	display_last_login(ml);
 
-	conn = db_conn();
 	res = sql_query(conn, "SELECT id, timestamp, path, name FROM images "
 			"WHERE tagged = 0 AND uid = %u", user_session.uid);
 	nr_rows = mysql_num_rows(res);
@@ -2329,7 +2276,6 @@ out:
 	TMPL_free_varlist(ml);
 	TMPL_free_fmtlist(fmtlist);
 	mysql_free_result(res);
-	mysql_close(conn);
 }
 
 /*
@@ -2376,7 +2322,9 @@ void handle_request(void)
 	set_vars();
 	request_uri = strdupa(env_vars.request_uri);
 
-	if (!check_db_conn())
+	/* Initialise the database connection */
+	conn = db_conn();
+	if (!conn)
 		goto out2;
 
 	/*
@@ -2554,4 +2502,5 @@ out2:
 				etp.tv_nsec / NS_MSEC) -
 				(stp.tv_sec * 1000 + stp.tv_nsec / NS_MSEC)));
 	free_env_vars();
+	mysql_close(conn);
 }

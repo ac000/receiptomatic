@@ -31,6 +31,8 @@
 #include "common.h"
 #include "utils.h"
 
+extern MYSQL *conn;
+
 /* Linked list to store file_info structures. */
 GList *u_files;
 /*
@@ -792,10 +794,7 @@ bool user_already_exists(const char *username)
 {
 	char *user;
 	bool ret = false;
-	MYSQL *conn;
 	MYSQL_RES *res;
-
-	conn = db_conn();
 
 	user = make_mysql_safe_string(conn, username);
 	res = sql_query(conn, "SELECT username FROM passwd WHERE username = "
@@ -804,7 +803,6 @@ bool user_already_exists(const char *username)
 		ret = true;
 
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(user);
 
 	return ret;

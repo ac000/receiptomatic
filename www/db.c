@@ -17,6 +17,9 @@
 #include "utils.h"
 #include "db.h"
 
+/* Global MySQL connection handle */
+MYSQL *conn;
+
 char *db_host = "localhost";
 char *db_socket_name = NULL;
 unsigned int db_port_num = 3306;
@@ -27,7 +30,6 @@ unsigned int db_flags = 0;
  */
 MYSQL *db_conn(void)
 {
-	MYSQL *conn;
 	MYSQL *ret;
 
 	if (MULTI_TENANT) {
@@ -55,24 +57,6 @@ MYSQL *db_conn(void)
 	}
 
 	return conn;
-}
-
-/*
- * Make sure we have a good db connection. The most likely case where this
- * will fail is in multi-tenancy mode when someones uses an invalid hostname
- * and there won't be a database to match.
- */
-bool check_db_conn(void)
-{
-	MYSQL *conn;
-	bool ret = false;
-
-	conn = db_conn();
-	if (conn)
-		ret = true;
-
-	mysql_close(conn);
-	return ret;
 }
 
 /*

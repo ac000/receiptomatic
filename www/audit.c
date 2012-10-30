@@ -22,6 +22,8 @@
 #include "common.h"
 #include "utils.h"
 
+extern MYSQL *conn;
+
 /*
  * Add a login entry to the utmp table.
  *
@@ -41,7 +43,6 @@ unsigned long long log_login(void)
 	unsigned long long sid;
 	unsigned int uid;
 	socklen_t addr_len = sizeof(addr4);
-	MYSQL *conn;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 
@@ -60,8 +61,6 @@ unsigned long long log_login(void)
 		addr_len = sizeof(addr6);
 	}
 	getnameinfo(addr, addr_len, host, NI_MAXHOST, NULL, 0, 0);
-
-	conn = db_conn();
 
 	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
 	hostname = make_mysql_safe_string(conn, host);
@@ -87,7 +86,6 @@ unsigned long long log_login(void)
 	sql_query(conn, "UNLOCK TABLES");
 
 	mysql_free_result(res);
-	mysql_close(conn);
 	free(username);
 	free(hostname);
 	free(ip_addr);
@@ -103,12 +101,9 @@ unsigned long long log_login(void)
  */
 time_t get_last_login(char *from_host)
 {
-	MYSQL *conn;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 	time_t login;
-
-	conn = db_conn();
 
 	/*
 	 * We need to; ORDER BY login_at DESC LIMIT 1, 1
@@ -128,9 +123,7 @@ time_t get_last_login(char *from_host)
 	} else {
 		login = 0;
 	}
-
 	mysql_free_result(res);
-	mysql_close(conn);
 
 	return login;
 }

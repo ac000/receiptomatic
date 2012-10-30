@@ -23,6 +23,8 @@
 #include "utils.h"
 #include "data_extraction.h"
 
+extern MYSQL *conn;
+
 void send_receipt_data(int fd)
 {
 	ssize_t bytes_read;
@@ -46,13 +48,10 @@ void send_receipt_data(int fd)
 void extract_data_now(int fd)
 {
 	char line[BUF_SIZE];
-	MYSQL *conn;
 	MYSQL_RES *res;
 	unsigned long nr_rows;
 	unsigned long i;
 	ssize_t bytes_wrote;
-
-	conn = db_conn();
 
 	res = sql_query(conn, "SELECT tags.employee_number, tags.department, "
 			"tags.po_num, tags.cost_codes, tags.account_codes, "
@@ -111,5 +110,4 @@ void extract_data_now(int fd)
 
 out:
 	mysql_free_result(res);
-	mysql_close(conn);
 }
