@@ -157,13 +157,13 @@ Install
       files in there.
     - www/receiptomatic-www will need to be able to access the files in there.
 
-    Receipt images will be stored under UID/YYYY/MM/DD, under the directory
-    you created above.
+    Receipt images will be stored under [tenant/]UID/YYYY/MM/DD, under the
+    directory you created above.
 
     Create an email alias for this, this is the email address that users will
-    send thier images to.
+    send their images to.
 
-    # echo -e "rmatic:\t|/etc/smrsh/receiptomatic" >> /etc/aliases
+    # echo -e "receipts:\t|/etc/smrsh/receiptomatic" >> /etc/aliases
     # newaliases
 
     I'm currently using Apache to handle the initial requests and to serve
@@ -180,12 +180,63 @@ Configuration
     There is an example configuration file in the config/ directory which
     contains a minimal set of needed config options.
 
-    To see the full list of config options, look at the #define's in
-    www/receiptomatic_config.h
+    To see the full list of config options, look at docs/config.txt
 
 
     The recieptomatic.cfg file should then be placed into either /usr/local/etc
     or /etc, these are where the email receiver looks for it.
+
+
+Multi-tenancy
+=============
+
+    receiptomatic can be run in a multi-tenancy mode. This means a single
+    _instance_ of the application can handle mutiple different organisations
+    each with a number of users.
+
+    Setting things up as above, will get you up and running in the traditional
+    non multi-tenancy mode.
+
+    The email receiver will simply look at the From: address to work out what
+    to do and it doesn't really matter what address was used to send the
+    receipt image to.
+
+    In multi-tenancy mode however, the From: address alone isn't enough. We
+    also need something to work out what organisation that user belongs to.
+
+    In this case we use the To: address. Thus in this mode of operation,
+    users should use addresses like receipts@<tenant>.domain when sending
+    their receipts. e.g receipts@otl.ri.opentechlabs.net, where otl is their
+    organisational name.
+
+    Likewise for the website side of things, in multi-tenancy mode, users need
+    to use url's like <tenant>.domain, e.g
+    https://otl.ri.opentechlabs.net/login/ to access their site as this tells
+    the application what database it should use for each user. The databases
+    should be named rm_<tenant> so for this user/organisation it would be
+    rm_otl and any database name specified in the config file will be
+    ignored.
+
+    Perhaps the easiest way to accomplish this is through the use of wildcard
+    DNS entries. e.g
+
+	*.ri.opentechlabs.net.	IN	A	192.168.1.129
+	*.ri.opentechlabs.net.	IN	MX 10	ri.opentechlabs.net.
+
+   some care does need to be taken with such a setup, but a full discussion
+   is beyond the scope of this document.
+
+   On the database side of things, a single user should be used for all the
+   databases. Also in this mode, the database user should have the GRANT
+   privilege, so that it gets the 'unknown database' error rather than an
+   access denied error. The 'unknown database' error is used by the
+   application to send the user to a page telling them they have likely
+   mistyped the hostname.
+
+  Naming
+  As the database and hostnames are essentially the same, there are some
+  restrictions on the names we can use. Names should consist only of the
+  following characters [a-z0-9] and should not begin with a digit.
 
 
 Run

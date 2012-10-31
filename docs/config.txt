@@ -4,7 +4,8 @@ receiptomatic.cfg
 Required
 ========
 
-DB_NAME		The name of the receiptomatic database.
+DB_NAME		The name of the receiptomatic database. In the case of
+		multi-tenancy mode, this is ignored.
 DB_USER		The username for the receiptomatic database.
 DB_PASS		The password for the receiptomatic database user.
 
@@ -37,6 +38,8 @@ DB_FLAGS	Any extra flags to pass to the database at connection time.
 
 NR_PROCS	The number of worker processes to fork. By default, one process
 		will be forked per available cpu.
+
+MULTI_TENANT	When set to 1, this enables multi-tenancy mode.
 
 DEBUG_LEVEL	Set the debug level. While useful, the debugging can be a
 		security risk in production as it will log usernames and
