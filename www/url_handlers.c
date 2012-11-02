@@ -539,12 +539,12 @@ static void admin_edit_user(void)
 								"mismatch");
 				form_err = true;
 			}
-		/*
-		 * If the password fields are > 0 in length, then we tried
-		 * to update it.
-		 */
 		} else if (IS_SET(get_var(qvars, "pass1")) &&
 					IS_SET(get_var(qvars, "pass2"))) {
+			/*
+			 * If the password fields are > 0 in length, then we
+			 * at least tried to update it.
+			 */
 			vl = add_html_var(vl, "pass_error", "length");
 			form_err = true;
 		}
