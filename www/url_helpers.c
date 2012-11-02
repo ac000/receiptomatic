@@ -296,6 +296,7 @@ void set_user_session(void)
 	cols = tctdbget(tdb, rbuf, rsize);
 	tcmapiterinit(cols);
 
+	memset(&user_session, 0, sizeof(user_session));
 	user_session.tenant = strdup(tcmapget2(cols, "tenant"));
 	user_session.sid = strtoull(tcmapget2(cols, "sid"), NULL, 10);
 	user_session.uid = atoi(tcmapget2(cols, "uid"));

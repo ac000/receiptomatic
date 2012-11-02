@@ -2346,7 +2346,6 @@ void handle_request(void)
 		goto out2;
 	}
 
-	memset(&user_session, 0, sizeof(user_session));
 	if (match_uri(request_uri, "/login/")) {
 		login();
 		goto out2;
@@ -2358,7 +2357,7 @@ void handle_request(void)
 		goto out2;
 	}
 
-	/* Logged in, set-up the users session */
+	/* Logged in, set-up the user_session structure */
 	set_user_session();
 
 	/* Add new url handlers after here */
