@@ -1,0 +1,44 @@
+Upgrading
+=========
+
+Upgrading the application should generally be as a simple as stopping it,
+copying the updated executable, templates and css etc into place and then
+starting the application back up.
+
+
+Database schema changes
+-----------------------
+
+However, there are occasions where the database schema may have changed,
+though these should be rare.
+
+The mysqldiff perl module/cli, http://adamspiers.org/computing/mysqldiff/.
+can be a big help in updating the database schema. You can run it against
+the database and the latest schema file and it will output a list of MySQL
+commands to update the database e.g
+
+    $ mysqldiff --host=HOST --user=USER --password=PASS <DATABASE> <SCHEMA>
+
+and will output something like:
+
+    ALTER TABLE images ADD INDEX processed (processed);
+
+There is one thing to watch out for. If a column has been renamed, it has
+no way of knowing that's what happened as opposed to a column being dropped
+and a column being added.
+
+So instead of seeing a single
+
+    ALTER TABLE ... CHANGE COLUMN ...
+
+you'll get an
+
+    ALTER TABLE ... DROP COLUMN ...
+    ALTER TABLE ... ADD COLUMN ...
+
+pair, which you should change into a single ALTER TABLE ... CHANGE COLUMN ...
+statement.
+
+If in doubt of such situations, you can use git log -p db/receiptomatic.sql
+to see exactly what's changed and by looking at the db/receiptomatic.sql
+file, you'll see exactly what the current state should be.
