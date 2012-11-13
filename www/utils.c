@@ -797,8 +797,8 @@ bool user_already_exists(const char *username)
 	MYSQL_RES *res;
 
 	user = make_mysql_safe_string(conn, username);
-	res = sql_query(conn, "SELECT username FROM passwd WHERE username = "
-			"'%s'", user);
+	res = sql_query("SELECT username FROM passwd WHERE username = '%s'",
+			user);
 	if (mysql_num_rows(res) > 0)
 		ret = true;
 

@@ -45,8 +45,7 @@ char *username_to_name(char *username)
 	MYSQL_ROW row;
 
 	who = make_mysql_safe_string(conn, username);
-	res = sql_query(conn, "SELECT name FROM passwd WHERE username = '%s'",
-			who);
+	res = sql_query("SELECT name FROM passwd WHERE username = '%s'", who);
 	row = mysql_fetch_row(res);
 
 	name = strdup(row[0]);
@@ -145,8 +144,8 @@ int check_auth(void)
 	MYSQL_ROW row;
 
 	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
-	res = sql_query(conn, "SELECT password, enabled FROM passwd WHERE "
-			"username = '%s'", username);
+	res = sql_query("SELECT password, enabled FROM passwd WHERE username "
+			"= '%s'", username);
 	if (mysql_num_rows(res) < 1)
 		goto out;
 
@@ -177,8 +176,8 @@ bool is_users_receipt(const char *id)
 	bool users_recpt = false;
 
 	s_id = make_mysql_safe_string(conn, id);
-	res = sql_query(conn, "SELECT id FROM images WHERE id = '%s' AND "
-			"uid = %u", s_id, user_session.uid);
+	res = sql_query("SELECT id FROM images WHERE id = '%s' AND uid = %u",
+			s_id, user_session.uid);
 	if (mysql_num_rows(res) > 0)
 		users_recpt = true;
 
@@ -204,8 +203,8 @@ bool tag_info_allowed(const char *image_id)
 	}
 
 	s_image_id = make_mysql_safe_string(conn, image_id);
-	res = sql_query(conn, "SELECT path FROM images WHERE id = '%s' AND "
-			"uid = %u", s_image_id, user_session.uid);
+	res = sql_query("SELECT path FROM images WHERE id = '%s' AND uid = %u",
+			s_image_id, user_session.uid);
 	if (mysql_num_rows(res) > 0)
 		tag_allowed = true;
 
@@ -572,8 +571,8 @@ void create_session(unsigned long long sid)
 	GHashTable *db_row = NULL;
 
 	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
-	res = sql_query(conn, "SELECT uid, name, capabilities FROM passwd "
-			"WHERE username = '%s'", username);
+	res = sql_query("SELECT uid, name, capabilities FROM passwd WHERE "
+			"username = '%s'", username);
 	db_row = get_dbrow(res);
 
 	get_tenant(env_vars.host, tenant);
@@ -677,7 +676,7 @@ void set_custom_field_names(void)
 
 	set_default_field_names();
 
-	res = sql_query(conn, "SELECT * FROM field_names WHERE uid = %u",
+	res = sql_query("SELECT * FROM field_names WHERE uid = %u",
 			user_session.uid);
 	if (mysql_num_rows(res) < 1)
 		goto out;
@@ -813,9 +812,9 @@ void update_fmap(void)
 	payment_method = make_mysql_safe_string(
 			conn, get_var(qvars, "payment_method"));
 
-	sql_query(conn, "REPLACE INTO field_names VALUES (%u, '%s', '%s', "
+	sql_query("REPLACE INTO field_names VALUES (%u, '%s', '%s', '%s', "
 			"'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "
-			"'%s', '%s', '%s', '%s', '%s', '%s', '%s')",
+			"'%s', '%s', '%s', '%s', '%s', '%s')",
 			user_session.uid, username, receipt_date, department,
 			employee_number, reason, po_num, cost_codes,
 			account_codes, supplier_name, supplier_town,
@@ -896,7 +895,7 @@ void tag_image(void)
 	payment_method = make_mysql_safe_string(
 			conn, get_var(qvars, "payment_method"));
 
-	sql_query(conn, "REPLACE INTO tags VALUES ('%s', %u, '%s', %ld, '%s', "
+	sql_query("REPLACE INTO tags VALUES ('%s', %u, '%s', %ld, '%s', "
 				"'%s', '%s', '%s', '%s', '%s', '%s', '%s', "
 				"%.2f, %.2f, %.2f, %.2f, '%s', %ld, '%s', "
 				"'%s')",
@@ -907,8 +906,7 @@ void tag_image(void)
 				gross_amount, vat_amount, net_amount,
 				vat_rate, vat_number, atol(secs), reason,
 				payment_method);
-	sql_query(conn, "UPDATE images SET tagged = 1 WHERE id = '%s'",
-			image_id);
+	sql_query("UPDATE images SET tagged = 1 WHERE id = '%s'", image_id);
 
 	free(image_id);
 	free(username);
@@ -950,17 +948,17 @@ int do_add_user(unsigned char capabilities)
 	key = generate_activation_key(email_addr);
 
 	/* We need to be sure a new uid isn't inserted here */
-	sql_query(conn, "LOCK TABLES passwd WRITE");
-	res = sql_query(conn, "SELECT MAX(uid) FROM passwd");
+	sql_query("LOCK TABLES passwd WRITE");
+	res = sql_query("SELECT MAX(uid) FROM passwd");
 	row = mysql_fetch_row(res);
 
-	sql_query(conn, "INSERT INTO passwd VALUES (%d, '%s', '!!', '%s', %d, "
-			"0, 0, '')",
+	sql_query("INSERT INTO passwd VALUES (%d, '%s', '!!', '%s', %d, 0, 0, "
+			"'')",
 			atoi(row[0]) + 1, email_addr, name, capabilities);
-	sql_query(conn, "UNLOCK TABLES");
+	sql_query("UNLOCK TABLES");
 
 	tm = time(NULL);
-	sql_query(conn, "INSERT INTO activations VALUES ('%s', '%s', %ld)",
+	sql_query("INSERT INTO activations VALUES ('%s', '%s', %ld)",
 			email_addr, key, tm + KEY_EXP);
 
 	send_activation_mail(name, email_addr, key);
@@ -996,8 +994,8 @@ void do_update_user(void)
 		MYSQL_RES *res;
 		MYSQL_ROW row;
 
-		res = sql_query(conn, "SELECT password FROM passwd WHERE "
-				"uid = %u", uid);
+		res = sql_query("SELECT password FROM passwd WHERE uid = %u",
+				uid);
 		row = mysql_fetch_row(res);
 		hash = malloc(strlen(row[0]) + 1);
 		if (!hash) {
@@ -1034,8 +1032,8 @@ void do_update_user(void)
 	if (atoi(get_var(qvars, "activated")) == 1)
 		activated = 1;
 
-	sql_query(conn, "REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', "
-			"%d, %d, %d, '%s')",
+	sql_query("REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', %d, %d, "
+			"%d, '%s')",
 			uid, username, hash, name, capabilities, enabled,
 			activated, d_reason);
 
@@ -1077,8 +1075,8 @@ void do_edit_user(void)
 		MYSQL_RES *res;
 		MYSQL_ROW row;
 
-		res = sql_query(conn, "SELECT password FROM passwd WHERE "
-				"uid = %u", user_session.uid);
+		res = sql_query("SELECT password FROM passwd WHERE uid = %u",
+				user_session.uid);
 		row = mysql_fetch_row(res);
 		hash = malloc(strlen(row[0]) + 1);
 		if (!hash) {
@@ -1091,8 +1089,8 @@ void do_edit_user(void)
 
 	username = make_mysql_safe_string(conn, get_var(qvars, "email1"));
 	name = make_mysql_safe_string(conn, get_var(qvars, "name"));
-	sql_query(conn, "REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', "
-			"%d, 1, 1, '')",
+	sql_query("REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', %d, 1, "
+			"1, '')",
 			user_session.uid, username, hash, name,
 			user_session.capabilities);
 
@@ -1160,9 +1158,9 @@ void do_activate_user(const char *uid, const char *key, const char *password)
 
 	hash = generate_password_hash(SHA512, password);
 
-	sql_query(conn, "UPDATE passwd SET password = '%s', activated = 1, "
+	sql_query("UPDATE passwd SET password = '%s', activated = 1, "
 			"enabled = 1 WHERE uid = %s", hash, uid);
-	sql_query(conn, "DELETE FROM activations WHERE akey = '%s'", key);
+	sql_query("DELETE FROM activations WHERE akey = '%s'", key);
 
 	free(hash);
 }
@@ -1185,14 +1183,14 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 
 	/* Total of approved receipts */
 	if (uid > -1)
-		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
 				(unsigned int)uid, APPROVED);
 	else
-		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE "
@@ -1215,14 +1213,14 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 
 	/* Total of rejected receipts */
 	if (uid > -1)
-		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
 				(unsigned int)uid, REJECTED);
 	else
-		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE "
@@ -1246,14 +1244,14 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 
 	/* Total of pending receipts */
 	if (uid > -1)
-		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
 				(unsigned int)uid, PENDING);
 	else
-		res = sql_query(conn, "SELECT tags.currency, COUNT(*) AS "
+		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE "
@@ -1277,11 +1275,11 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 
 	/* Number of un-tagged receipts */
 	if (uid > -1)
-		res = sql_query(conn, "SELECT COUNT(*) AS nr_rows FROM images "
+		res = sql_query("SELECT COUNT(*) AS nr_rows FROM images "
 				"WHERE uid = %u AND tagged = 0",
 				(unsigned int)uid);
 	else
-		res = sql_query(conn, "SELECT COUNT(*) AS nr_rows FROM images "
+		res = sql_query("SELECT COUNT(*) AS nr_rows FROM images "
 				"WHERE tagged = 0");
 	if (mysql_num_rows(res) > 0) {
 		GHashTable *db_row = NULL;

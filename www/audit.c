@@ -65,25 +65,25 @@ unsigned long long log_login(void)
 	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
 	hostname = make_mysql_safe_string(conn, host);
 	ip_addr = make_mysql_safe_string(conn, env_vars.remote_addr);
-	res = sql_query(conn, "SELECT uid FROM passwd WHERE username = '%s'",
+	res = sql_query("SELECT uid FROM passwd WHERE username = '%s'",
 			username);
 	row = mysql_fetch_row(res);
 	uid = atoi(row[0]);
 	mysql_free_result(res);
 
 	/* We need to be sure a new sid isn't inserted here */
-	sql_query(conn, "LOCK TABLES utmp WRITE");
-	res = sql_query(conn, "SELECT IFNULL(MAX(sid), 0) FROM utmp");
+	sql_query("LOCK TABLES utmp WRITE");
+	res = sql_query("SELECT IFNULL(MAX(sid), 0) FROM utmp");
 	row = mysql_fetch_row(res);
 
 	sid = strtoull(row[0], NULL, 10) + 1;
 
 	/* Divide tv_nsec by 1000 to get a rough microseconds value */
-	sql_query(conn, "INSERT INTO utmp VALUES (%ld.%ld, %u, '%s', '%s', "
-			"'%s', %llu)",
+	sql_query("INSERT INTO utmp VALUES (%ld.%ld, %u, '%s', '%s', '%s', "
+			"%llu)",
 			login_at.tv_sec, login_at.tv_nsec / NS_USEC,
 			uid, username, ip_addr, hostname, sid);
-	sql_query(conn, "UNLOCK TABLES");
+	sql_query("UNLOCK TABLES");
 
 	mysql_free_result(res);
 	free(username);
@@ -113,9 +113,8 @@ time_t get_last_login(char *from_host)
 	 *
 	 * If the user has never logged in before, we will get an empty row.
 	 */
-	res = sql_query(conn, "SELECT login_at, hostname FROM utmp WHERE "
-			"uid = %u ORDER BY login_at DESC LIMIT 1, 1",
-			user_session.uid);
+	res = sql_query("SELECT login_at, hostname FROM utmp WHERE uid = %u "
+			"ORDER BY login_at DESC LIMIT 1, 1", user_session.uid);
 	if (mysql_num_rows(res) > 0) {
 		row = mysql_fetch_row(res);
 		login = atol(row[0]);

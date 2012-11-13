@@ -53,7 +53,7 @@ void extract_data_now(int fd)
 	unsigned long i;
 	ssize_t bytes_wrote;
 
-	res = sql_query(conn, "SELECT tags.employee_number, tags.department, "
+	res = sql_query("SELECT tags.employee_number, tags.department, "
 			"tags.po_num, tags.cost_codes, tags.account_codes, "
 			"tags.supplier_town, tags.supplier_name, "
 			"tags.currency, tags.gross_amount, tags.vat_amount, "

@@ -137,8 +137,8 @@ static void delete_image(void)
 
 	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
 	/* Only allow to delete images that are un-tagged */
-	res = sql_query(conn, "SELECT path, name FROM images WHERE id = '%s' "
-			"AND tagged = 0", image_id);
+	res = sql_query("SELECT path, name FROM images WHERE id = '%s' AND "
+			"tagged = 0", image_id);
 	if (mysql_num_rows(res) == 0)
 		goto out1;
 
@@ -188,8 +188,7 @@ static void delete_image(void)
 
 		unlink(image_path);
 
-		sql_query(conn, "DELETE FROM images WHERE id = '%s'",
-				image_id);
+		sql_query("DELETE FROM images WHERE id = '%s'", image_id);
 		/* We don't want to display the delete_image page again */
 		goto out1;
 	}
@@ -331,9 +330,9 @@ static void admin_list_users(void)
 		get_page_pagination(get_var(qvars, "page_no"), rpp, &page,
 									&from);
 
-	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM passwd) AS nrows, "
-			"uid, username, name, capabilities, enabled, "
-			"activated FROM passwd LIMIT %d, %d", from, rpp);
+	res = sql_query("SELECT (SELECT COUNT(*) FROM passwd) AS nrows, uid, "
+			"username, name, capabilities, enabled, activated "
+			"FROM passwd LIMIT %d, %d", from, rpp);
 	nr_rows = mysql_num_rows(res);
 	for (i = 0; i < nr_rows; i++) {
 		char caps[33] = "\0";
@@ -572,7 +571,7 @@ static void admin_edit_user(void)
 		GHashTable *db_row = NULL;
 		MYSQL_RES *res;
 
-		res = sql_query(conn, "SELECT username, name, capabilities, "
+		res = sql_query("SELECT username, name, capabilities, "
 				"enabled, activated, d_reason FROM passwd "
 				"WHERE uid = %u", uid);
 		if (mysql_num_rows(res) == 0)
@@ -693,7 +692,7 @@ static void admin_user_stats(void)
 
 	uid = atoi(get_var(qvars, "uid"));
 
-	res = sql_query(conn, "SELECT name FROM passwd WHERE uid = %u", uid);
+	res = sql_query("SELECT name FROM passwd WHERE uid = %u", uid);
 	if (mysql_num_rows(res) == 0)
 		goto out;
 
@@ -745,13 +744,12 @@ static void admin_pending_activations(void)
 		get_page_pagination(get_var(qvars, "page_no"), rpp, &page,
 									&from);
 
-	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM activations "
-			"INNER JOIN passwd ON (activations.user = "
-			"passwd.username)) AS nrows, passwd.name, "
-			"activations.user, activations.expires FROM "
-			"activations INNER JOIN passwd ON "
-			"(activations.user = passwd.username) LIMIT %d, %d",
-			from, rpp);
+	res = sql_query("SELECT (SELECT COUNT(*) FROM activations INNER JOIN "
+			"passwd ON (activations.user = passwd.username)) AS "
+			"nrows, passwd.name, activations.user, "
+			"activations.expires FROM activations INNER JOIN "
+			"passwd ON (activations.user = passwd.username) LIMIT "
+			"%d, %d", from, rpp);
 
 	nr_rows = mysql_num_rows(res);
 	for (i = 0; i < nr_rows; i++) {
@@ -816,7 +814,7 @@ static void activate_user(void)
 	}
 
 	key = make_mysql_safe_string(conn, get_var(qvars, "key"));
-	res = sql_query(conn, "SELECT uid, name, user, expires FROM passwd "
+	res = sql_query("SELECT uid, name, user, expires FROM passwd "
 			"INNER JOIN activations ON (passwd.username = "
 			"activations.user) WHERE activations.akey = '%s'",
 			key);
@@ -889,7 +887,7 @@ static void generate_new_key(void)
 		return;
 
 	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email"));
-	res = sql_query(conn, "SELECT user FROM activations WHERE user = '%s'",
+	res = sql_query("SELECT user FROM activations WHERE user = '%s'",
 			email_addr);
 	if (mysql_num_rows(res) == 0)
 		goto out;
@@ -897,7 +895,7 @@ static void generate_new_key(void)
 	key = generate_activation_key(email_addr);
 
 	tm = time(NULL);
-	sql_query(conn, "REPLACE INTO activations VALUES ('%s', '%s', %ld)",
+	sql_query("REPLACE INTO activations VALUES ('%s', '%s', %ld)",
 			email_addr, key, tm + KEY_EXP);
 
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
@@ -934,8 +932,8 @@ static void forgotten_password(void)
 	vl = add_html_var(vl, "email", get_var(qvars, "email"));
 
 	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email"));
-	res = sql_query(conn, "SELECT username FROM passwd WHERE username = "
-			"'%s'", email_addr);
+	res = sql_query("SELECT username FROM passwd WHERE username = '%s'",
+			email_addr);
 	if (mysql_num_rows(res) == 0) {
 		vl = add_html_var(vl, "user_error", "yes");
 		goto mysql_cleanup;
@@ -943,7 +941,7 @@ static void forgotten_password(void)
 
 	key = generate_activation_key(email_addr);
 	tm = time(NULL);
-	sql_query(conn, "INSERT INTO activations VALUES ('%s', '%s', %ld)",
+	sql_query("INSERT INTO activations VALUES ('%s', '%s', %ld)",
 			email_addr, key, tm + KEY_EXP);
 
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
@@ -1162,8 +1160,8 @@ static void prefs_edit_user(void)
 		MYSQL_RES *res;
 		GHashTable *db_row = NULL;
 
-		res = sql_query(conn, "SELECT username, name FROM passwd "
-				"WHERE uid = %u", user_session.uid);
+		res = sql_query("SELECT username, name FROM passwd WHERE "
+				"uid = %u", user_session.uid);
 		db_row = get_dbrow(res);
 
 		vl = add_html_var(vl, "username", get_var(db_row, "username"));
@@ -1261,7 +1259,7 @@ static void process_receipt_approval(void)
 		return;
 
 	username = make_mysql_safe_string(conn, user_session.username);
-	sql_query(conn, "LOCK TABLES reviewed WRITE, images WRITE,tags READ");
+	sql_query("LOCK TABLES reviewed WRITE, images WRITE,tags READ");
 
 	list_size = g_list_length(avars);
 	for (i = 0; i < list_size; i++) {
@@ -1279,8 +1277,8 @@ static void process_receipt_approval(void)
 
 		/* Can user approve their own receipts? */
 		if (!(user_session.capabilities & APPROVER_SELF)) {
-			res = sql_query(conn, "SELECT id FROM images WHERE "
-					"id = '%s' AND uid = %u",
+			res = sql_query("SELECT id FROM images WHERE id = "
+					"'%s' AND uid = %u",
 					image_id, user_session.uid);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
@@ -1288,70 +1286,69 @@ static void process_receipt_approval(void)
 		}
 		/* Can user approve card transactions? */
 		if (!(user_session.capabilities & APPROVER_CARD)) {
-			res = sql_query(conn, "SELECT id FROM tags WHERE "
-					"id = '%s' AND payment_method = "
-					"'card'", image_id);
+			res = sql_query("SELECT id FROM tags WHERE id = "
+					"'%s' AND payment_method = 'card'",
+					image_id);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
 			mysql_free_result(res);
 		}
 		/* Can user approve cash transactions? */
 		if (!(user_session.capabilities & APPROVER_CASH)) {
-			res = sql_query(conn, "SELECT id FROM tags WHERE "
-					"id = '%s' AND payment_method = "
-					"'cash'", image_id);
+			res = sql_query("SELECT id FROM tags WHERE id = "
+					"'%s' AND payment_method = 'cash'",
+					image_id);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
 			mysql_free_result(res);
 		}
 		/* Can user approve cheque transactions? */
 		if (!(user_session.capabilities & APPROVER_CHEQUE)) {
-			res = sql_query(conn, "SELECT id FROM tags WHERE "
-					"id = '%s' AND payment_method = "
-					"'cheque'", image_id);
+			res = sql_query("SELECT id FROM tags WHERE id = "
+					"'%s' AND payment_method = 'cheque'",
+					image_id);
 			if (mysql_num_rows(res) > 0)
 				action[0] = 's';
 			mysql_free_result(res);
 		}
 
 		/* Make sure this reciept hasn't already been processed */
-		res = sql_query(conn, "SELECT status from reviewed WHERE "
-				"id = '%s'", image_id);
+		res = sql_query("SELECT status from reviewed WHERE id = '%s'",
+				image_id);
 		if (mysql_num_rows(res) > 0)
 			action[0] = 's'; /* This receipt is already done */
 		mysql_free_result(res);
 
 		/* Make sure it is a valid tagged-receipt */
-		res = sql_query(conn, "SELECT id FROM tags WHERE id = '%s'",
+		res = sql_query("SELECT id FROM tags WHERE id = '%s'",
 				image_id);
 		if (mysql_num_rows(res) == 0)
 			action[0] = 's'; /* Not a valid receipt */
 		mysql_free_result(res);
 
 		if (action[0] == 'a') { /* approved */
-			sql_query(conn, "INSERT INTO reviewed VALUES ("
+			sql_query("INSERT INTO reviewed VALUES ("
 					"'%s', %u, '%s', %ld, %d, '%s')",
 					image_id, user_session.uid,
 					username, time(NULL), APPROVED,
 					reason);
-			sql_query(conn, "UPDATE images SET approved = %d "
-					"WHERE id = '%s'", APPROVED, image_id);
+			sql_query("UPDATE images SET approved = %d WHERE id = "
+					"'%s'", APPROVED, image_id);
 		} else if (action[0] == 'r') { /* rejected */
-			sql_query(conn, "INSERT INTO reviewed VALUES ("
+			sql_query("INSERT INTO reviewed VALUES ("
 					"'%s', %u, '%s', %ld, %d, "
 					"'%s')",
 					image_id, user_session.uid,
 					username, time(NULL), REJECTED,
 					reason);
-			sql_query(conn, "UPDATE images SET approved = %d "
-					"WHERE id = '%s'",
-					REJECTED, image_id);
+			sql_query("UPDATE images SET approved = %d WHERE id "
+					"= '%s'", REJECTED, image_id);
 		}
 		free(image_id);
 		if (IS_SET(reason))
 			free(reason);
 	}
-	sql_query(conn, "UNLOCK TABLES");
+	sql_query("UNLOCK TABLES");
 	free(username);
 
 	printf("Location: /approve_receipts/\r\n\r\n");
@@ -1447,7 +1444,7 @@ static void approve_receipts(void)
 	else
 		assql[0] = '\0';
 
-	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM images INNER JOIN "
+	res = sql_query("SELECT (SELECT COUNT(*) FROM images INNER JOIN "
 			"tags ON (images.id = tags.id) WHERE "
 			"images.approved = 1 AND (%s) %s) AS nrows, "
 			"images.id, images.username, images.timestamp AS "
@@ -1621,14 +1618,14 @@ static void reviewed_receipts(void)
 
 	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
-	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM reviewed "
-			"INNER JOIN images ON (reviewed.id = images.id)) AS "
-			"nrows, reviewed.timestamp AS ats, images.id, "
-			"images.path, images.name, images.timestamp "
-			"AS its, reviewed.status, passwd.name AS "
-			"user, passwd.uid FROM reviewed INNER JOIN "
-			"images ON (reviewed.id = images.id) INNER JOIN "
-			"passwd ON (images.uid = passwd.uid) ORDER BY "
+	res = sql_query("SELECT (SELECT COUNT(*) FROM reviewed INNER JOIN "
+			"images ON (reviewed.id = images.id)) AS nrows, "
+			"reviewed.timestamp AS ats, images.id, images.path, "
+			"images.name, images.timestamp AS its, "
+			"reviewed.status, passwd.name AS user, passwd.uid "
+			"FROM reviewed INNER JOIN images ON "
+			"(reviewed.id = images.id) INNER JOIN passwd ON "
+			"(images.uid = passwd.uid) ORDER BY "
 			"reviewed.timestamp DESC LIMIT %d, %d",
 			from, GRID_SIZE);
 	nr_rows = mysql_num_rows(res);
@@ -1725,10 +1722,10 @@ static void receipt_info(void)
 	}
 
 	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
-	res = sql_query(conn, "SELECT (SELECT passwd.name FROM passwd "
-			"INNER JOIN reviewed ON (reviewed.r_uid = passwd.uid) "
-			"WHERE reviewed.id = '%s') AS reviewed_by_n, "
-			"reviewed.r_uid AS reviewed_by_u, images.timestamp AS "
+	res = sql_query("SELECT (SELECT passwd.name FROM passwd INNER JOIN "
+			"reviewed ON (reviewed.r_uid = passwd.uid) WHERE "
+			"reviewed.id = '%s') AS reviewed_by_n, reviewed.r_uid "
+			"AS reviewed_by_u, images.timestamp AS "
 			"images_timestamp, images.path, images.name, "
 			"images.approved, tags.timestamp AS tags_timestamp, "
 			"tags.employee_number, tags.department, tags.po_num, "
@@ -1904,12 +1901,12 @@ static void tagged_receipts(void)
 
 	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
-	res = sql_query(conn, "SELECT (SELECT COUNT(*) FROM tags INNER JOIN "
-			"images ON (tags.id = images.id) WHERE "
-			"images.tagged = 1 AND images.uid = %u) AS nrows, "
-			"tags.receipt_date, images.id, images.path, "
-			"images.name, images.approved, reviewed.timestamp "
-			"FROM tags INNER JOIN images ON (tags.id = images.id) "
+	res = sql_query("SELECT (SELECT COUNT(*) FROM tags INNER JOIN images "
+			"ON (tags.id = images.id) WHERE images.tagged = 1 AND "
+			"images.uid = %u) AS nrows, tags.receipt_date, "
+			"images.id, images.path, images.name, "
+			"images.approved, reviewed.timestamp FROM tags "
+			"INNER JOIN images ON (tags.id = images.id) "
 			"LEFT JOIN reviewed ON (tags.id = reviewed.id) WHERE "
 			"images.tagged = 1 AND images.uid = %u ORDER BY "
 			"tags.timestamp DESC LIMIT %d, %d",
@@ -2025,8 +2022,8 @@ static void process_receipt(void)
 
 	/* Receipt must be in PENDING status */
 	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
-	res = sql_query(conn, "SELECT id FROM images WHERE id = '%s' AND "
-			"approved = %d", get_var(qvars, "image_id"), PENDING);
+	res = sql_query("SELECT id FROM images WHERE id = '%s' AND approved "
+			"= %d", get_var(qvars, "image_id"), PENDING);
 	if (mysql_num_rows(res) == 0)
 		goto out;
 
@@ -2213,8 +2210,8 @@ static void receipts(void)
 	 */
 	display_last_login(ml);
 
-	res = sql_query(conn, "SELECT id, timestamp, path, name FROM images "
-			"WHERE tagged = 0 AND uid = %u", user_session.uid);
+	res = sql_query("SELECT id, timestamp, path, name FROM images WHERE "
+			"tagged = 0 AND uid = %u", user_session.uid);
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
 		ml = add_html_var(ml, "receipts", "no");

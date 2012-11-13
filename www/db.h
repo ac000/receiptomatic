@@ -40,14 +40,13 @@
 
 /*
  * Wrapper around mysql_real_query(), it uses __sql_query() to do the
- * actual work. It takes a mysql connection and a query string and passes
- * that to __sql_query() along with the function name of the caller for the
- * sql log.
+ * actual work. It takes a query string and passes that to __sql_query()
+ * along with the function name of the caller for the sql log.
  */
-#define sql_query(conn, fmt, ...) \
-	__sql_query((const char *)__func__, conn, fmt, ##__VA_ARGS__)
+#define sql_query(fmt, ...) \
+	__sql_query((const char *)__func__, fmt, ##__VA_ARGS__)
 
 MYSQL *db_conn(void);
-MYSQL_RES *__sql_query(const char *func, MYSQL *conn, char *fmt, ...);
+MYSQL_RES *__sql_query(const char *func, char *fmt, ...);
 
 #endif /* _DB_H_ */
