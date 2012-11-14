@@ -133,7 +133,7 @@ static void delete_image(void)
 	if (!qvars)
 		goto out2;
 
-	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
+	image_id = make_mysql_safe_string(get_var(qvars, "image_id"));
 	/* Only allow to delete images that are un-tagged */
 	res = sql_query("SELECT path, name FROM images WHERE id = '%s' AND "
 			"tagged = 0", image_id);
@@ -811,7 +811,7 @@ static void activate_user(void)
 		goto out2;
 	}
 
-	key = make_mysql_safe_string(conn, get_var(qvars, "key"));
+	key = make_mysql_safe_string(get_var(qvars, "key"));
 	res = sql_query("SELECT uid, name, user, expires FROM passwd "
 			"INNER JOIN activations ON (passwd.username = "
 			"activations.user) WHERE activations.akey = '%s'",
@@ -884,7 +884,7 @@ static void generate_new_key(void)
 	if (!qvars)
 		return;
 
-	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email"));
+	email_addr = make_mysql_safe_string(get_var(qvars, "email"));
 	res = sql_query("SELECT user FROM activations WHERE user = '%s'",
 			email_addr);
 	if (mysql_num_rows(res) == 0)
@@ -929,7 +929,7 @@ static void forgotten_password(void)
 
 	vl = add_html_var(vl, "email", get_var(qvars, "email"));
 
-	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email"));
+	email_addr = make_mysql_safe_string(get_var(qvars, "email"));
 	res = sql_query("SELECT username FROM passwd WHERE username = '%s'",
 			email_addr);
 	if (mysql_num_rows(res) == 0) {
@@ -1256,7 +1256,7 @@ static void process_receipt_approval(void)
 	if (!avars)
 		return;
 
-	username = make_mysql_safe_string(conn, user_session.username);
+	username = make_mysql_safe_string(user_session.username);
 	sql_query("LOCK TABLES reviewed WRITE, images WRITE,tags READ");
 
 	list_size = g_list_length(avars);
@@ -1266,11 +1266,10 @@ static void process_receipt_approval(void)
 		char *image_id;
 		MYSQL_RES *res;
 
-		image_id = make_mysql_safe_string(conn, get_avar(i, "id"));
+		image_id = make_mysql_safe_string(get_avar(i, "id"));
 
 		if (get_avar(i, "reason"))
-			reason = make_mysql_safe_string(
-					conn, get_avar(i, "reason"));
+			reason = make_mysql_safe_string(get_avar(i, "reason"));
 
 
 		/* Can user approve their own receipts? */
@@ -1719,7 +1718,7 @@ static void receipt_info(void)
 		goto out2;
 	}
 
-	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
+	image_id = make_mysql_safe_string(get_var(qvars, "image_id"));
 	res = sql_query("SELECT (SELECT passwd.name FROM passwd INNER JOIN "
 			"reviewed ON (reviewed.r_uid = passwd.uid) WHERE "
 			"reviewed.id = '%s') AS reviewed_by_n, reviewed.r_uid "
@@ -2019,7 +2018,7 @@ static void process_receipt(void)
 		return;
 
 	/* Receipt must be in PENDING status */
-	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
+	image_id = make_mysql_safe_string(get_var(qvars, "image_id"));
 	res = sql_query("SELECT id FROM images WHERE id = '%s' AND approved "
 			"= %d", get_var(qvars, "image_id"), PENDING);
 	if (mysql_num_rows(res) == 0)

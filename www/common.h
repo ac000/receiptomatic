@@ -119,7 +119,7 @@
  * Given a string it will return a string, that must be free'd, that is safe
  * to pass to mysql.
  */
-static inline char *make_mysql_safe_string(MYSQL *conn, const char *string)
+static inline char *make_mysql_safe_string(const char *string)
 {
 	char *safe = malloc(strlen(string) * 2 + 1);
 	mysql_real_escape_string(conn, safe, string, strlen(string));

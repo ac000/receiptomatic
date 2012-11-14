@@ -42,7 +42,7 @@ char *username_to_name(char *username)
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 
-	who = make_mysql_safe_string(conn, username);
+	who = make_mysql_safe_string(username);
 	res = sql_query("SELECT name FROM passwd WHERE username = '%s'", who);
 	row = mysql_fetch_row(res);
 
@@ -141,7 +141,7 @@ int check_auth(void)
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 
-	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
+	username = make_mysql_safe_string(get_var(qvars, "username"));
 	res = sql_query("SELECT password, enabled FROM passwd WHERE username "
 			"= '%s'", username);
 	if (mysql_num_rows(res) < 1)
@@ -173,7 +173,7 @@ bool is_users_receipt(const char *id)
 	MYSQL_RES *res;
 	bool users_recpt = false;
 
-	s_id = make_mysql_safe_string(conn, id);
+	s_id = make_mysql_safe_string(id);
 	res = sql_query("SELECT id FROM images WHERE id = '%s' AND uid = %u",
 			s_id, user_session.uid);
 	if (mysql_num_rows(res) > 0)
@@ -200,7 +200,7 @@ bool tag_info_allowed(const char *image_id)
 		goto out;
 	}
 
-	s_image_id = make_mysql_safe_string(conn, image_id);
+	s_image_id = make_mysql_safe_string(image_id);
 	res = sql_query("SELECT path FROM images WHERE id = '%s' AND uid = %u",
 			s_image_id, user_session.uid);
 	if (mysql_num_rows(res) > 0)
@@ -568,7 +568,7 @@ void create_session(unsigned long long sid)
 	TCMAP *cols;
 	GHashTable *db_row = NULL;
 
-	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
+	username = make_mysql_safe_string(get_var(qvars, "username"));
 	res = sql_query("SELECT uid, name, capabilities FROM passwd WHERE "
 			"username = '%s'", username);
 	db_row = get_dbrow(res);
@@ -780,35 +780,28 @@ void update_fmap(void)
 	char *currency;
 	char *payment_method;
 
-	username = make_mysql_safe_string(conn, user_session.username);
-	receipt_date = make_mysql_safe_string(
-			conn, get_var(qvars, "receipt_date"));
-	department = make_mysql_safe_string(
-			conn, get_var(qvars, "department"));
+	username = make_mysql_safe_string(user_session.username);
+	receipt_date = make_mysql_safe_string(get_var(qvars, "receipt_date"));
+	department = make_mysql_safe_string(get_var(qvars, "department"));
 	employee_number = make_mysql_safe_string(
-			conn, get_var(qvars, "employee_number"));
-	reason = make_mysql_safe_string(conn, get_var(qvars, "reason"));
-	po_num = make_mysql_safe_string(conn, get_var(qvars, "po_num"));
-	cost_codes = make_mysql_safe_string(
-			conn, get_var(qvars, "cost_codes"));
+			get_var(qvars, "employee_number"));
+	reason = make_mysql_safe_string(get_var(qvars, "reason"));
+	po_num = make_mysql_safe_string(get_var(qvars, "po_num"));
+	cost_codes = make_mysql_safe_string(get_var(qvars, "cost_codes"));
 	account_codes = make_mysql_safe_string(
-			conn, get_var(qvars, "account_codes"));
+			get_var(qvars, "account_codes"));
 	supplier_name = make_mysql_safe_string(
-			conn, get_var(qvars, "supplier_name"));
+			get_var(qvars, "supplier_name"));
 	supplier_town = make_mysql_safe_string(
-			conn, get_var(qvars, "supplier_town"));
-	vat_number = make_mysql_safe_string(
-			conn, get_var(qvars, "vat_number"));
-	gross_amount = make_mysql_safe_string(
-			conn, get_var(qvars, "gross_amount"));
-	net_amount = make_mysql_safe_string(
-			conn, get_var(qvars, "net_amount"));
-	vat_amount = make_mysql_safe_string(
-			conn, get_var(qvars, "vat_amount"));
-	vat_rate = make_mysql_safe_string(conn, get_var(qvars, "vat_rate"));
-	currency = make_mysql_safe_string(conn, get_var(qvars, "currency"));
+			get_var(qvars, "supplier_town"));
+	vat_number = make_mysql_safe_string(get_var(qvars, "vat_number"));
+	gross_amount = make_mysql_safe_string(get_var(qvars, "gross_amount"));
+	net_amount = make_mysql_safe_string(get_var(qvars, "net_amount"));
+	vat_amount = make_mysql_safe_string(get_var(qvars, "vat_amount"));
+	vat_rate = make_mysql_safe_string(get_var(qvars, "vat_rate"));
+	currency = make_mysql_safe_string(get_var(qvars, "currency"));
 	payment_method = make_mysql_safe_string(
-			conn, get_var(qvars, "payment_method"));
+			get_var(qvars, "payment_method"));
 
 	sql_query("REPLACE INTO field_names VALUES (%u, '%s', '%s', '%s', "
 			"'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "
@@ -862,36 +855,33 @@ void tag_image(void)
 	struct tm tm;
 	char secs[11];
 
-	image_id = make_mysql_safe_string(conn, get_var(qvars, "image_id"));
-	username = make_mysql_safe_string(conn, user_session.username);
+	image_id = make_mysql_safe_string(get_var(qvars, "image_id"));
+	username = make_mysql_safe_string(user_session.username);
 	employee_number = make_mysql_safe_string(
-			conn, get_var(qvars, "employee_number"));
-	department = make_mysql_safe_string(
-			conn, get_var(qvars, "department"));
-	po_num = make_mysql_safe_string(conn, get_var(qvars, "po_num"));
-	cost_codes = make_mysql_safe_string(
-			conn, get_var(qvars, "cost_codes"));
+			get_var(qvars, "employee_number"));
+	department = make_mysql_safe_string(get_var(qvars, "department"));
+	po_num = make_mysql_safe_string(get_var(qvars, "po_num"));
+	cost_codes = make_mysql_safe_string(get_var(qvars, "cost_codes"));
 	account_codes = make_mysql_safe_string(
-			conn, get_var(qvars, "account_codes"));
+			get_var(qvars, "account_codes"));
 	supplier_town = make_mysql_safe_string(
-			conn, get_var(qvars, "supplier_town"));
+			get_var(qvars, "supplier_town"));
 	supplier_name = make_mysql_safe_string(
-			conn, get_var(qvars, "supplier_name"));
-	currency = make_mysql_safe_string(conn, get_var(qvars, "currency"));
+			get_var(qvars, "supplier_name"));
+	currency = make_mysql_safe_string(get_var(qvars, "currency"));
 	gross_amount = strtod(get_var(qvars, "gross_amount"), NULL);
 	vat_amount = strtod(get_var(qvars, "vat_amount"), NULL);
 	net_amount = strtod(get_var(qvars, "net_amount"), NULL);
 	vat_rate = strtod(get_var(qvars, "vat_rate"), NULL);
-	vat_number = make_mysql_safe_string(
-			conn, get_var(qvars, "vat_number"));
-	reason = make_mysql_safe_string(conn, get_var(qvars, "reason"));
+	vat_number = make_mysql_safe_string(get_var(qvars, "vat_number"));
+	reason = make_mysql_safe_string(get_var(qvars, "reason"));
 
 	memset(&tm, 0, sizeof(tm));
 	strptime(get_var(qvars, "receipt_date"), "%Y-%m-%d", &tm);
 	strftime(secs, sizeof(secs), "%s", &tm);
 
 	payment_method = make_mysql_safe_string(
-			conn, get_var(qvars, "payment_method"));
+			get_var(qvars, "payment_method"));
 
 	sql_query("REPLACE INTO tags VALUES ('%s', %u, '%s', %ld, '%s', "
 				"'%s', '%s', '%s', '%s', '%s', '%s', '%s', "
@@ -940,8 +930,8 @@ int do_add_user(unsigned char capabilities)
 		goto out;
 	}
 
-	email_addr = make_mysql_safe_string(conn, get_var(qvars, "email1"));
-	name = make_mysql_safe_string(conn, get_var(qvars, "name"));
+	email_addr = make_mysql_safe_string(get_var(qvars, "email1"));
+	name = make_mysql_safe_string(get_var(qvars, "name"));
 
 	key = generate_activation_key(email_addr);
 
@@ -1004,9 +994,9 @@ void do_update_user(void)
 		mysql_free_result(res);
 	}
 
-	username = make_mysql_safe_string(conn, get_var(qvars, "email1"));
-	name = make_mysql_safe_string(conn, get_var(qvars, "name"));
-	d_reason = make_mysql_safe_string(conn, get_var(qvars, "d_reason"));
+	username = make_mysql_safe_string(get_var(qvars, "email1"));
+	name = make_mysql_safe_string(get_var(qvars, "name"));
+	d_reason = make_mysql_safe_string(get_var(qvars, "d_reason"));
 
 	if (IS_SET(get_var(qvars, "ap_card")) ||
 	    IS_SET(get_var(qvars, "ap_cash")) ||
@@ -1085,8 +1075,8 @@ void do_edit_user(void)
 		mysql_free_result(res);
 	}
 
-	username = make_mysql_safe_string(conn, get_var(qvars, "email1"));
-	name = make_mysql_safe_string(conn, get_var(qvars, "name"));
+	username = make_mysql_safe_string(get_var(qvars, "email1"));
+	name = make_mysql_safe_string(get_var(qvars, "name"));
 	sql_query("REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', %d, 1, "
 			"1, '')",
 			user_session.uid, username, hash, name,

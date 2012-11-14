@@ -60,9 +60,9 @@ unsigned long long log_login(void)
 	}
 	getnameinfo(addr, addr_len, host, NI_MAXHOST, NULL, 0, 0);
 
-	username = make_mysql_safe_string(conn, get_var(qvars, "username"));
-	hostname = make_mysql_safe_string(conn, host);
-	ip_addr = make_mysql_safe_string(conn, env_vars.remote_addr);
+	username = make_mysql_safe_string(get_var(qvars, "username"));
+	hostname = make_mysql_safe_string(host);
+	ip_addr = make_mysql_safe_string(env_vars.remote_addr);
 	res = sql_query("SELECT uid FROM passwd WHERE username = '%s'",
 			username);
 	row = mysql_fetch_row(res);
