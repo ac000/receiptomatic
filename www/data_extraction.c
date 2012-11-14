@@ -23,8 +23,6 @@
 #include "utils.h"
 #include "data_extraction.h"
 
-extern MYSQL *conn;
-
 void send_receipt_data(int fd)
 {
 	ssize_t bytes_read;

@@ -31,8 +31,6 @@
 #include "common.h"
 #include "utils.h"
 
-extern MYSQL *conn;
-
 /* Linked list to store file_info structures. */
 GList *u_files;
 /*

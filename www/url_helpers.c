@@ -32,8 +32,6 @@
 #include "utils.h"
 #include "audit.h"
 
-extern MYSQL *conn;
-
 /*
  * Given a username return the real name, which should be free'd.
  */

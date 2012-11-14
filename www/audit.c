@@ -22,8 +22,6 @@
 #include "common.h"
 #include "utils.h"
 
-extern MYSQL *conn;
-
 /*
  * Add a login entry to the utmp table.
  *
