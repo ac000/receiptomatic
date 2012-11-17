@@ -631,8 +631,8 @@ void free_fields(void)
 }
 
 /*
-+ * Free's the http environment structure.
-+ */
+ * Free's the http environment structure.
+ */
 void free_env_vars(void)
 {
 	free(env_vars.request_uri);
