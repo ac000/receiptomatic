@@ -488,7 +488,8 @@ void set_vars(void)
 		process_vars(buf);
 	} else if (strstr(env_vars.content_type, "multipart/form-data")) {
 		process_mime();
-		add_multipart_avar(NULL, NULL, 1);
+		if (g_list_length(avars) > 0)
+			add_multipart_avar(NULL, NULL, 1);
 	}
 }
 
