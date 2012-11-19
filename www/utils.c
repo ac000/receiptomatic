@@ -401,7 +401,7 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 
 		buf = malloc(bytes + 1);
 		g_mime_stream_seek(stream, 0, GMIME_STREAM_SEEK_SET);
-		g_mime_stream_read(stream, buf, BUF_SIZE);
+		g_mime_stream_read(stream, buf, bytes);
 		buf[bytes] = '\0';
 
 		if (strstr(g_mime_disposition_get_parameter(
