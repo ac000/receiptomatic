@@ -329,16 +329,13 @@ static void init_logs(void)
 		fclose(sql_log);
 		fclose(debug_log);
 
-		/*
-		 * The log files need to be opened for appending here or
-		 * they will get truncated while other processes have them
-		 * open.
-		 */
-		access_log = fopen(ACCESS_LOG, "a");
-		error_log = fopen(ERROR_LOG, "a");
-		sql_log = fopen(SQL_LOG, "a");
-		debug_log = fopen(DEBUG_LOG, "a");
+		rotate_log_files = 0;
 	} else {
+		int err;
+
+		err = access(log_dir, R_OK | W_OK | X_OK);
+		if (err == -1)
+			exit(EXIT_FAILURE);
 		snprintf(access_log_path, PATH_MAX,
 			 "%s/receiptomatic-www.access.log", LOG_DIR);
 		snprintf(error_log_path, PATH_MAX,
@@ -347,17 +344,15 @@ static void init_logs(void)
 			 "%s/receiptomatic-www.sql.log", LOG_DIR);
 		snprintf(debug_log_path, PATH_MAX,
 			 "%s/receiptomatic-www.debug.log", LOG_DIR);
-
-		access_log = fopen(ACCESS_LOG, "w");
-		error_log = fopen(ERROR_LOG, "w");
-		sql_log = fopen(SQL_LOG, "w");
-		debug_log = fopen(DEBUG_LOG, "w");
 	}
+
+	access_log = fopen(ACCESS_LOG, "a");
+	error_log = fopen(ERROR_LOG, "a");
+	sql_log = fopen(SQL_LOG, "a");
+	debug_log = fopen(DEBUG_LOG, "a");
 
 	/* Make stderr point to the error_log */
 	dup2(fileno(error_log), STDERR_FILENO);
-
-	rotate_log_files = 0;
 }
 
 /*
