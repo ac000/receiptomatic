@@ -479,18 +479,16 @@ void set_vars(void)
 
 	memset(buf, 0, sizeof(buf));
 
-	if (IS_GET() && IS_SET(env_vars.query_string)) {
+	if (IS_SET(env_vars.query_string)) {
 		snprintf(buf, BUF_SIZE, "%s", env_vars.query_string);
 		process_vars(buf);
-	} else if (IS_POST()) {
-		if (strstr(env_vars.content_type, "x-www-form-urlencoded")) {
-			fread(buf, sizeof(buf) - 1, 1, stdin);
-			process_vars(buf);
-		} else if (strstr(env_vars.content_type,
-						"multipart/form-data")) {
-			process_mime();
-			add_multipart_avar(NULL, NULL, 1);
-		}
+	}
+	if (strstr(env_vars.content_type, "x-www-form-urlencoded")) {
+		fread(buf, sizeof(buf) - 1, 1, stdin);
+		process_vars(buf);
+	} else if (strstr(env_vars.content_type, "multipart/form-data")) {
+		process_mime();
+		add_multipart_avar(NULL, NULL, 1);
 	}
 }
 
