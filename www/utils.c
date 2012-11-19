@@ -70,7 +70,7 @@ static char *url_decode(const char *str)
 	buf = malloc(strlen(str) + 1);
 	if (!buf) {
 		perror("malloc");
-		exit(EXIT_FAILURE);
+		_exit(EXIT_FAILURE);
 	}
 	pbuf = buf;
 
