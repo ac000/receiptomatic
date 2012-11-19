@@ -70,7 +70,7 @@ MYSQL *db_conn(void)
  * This function will either return a result set or NULL. Note that some
  * queries don't return result sets by design.
  */
-MYSQL_RES *__sql_query(const char *func, char *fmt, ...)
+MYSQL_RES *__sql_query(const char *func, const char *fmt, ...)
 {
 	va_list args;
 	char sql[SQL_MAX];

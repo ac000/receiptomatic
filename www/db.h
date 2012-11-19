@@ -49,6 +49,6 @@
 extern MYSQL *conn;
 
 MYSQL *db_conn(void);
-MYSQL_RES *__sql_query(const char *func, char *fmt, ...);
+MYSQL_RES *__sql_query(const char *func, const char *fmt, ...);
 
 #endif /* _DB_H_ */
