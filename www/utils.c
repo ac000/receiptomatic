@@ -358,7 +358,6 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 	GMimeStream *stream;
 	GMimeDataWrapper *content;
 	GMimeDisposition *disposition;
-	char buf[BUF_SIZE];
 
 	content_type = g_mime_object_get_content_type(part);
 	disposition = g_mime_disposition_new(g_mime_object_get_header(part,
@@ -393,15 +392,17 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 
 		u_files = g_list_append(u_files, file_info);
 	} else {
+		char *buf;
 		ssize_t bytes;
 
 		stream = g_mime_stream_mem_new();
 		content = g_mime_part_get_content_object((GMimePart *)part);
 		bytes = g_mime_data_wrapper_write_to_stream(content, stream);
 
+		buf = malloc(bytes + 1);
 		g_mime_stream_seek(stream, 0, GMIME_STREAM_SEEK_SET);
-		memset(buf, 0, sizeof(buf));
-		bytes = g_mime_stream_read(stream, buf, BUF_SIZE);
+		g_mime_stream_read(stream, buf, BUF_SIZE);
+		buf[bytes] = '\0';
 
 		if (strstr(g_mime_disposition_get_parameter(
 						disposition, "name"), "["))
@@ -410,6 +411,7 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 		else
 			add_multipart_var(g_mime_disposition_get_parameter(
 						disposition, "name"), buf);
+		free(buf);
 	}
 
 	g_mime_disposition_destroy(disposition);
