@@ -122,6 +122,9 @@ void free_avars(void)
 	unsigned int i;
 	unsigned int size;
 
+	if (!avars)
+		return;
+
 	size = g_list_length(avars);
 	for (i = 0; i < size; i++) {
 		query_vars = g_list_nth_data(avars, i);
