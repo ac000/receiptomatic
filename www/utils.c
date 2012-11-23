@@ -134,6 +134,19 @@ void free_avars(void)
 }
 
 /*
+ * Given a size in bytes, round up to the next multiple of BUF_SIZE
+ *
+ * e.g With a BUF_SIZE of 4096, 6363 would return 8192
+ */
+static off_t round_bytes_up(off_t size)
+{
+	if (size < BUF_SIZE)
+		size += BUF_SIZE;
+
+	return size + BUF_SIZE - size % BUF_SIZE;
+}
+
+/*
  * Free's the given GHashTable
  */
 void free_vars(GHashTable *vars)
@@ -425,47 +438,63 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 /*
  * Handle POST multipart/form-data
  *
- * This reads the data and saves it to a temporary file adding a
- * "Content-Type: " header that's needed by gmime.
- *
  * process_mime_part() is called for each part of the data.
  */
 static void process_mime(void)
 {
-	char buf[BUF_SIZE];
-	char temp_name[] = "/tmp/u_files/pgv-XXXXXX";
-	FILE *ofp;
-	int fd;
+	char *data;
+	off_t size;
+	off_t content_length = atoll(getenv("CONTENT_LENGTH"));
 	GMimeStream *stream;
 	GMimeParser *parser;
 	GMimeObject *parts;
 
-	g_mime_init(0);
-
-	fd = mkstemp(temp_name);
-	ofp = fdopen(fd, "w");
-	fprintf(ofp, "Content-Type: %s\r\n", env_vars.content_type);
+	/*
+	 * Calculate how much storage space to use for the POST data.
+	 *
+	 * We need space for:
+	 *
+	 *	- The POST data itself
+	 *	- Plus an additional BUF_SIZE due to the fread reading in
+	 *	  BUF_SIZE bytes at a time. Without this we can end up in
+	 *	  a situation like:
+	 *
+	 *		CONTENT_LENGTH: 6363
+	 *		Allocating 8192 bytes for POST data
+	 *		Storage space needed: 8293
+	 *
+	 *	With the additional BUF_SIZE we get
+	 *
+	 *		CONTENT_LENGTH: 6375
+	 *		Allocating 12288 bytes for POST data
+	 *		Storage space needed: 8292
+	 */
+	size = round_bytes_up(content_length + BUF_SIZE);
+	data = calloc(size, 1);
+	size = 0;
 	while (!feof(stdin)) {
-		memset(buf, 0, BUF_SIZE);
-		fread(buf, BUF_SIZE, 1, stdin);
-		fwrite(buf, BUF_SIZE, 1, ofp);
+		fread(data + size, BUF_SIZE, 1, stdin);
+		size += BUF_SIZE;
 	}
-	fclose(ofp);
 
-	fd = open(temp_name, O_RDONLY);
-	stream = g_mime_stream_fs_new(fd);
+	g_mime_init(0);
+	stream = g_mime_stream_mem_new();
+	/* We need to add the Content-Type header, for gmime */
+	g_mime_stream_printf(stream, "Content-Type: %s\r\n",
+			env_vars.content_type);
+	g_mime_stream_write(stream, data, size);
+	g_mime_stream_seek(stream, 0, GMIME_STREAM_SEEK_SET);
+
 	parser = g_mime_parser_new_with_stream(stream);
 	parts = g_mime_parser_construct_part(parser);
-
 	g_mime_multipart_foreach((GMimeMultipart *)parts,
-				(GMimePartFunc)process_mime_part, NULL);
+			(GMimePartFunc)process_mime_part, NULL);
 
 	g_object_unref(parts);
 	g_object_unref(stream);
 	g_object_unref(parser);
-	close(fd);
-	unlink(temp_name);
 	g_mime_shutdown();
+	free(data);
 }
 
 /*
