@@ -60,8 +60,8 @@ libctemplate
     $ cd libctemplate
     $ git checkout -b otl origin/otl
     $ make
-    $ ln -s libctemplate.so.1.4.0 libctemplate.so
-    $ ln -s libctemplate.so.1.4.0 libctemplate.so.1
+    $ ln -s libctemplate-fcgi.so.1.4.0 libctemplate-fcgi.so
+    $ ln -s libctemplate-fcgi.so.1.4.0 libctemplate-fcgi.so.1
 
 receiptomatic-www
 
