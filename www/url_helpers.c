@@ -384,50 +384,6 @@ void set_user_session(void)
 }
 
 /*
- * Generate a session_id used to identify a users session.
- * It generates a SHA-256 from random data.
- */
-char *create_session_id(void)
-{
-	int fd;
-	int i;
-	int hbs;
-	ssize_t bytes_read;
-	char buf[1024];
-	char shash[65];
-	unsigned char *hash;
-	char ht[3];
-	MHASH td;
-
-	fd = open("/dev/urandom", O_RDONLY);
-	bytes_read = read(fd, buf, 1024);
-	close(fd);
-	/*
-	 * If we couldn't read the required amount, something is
-	 * seriously wrong. Log it and exit.
-	 */
-	if (bytes_read < 1024) {
-		d_fprintf(error_log, "Couldn't read sufficient data from "
-							"/dev/urandom\n");
-		_exit(EXIT_FAILURE);
-	}
-
-	td = mhash_init(MHASH_SHA256);
-	mhash(td, &buf, 1024);
-	hash = mhash_end(td);
-
-	memset(shash, 0, sizeof(shash));
-	hbs = mhash_get_block_size(MHASH_SHA256);
-	for (i = 0; i < hbs; i++) {
-		sprintf(ht, "%.2x", hash[i]);
-		strncat(shash, ht, 2);
-	}
-	free(hash);
-
-	return strdup(shash);
-}
-
-/*
  * This will create a SHA-256 token for use in forms to help prevent
  * against CSRF attacks.
  */

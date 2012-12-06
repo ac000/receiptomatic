@@ -28,7 +28,6 @@ void free_fields(void);
 void free_env_vars(void);
 void free_user_session(void);
 void set_env_vars(void);
-char *generate_activation_key(const char *email_addr);
 void send_activation_mail(const char *name, const char *address,
 							const char *key);
 char *generate_password_hash(int hash_type, const char *password);

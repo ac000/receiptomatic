@@ -739,40 +739,6 @@ void free_user_session(void)
 }
 
 /*
- * Generate a somewhat hard to guess string to hash for the users
- * activation key. We use the following:
- *
- *	email_addr|getpid()-tv_sec.tv_usec
- */
-char *generate_activation_key(const char *email_addr)
-{
-	unsigned char *hash;
-	char hash_src[384];
-	char shash[65];
-	char ht[3];
-	int hbs;
-	int i;
-	struct timespec tp;
-	MHASH td;
-
-	td = mhash_init(MHASH_SHA256);
-	clock_gettime(CLOCK_REALTIME, &tp);
-	snprintf(hash_src, sizeof(hash_src), "%s|%d-%ld.%ld", email_addr,
-					getpid(), tp.tv_sec, tp.tv_nsec);
-	mhash(td, hash_src, strlen(hash_src));
-	hash = mhash_end(td);
-	memset(shash, 0, sizeof(shash));
-	hbs = mhash_get_block_size(MHASH_SHA256);
-	for (i = 0; i < hbs; i++) {
-		sprintf(ht, "%.2x", hash[i]);
-		strncat(shash, ht, 2);
-	}
-	free(hash);
-
-	return strdup(shash);
-}
-
-/*
  * Send an account activation email to the required user.
  */
 void send_activation_mail(const char *name, const char *address,

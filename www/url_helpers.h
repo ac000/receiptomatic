@@ -17,7 +17,6 @@ bool is_users_receipt(const char *id);
 bool tag_info_allowed(const char *image_id);
 bool image_access_allowed(const char *path);
 void set_user_session(void);
-char *create_session_id(void);
 void add_csrf_token(TMPL_varlist *varlist);
 bool valid_csrf_token(void);
 void display_last_login(TMPL_varlist *varlist);
