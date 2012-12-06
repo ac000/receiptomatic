@@ -916,7 +916,7 @@ void tag_image(void)
  */
 int do_add_user(unsigned char capabilities)
 {
-	char *key;
+	char key[SHA256_LEN + 1];
 	char *email_addr;
 	char *name;
 	int ret = 0;
@@ -933,7 +933,7 @@ int do_add_user(unsigned char capabilities)
 	email_addr = make_mysql_safe_string(get_var(qvars, "email1"));
 	name = make_mysql_safe_string(get_var(qvars, "name"));
 
-	key = generate_activation_key(email_addr);
+	generate_hash(key, SHA256);
 
 	/* We need to be sure a new uid isn't inserted here */
 	sql_query("LOCK TABLES passwd WRITE");
@@ -951,7 +951,6 @@ int do_add_user(unsigned char capabilities)
 
 	send_activation_mail(name, email_addr, key);
 
-	free(key);
 	mysql_free_result(res);
 	free(email_addr);
 	free(name);
