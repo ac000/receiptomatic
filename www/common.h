@@ -30,7 +30,6 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <time.h>
-#include <netdb.h>
 
 #include <glib.h>
 
@@ -55,6 +54,11 @@
 
 #define BUF_SIZE	4096
 #define SQL_MAX		8192
+
+#define TENANT_MAX	64
+#define SID_LEN		64
+#define CSRF_LEN	64
+#define IP_MAX		39
 
 #define REJECTED	0
 #define PENDING		1
@@ -104,7 +108,7 @@
 		if (stream == debug_log && !DEBUG_LEVEL) \
 			break; \
 		struct timespec tp; \
-		char tenant[NI_MAXHOST]; \
+		char tenant[TENANT_MAX + 1]; \
 		get_tenant(env_vars.host, tenant); \
 		clock_gettime(CLOCK_REALTIME, &tp); \
 		fprintf(stream, "%ld.%06ld %d %s %s: " fmt, tp.tv_sec, \
@@ -131,7 +135,7 @@ static inline char *make_mysql_safe_string(const char *string)
  * in a tokyocabinet database table inbetween requests.
  */
 struct user_session {
-	char *tenant;
+	char tenant[TENANT_MAX + 1];
 	unsigned long long sid;
 	unsigned int uid;
 	unsigned char capabilities;
@@ -139,11 +143,11 @@ struct user_session {
 	char *name;
 	time_t login_at;
 	time_t last_seen;
-	char *origin_ip;
+	char origin_ip[IP_MAX + 1];
 	char *client_id;
-	char *session_id;
-	char *csrf_token;
-	unsigned int restrict_ip;
+	char session_id[SID_LEN + 1];
+	char csrf_token[CSRF_LEN + 1];
+	bool restrict_ip;
 	char *user_hdr;
 } user_session;
 struct user_session user_session;

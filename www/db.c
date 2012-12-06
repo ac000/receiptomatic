@@ -9,7 +9,6 @@
 
 #include <stdlib.h>
 #include <stdarg.h>
-#include <netdb.h>
 
 #include "common.h"
 #include "receiptomatic_config.h"
@@ -33,11 +32,11 @@ MYSQL *db_conn(void)
 	MYSQL *ret;
 
 	if (MULTI_TENANT) {
-		char tenant[NI_MAXHOST];
-		char db[NI_MAXHOST + 3] = "rm_";
+		char tenant[TENANT_MAX + 1];
+		char db[sizeof(tenant) + 3] = "rm_";
 
 		get_tenant(env_vars.host, tenant);
-		strncat(db, tenant, NI_MAXHOST);
+		strncat(db, tenant, TENANT_MAX);
 		free(db_name);
 		db_name = strdup(db);
 	}
@@ -81,7 +80,7 @@ MYSQL_RES *__sql_query(const char *func, const char *fmt, ...)
 	va_end(args);
 
 	if (DEBUG_LEVEL) {
-		char tenant[NI_MAXHOST];
+		char tenant[TENANT_MAX + 1];
 		struct timespec tp;
 
 		get_tenant(env_vars.host, tenant);

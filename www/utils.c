@@ -110,7 +110,7 @@ char *get_tenant(const char *host, char *tenant)
 	}
 
 	str = strdupa(host);
-	snprintf(tenant, sizeof(tenant), "%s", strsep(&str, "."));
+	snprintf(tenant, TENANT_MAX + 1, "%s", strsep(&str, "."));
 
 out:
 	return tenant;
@@ -687,13 +687,9 @@ void free_env_vars(void)
  */
 void free_user_session(void)
 {
-	free(user_session.tenant);
 	free(user_session.username);
 	free(user_session.name);
-	free(user_session.origin_ip);
 	free(user_session.client_id);
-	free(user_session.session_id);
-	free(user_session.csrf_token);
 	free(user_session.user_hdr);
 }
 

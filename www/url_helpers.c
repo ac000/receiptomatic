@@ -74,7 +74,7 @@ char *username_to_name(const char *username)
  */
 bool is_logged_in(void)
 {
-	char session_id[65];
+	char session_id[SID_LEN + 1];
 	TCTDB *tdb;
 	TDBQRY *qry;
 	TCLIST *res;
@@ -259,7 +259,7 @@ void set_user_session(void)
 	int rsize;
 	int primary_key_size;
 	char pkbuf[256];
-	char session_id[65];
+	char session_id[SID_LEN + 1];
 	char login_at[21];
 	char last_seen[21];
 	char uid[11];
@@ -294,17 +294,21 @@ void set_user_session(void)
 	tcmapiterinit(cols);
 
 	memset(&user_session, 0, sizeof(user_session));
-	user_session.tenant = strdup(tcmapget2(cols, "tenant"));
+	snprintf(user_session.tenant, sizeof(user_session.tenant), "%s",
+			tcmapget2(cols, "tenant"));
 	user_session.sid = strtoull(tcmapget2(cols, "sid"), NULL, 10);
 	user_session.uid = atoi(tcmapget2(cols, "uid"));
 	user_session.username = strdup(tcmapget2(cols, "username"));
 	user_session.name = strdup(tcmapget2(cols, "name"));
 	user_session.login_at = atol(tcmapget2(cols, "login_at"));
 	user_session.last_seen = time(NULL);
-	user_session.origin_ip = strdup(tcmapget2(cols, "origin_ip"));
+	snprintf(user_session.origin_ip, sizeof(user_session.origin_ip), "%s",
+			tcmapget2(cols, "origin_ip"));
 	user_session.client_id = strdup(tcmapget2(cols, "client_id"));
-	user_session.session_id = strdup(tcmapget2(cols, "session_id"));
-	user_session.csrf_token = strdup(tcmapget2(cols, "csrf_token"));
+	snprintf(user_session.session_id, sizeof(user_session.session_id),
+			"%s", tcmapget2(cols, "session_id"));
+	snprintf(user_session.csrf_token, sizeof(user_session.csrf_token),
+			"%s", tcmapget2(cols, "csrf_token"));
 	user_session.restrict_ip = atoi(tcmapget2(cols, "restrict_ip"));
 	user_session.capabilities = atoi(tcmapget2(cols, "capabilities"));
 
@@ -560,7 +564,7 @@ void create_session(unsigned long long sid)
 	char pkbuf[256];
 	char timestamp[21];
 	char ssid[21];
-	char tenant[NI_MAXHOST];
+	char tenant[TENANT_MAX + 1];
 	char *username;
 	int primary_key_size;
 	MYSQL_RES *res;
