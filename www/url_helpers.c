@@ -431,7 +431,7 @@ char *create_session_id(void)
  * This will create a SHA-256 token for use in forms to help prevent
  * against CSRF attacks.
  */
-char *generate_csrf_token(void)
+static void generate_csrf_token(char *csrf_token)
 {
 	TCTDB *tdb;
 	TDBQRY *qry;
@@ -447,7 +447,6 @@ char *generate_csrf_token(void)
 	char restrict_ip[2];
 	char capabilities[4];
 	const char *rbuf;
-	char *csrf_token = create_session_id();
 
 	/*
 	 * We want to set a new CSRF token in the users session.
@@ -477,6 +476,7 @@ char *generate_csrf_token(void)
 						user_session.restrict_ip);
 	snprintf(capabilities, sizeof(capabilities), "%d",
 						user_session.capabilities);
+	generate_hash(csrf_token, SHA256);
 	cols = tcmapnew3("tenant", user_session.tenant,
 			"sid", sid,
 			"uid", uid,
@@ -497,8 +497,6 @@ char *generate_csrf_token(void)
 
 	tctdbclose(tdb);
 	tctdbdel(tdb);
-
-	return csrf_token;
 }
 
 /*
@@ -506,12 +504,11 @@ char *generate_csrf_token(void)
  */
 void add_csrf_token(TMPL_varlist *varlist)
 {
-	char *csrf_token;
+	char csrf_token[CSRF_LEN + 1];
 
-	csrf_token = generate_csrf_token();
+	generate_csrf_token(csrf_token);
 	varlist = TMPL_add_var(varlist, "csrf_token", csrf_token,
 							(char *)NULL);
-	free(csrf_token);
 }
 
 /*
