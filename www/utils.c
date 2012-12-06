@@ -484,6 +484,7 @@ static void process_mime(void)
 	g_mime_stream_printf(stream, "Content-Type: %s\r\n",
 			env_vars.content_type);
 	g_mime_stream_write(stream, data, size);
+	free(data);
 	g_mime_stream_seek(stream, 0, GMIME_STREAM_SEEK_SET);
 
 	parser = g_mime_parser_new_with_stream(stream);
@@ -495,7 +496,6 @@ static void process_mime(void)
 	g_object_unref(stream);
 	g_object_unref(parser);
 	g_mime_shutdown();
-	free(data);
 }
 
 /*
