@@ -16,6 +16,7 @@
 #define IS_LAST_PAGE(page, nr_pages)	(((page) == (nr_pages)) ? 1 : 0)
 
 char *get_tenant(const char *host, char *tenant);
+char *generate_hash(char *hash, int type);
 void free_avars(void);
 void free_vars(GHashTable *vars);
 void free_u_files(void);

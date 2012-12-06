@@ -59,6 +59,7 @@
 #define SID_LEN		64
 #define CSRF_LEN	64
 #define IP_MAX		39
+#define SHA256_LEN	64
 
 #define REJECTED	0
 #define PENDING		1

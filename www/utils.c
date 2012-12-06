@@ -117,6 +117,51 @@ out:
 }
 
 /*
+ * Generates a hash (currently SHA-256). using /dev/urandom as a
+ * source of entropy. The type argument should currently be passed
+ * in as SHA256, though it's currently unused.
+ */
+char *generate_hash(char *hash, int type)
+{
+	int fd;
+	int i;
+	int hbs;
+	ssize_t bytes_read;
+	char buf[1024];
+	char ht[3];
+	unsigned char *xhash;
+	MHASH td;
+
+	fd = open("/dev/urandom", O_RDONLY);
+	bytes_read = read(fd, &buf, sizeof(buf));
+	close(fd);
+
+	if (bytes_read < sizeof(buf)) {
+		/*
+		 * If we couldn't read the required amount, something is
+		 * seriously wrong. Log it and exit.
+		 */
+		d_fprintf(error_log, "Couldn't read sufficient data from "
+				"/dev/urandom\n");
+		_exit(EXIT_FAILURE);
+	}
+
+	td = mhash_init(MHASH_SHA256);
+	mhash(td, &buf, sizeof(buf));
+	xhash = mhash_end(td);
+
+	hbs = mhash_get_block_size(MHASH_SHA256);
+	memset(hash, 0, SHA256_LEN + 1);
+	for (i = 0; i < hbs; i++) {
+		sprintf(ht, "%.2x", xhash[i]);
+		strncat(hash, ht, 2);
+	}
+	free(xhash);
+
+	return hash;
+}
+
+/*
  * Free's the avars GList
  */
 void free_avars(void)
