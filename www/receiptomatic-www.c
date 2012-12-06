@@ -437,14 +437,12 @@ int main(int argc, char **argv)
 	/* Used by set_proc_title() */
 	rargv = argv;
 
+	ret = get_config(argv[1]);
+	if (ret == -1)
+		exit(EXIT_FAILURE);
+
 	/* Set the log paths and open them */
 	init_logs();
-
-	ret = get_config(argv[1]);
-	if (ret == -1) {
-		d_fprintf(error_log, "config: could not open %s\n", argv[1]);
-		goto close_logs;
-	}
 
 	ret = mysql_library_init(0, NULL, NULL);
 	if (ret) {
