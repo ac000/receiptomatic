@@ -10,7 +10,7 @@
 #ifndef _URL_HELPERS_H_
 #define _URL_HELPERS_H_
 
-char *username_to_name(char *username);
+char *username_to_name(const char *username);
 bool is_logged_in(void);
 int check_auth(void);
 bool is_users_receipt(const char *id);

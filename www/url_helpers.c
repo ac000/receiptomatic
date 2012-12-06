@@ -35,7 +35,7 @@
 /*
  * Given a username return the real name, which should be free'd.
  */
-char *username_to_name(char *username)
+char *username_to_name(const char *username)
 {
 	char *who;
 	char *name;
