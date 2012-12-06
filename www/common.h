@@ -54,6 +54,7 @@
 
 #define BUF_SIZE	4096
 #define SQL_MAX		8192
+#define ENTROPY_SIZE	   8
 
 #define TENANT_MAX	64
 #define SID_LEN		64

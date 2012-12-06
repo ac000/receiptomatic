@@ -127,7 +127,7 @@ char *generate_hash(char *hash, int type)
 	int i;
 	int hbs;
 	ssize_t bytes_read;
-	char buf[1024];
+	char buf[ENTROPY_SIZE];
 	char ht[3];
 	unsigned char *xhash;
 	MHASH td;
