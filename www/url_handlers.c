@@ -917,7 +917,7 @@ out:
 static void forgotten_password(void)
 {
 	char *email_addr;
-	char *key;
+	char key[SHA256_LEN + 1];
 	time_t tm;
 	MYSQL_RES *res;
 	TMPL_varlist *vl = NULL;
@@ -935,13 +935,12 @@ static void forgotten_password(void)
 		goto mysql_cleanup;
 	}
 
-	key = generate_activation_key(email_addr);
+	generate_hash(key, SHA256);
 	tm = time(NULL);
 	sql_query("INSERT INTO activations VALUES ('%s', '%s', %ld)",
 			email_addr, key, tm + KEY_EXP);
 
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
-	free(key);
 	vl = add_html_var(vl, "sent", "yes");
 
 mysql_cleanup:
