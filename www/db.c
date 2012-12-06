@@ -74,19 +74,23 @@ MYSQL_RES *__sql_query(const char *func, const char *fmt, ...)
 {
 	va_list args;
 	char sql[SQL_MAX];
-	char tenant[NI_MAXHOST];
-	struct timespec tp;
 	int len;
 
 	va_start(args, fmt);
 	len = vsnprintf(sql, sizeof(sql), fmt, args);
 	va_end(args);
 
-	get_tenant(env_vars.host, tenant);
-	clock_gettime(CLOCK_REALTIME, &tp);
-	fprintf(sql_log, "%ld.%06ld %d %s %s: %s\n", tp.tv_sec,
-			tp.tv_nsec / NS_USEC, getpid(), tenant, func, sql);
-	fflush(sql_log);
+	if (DEBUG_LEVEL) {
+		char tenant[NI_MAXHOST];
+		struct timespec tp;
+
+		get_tenant(env_vars.host, tenant);
+		clock_gettime(CLOCK_REALTIME, &tp);
+		fprintf(sql_log, "%ld.%06ld %d %s %s: %s\n", tp.tv_sec,
+				tp.tv_nsec / NS_USEC, getpid(), tenant, func,
+				sql);
+		fflush(sql_log);
+	}
 
 	mysql_real_query(conn, sql, len);
 	return mysql_store_result(conn);
