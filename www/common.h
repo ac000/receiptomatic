@@ -186,8 +186,8 @@ struct env_vars env_vars;
 
 /* Structure to hold information about uploaded files via POST */
 struct file_info {
-	char *orig_file_name;
-	char *temp_file_name;
+	char orig_file_name[NAME_MAX + 1];
+	char temp_file_name[PATH_MAX];
 	char *name;
 	char *mime_type;
 } file_info;

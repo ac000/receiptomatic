@@ -174,8 +174,6 @@ void free_u_files(void)
 	for (i = 0; i < size; i++) {
 		file_info = g_list_nth_data(u_files, i);
 		unlink(file_info->temp_file_name);
-		free(file_info->orig_file_name);
-		free(file_info->temp_file_name);
 		free(file_info->name);
 		free(file_info->mime_type);
 	}
@@ -396,10 +394,11 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 
 		file_info = malloc(sizeof(struct file_info));
 		memset(file_info, 0, sizeof(struct file_info));
-		file_info->orig_file_name = strdup(
-					g_mime_disposition_get_parameter(
+		snprintf(file_info->orig_file_name,
+				sizeof(file_info->orig_file_name), "%s",
+				g_mime_disposition_get_parameter(
 					disposition, "filename"));
-		file_info->temp_file_name = strdup(temp_name);
+		strcpy(file_info->temp_file_name, temp_name);
 		file_info->name = strdup(g_mime_disposition_get_parameter(
 					disposition, "name"));
 		file_info->mime_type = strdup(g_mime_content_type_to_string(
