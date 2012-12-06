@@ -170,6 +170,7 @@ void free_u_files(void)
 	size = g_list_length(u_files);
 	for (i = 0; i < size; i++) {
 		file_info = g_list_nth_data(u_files, i);
+		unlink(file_info->temp_file_name);
 		free(file_info->orig_file_name);
 		free(file_info->temp_file_name);
 		free(file_info->name);
