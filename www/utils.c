@@ -608,7 +608,7 @@ GHashTable *get_dbrow(MYSQL_RES *res)
  * Given an index and a key, return the coresponding value from
  * the hash table contained within the avars GList.
  */
-char *get_avar(int index, const char *key)
+const char *get_avar(int index, const char *key)
 {
 	char *val;
 	GHashTable *vars;
@@ -622,7 +622,7 @@ char *get_avar(int index, const char *key)
 /*
  * Given a key name, return its value from the given hash table.
  */
-char *get_var(GHashTable *vars, const char *key)
+const char *get_var(GHashTable *vars, const char *key)
 {
 	char *val;
 
