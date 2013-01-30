@@ -1258,9 +1258,10 @@ static void process_receipt_approval(void)
 
 	list_size = g_list_length(avars);
 	for (i = 0; i < list_size; i++) {
-		char *action = get_avar(i, "approved_status");
+		const char *action = get_avar(i, "approved_status");
 		char *reason = "";
 		char *image_id;
+		bool skip = false;
 		MYSQL_RES *res;
 
 		image_id = make_mysql_safe_string(get_avar(i, "id"));
@@ -1275,7 +1276,7 @@ static void process_receipt_approval(void)
 					"'%s' AND uid = %u",
 					image_id, user_session.uid);
 			if (mysql_num_rows(res) > 0)
-				action[0] = 's';
+				skip = true;
 			mysql_free_result(res);
 		}
 		/* Can user approve card transactions? */
@@ -1284,7 +1285,7 @@ static void process_receipt_approval(void)
 					"'%s' AND payment_method = 'card'",
 					image_id);
 			if (mysql_num_rows(res) > 0)
-				action[0] = 's';
+				skip = true;
 			mysql_free_result(res);
 		}
 		/* Can user approve cash transactions? */
@@ -1293,7 +1294,7 @@ static void process_receipt_approval(void)
 					"'%s' AND payment_method = 'cash'",
 					image_id);
 			if (mysql_num_rows(res) > 0)
-				action[0] = 's';
+				skip = true;
 			mysql_free_result(res);
 		}
 		/* Can user approve cheque transactions? */
@@ -1302,7 +1303,7 @@ static void process_receipt_approval(void)
 					"'%s' AND payment_method = 'cheque'",
 					image_id);
 			if (mysql_num_rows(res) > 0)
-				action[0] = 's';
+				skip = true;
 			mysql_free_result(res);
 		}
 
@@ -1310,16 +1311,18 @@ static void process_receipt_approval(void)
 		res = sql_query("SELECT status from reviewed WHERE id = '%s'",
 				image_id);
 		if (mysql_num_rows(res) > 0)
-			action[0] = 's'; /* This receipt is already done */
+			skip = true; /* This receipt is already done */
 		mysql_free_result(res);
 
 		/* Make sure it is a valid tagged-receipt */
 		res = sql_query("SELECT id FROM tags WHERE id = '%s'",
 				image_id);
 		if (mysql_num_rows(res) == 0)
-			action[0] = 's'; /* Not a valid receipt */
+			skip = true; /* Not a valid receipt */
 		mysql_free_result(res);
 
+		if (skip)
+			goto cont;
 		if (action[0] == 'a') { /* approved */
 			sql_query("INSERT INTO reviewed VALUES ("
 					"'%s', %u, '%s', %ld, %d, '%s')",
@@ -1338,6 +1341,7 @@ static void process_receipt_approval(void)
 			sql_query("UPDATE images SET approved = %d WHERE id "
 					"= '%s'", REJECTED, image_id);
 		}
+cont:
 		free(image_id);
 		if (IS_SET(reason))
 			free(reason);
