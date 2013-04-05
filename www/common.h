@@ -1,7 +1,7 @@
 /*
  * common.h
  *
- * Copyright (C) 2011-2012	OpenTech Labs
+ * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@opentechlabs.co.uk>
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -93,7 +93,7 @@
 
 /* Unbreak __func__ by my_global.h */
 #ifdef __func__
-#undef __func__
+	#undef __func__
 #endif
 
 /*
