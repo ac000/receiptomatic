@@ -7,9 +7,6 @@
  * See COPYING
  */
 
-/* FastCGI stdio wrappers */
-#include <fcgi_stdio.h>
-
 #include <stdio.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -56,7 +53,7 @@ static void login(void)
 		if (ret == 0) {
 			sid = log_login();
 			create_session(sid);
-			printf("Location: /receipts/\r\n\r\n");
+			fcgx_p("Location: /receipts/\r\n\r\n");
 			return; /* Successful login */
 		}
 	}
@@ -103,7 +100,7 @@ static void logout(void)
 	tctdbdel(tdb);
 
 	/* Immediately expire the session cookies */
-	printf("Set-Cookie: session_id=deleted; "
+	fcgx_p("Set-Cookie: session_id=deleted; "
 				"expires=Thu, 01 Jan 1970 00:00:01 GMT; "
 				"path=/; httponly\r\n");
 	send_template("templates/logout.tmpl", NULL, NULL);
@@ -202,7 +199,7 @@ out1:
 	TMPL_free_varlist(vl);
 out2:
 	if (!headers_sent)
-		printf("Location: /receipts/\r\n\r\n");
+		fcgx_p("Location: /receipts/\r\n\r\n");
 }
 
 /*
@@ -230,7 +227,7 @@ static void get_image(void)
 
 	/* Don't let users access other user images */
 	if (!image_access_allowed(image_path)) {
-		printf("Status: 401 Unauthorized\r\n\r\n");
+		fcgx_p("Status: 401 Unauthorized\r\n\r\n");
 		d_fprintf(access_log, "Access denied to %s for %s\n",
 							env_vars.request_uri,
 							user_session.username);
@@ -248,22 +245,22 @@ static void get_image(void)
 	magic_load(cookie, "/usr/share/file/magic");
 	mime_type = magic_file(cookie, image_path);
 
-	printf("Cache-Control: private\r\n");
-	printf("Content-Type: %s\r\n", mime_type);
-	printf("Content-Length: %ld\r\n", sb.st_size);
+	fcgx_p("Cache-Control: private\r\n");
+	fcgx_p("Content-Type: %s\r\n", mime_type);
+	fcgx_p("Content-Length: %ld\r\n", sb.st_size);
 	if (!strstr(image_path, "medium")) {
 		/* We're going for the full size image for download */
-		printf("Content-Transfer-Encoding: binary\r\n");
-		printf("Content-Disposition: attachment; filename = %s\r\n",
+		fcgx_p("Content-Transfer-Encoding: binary\r\n");
+		fcgx_p("Content-Disposition: attachment; filename = %s\r\n",
 							basename(image_path));
 	}
-	printf("\r\n");
+	fcgx_p("\r\n");
 	d_fprintf(debug_log, "Sending image: %s\n", env_vars.request_uri);
 
 	do {
 		bytes_read = read(fd, &buf, BUF_SIZE);
-		fwrite(buf, bytes_read, 1, stdout);
-	} while (bytes_read > 0);
+		fcgx_ps(buf, bytes_read);
+	} while (bytes_read == BUF_SIZE);
 
 	magic_close(cookie);
 	close(fd);
@@ -474,7 +471,7 @@ static void admin_add_user(void)
 			 */
 			vl = add_html_var(vl, "dup_user", "yes");
 		} else {
-			printf("Location: /admin/add_user/\r\n\r\n");
+			fcgx_p("Location: /admin/add_user/\r\n\r\n");
 			goto out2;
 		}
 	}
@@ -1133,7 +1130,7 @@ static void prefs_edit_user(void)
 		if (!form_err) {
 			do_edit_user();
 			/* After the update we want to re-GET */
-			printf("Location: /prefs/edit_user/?updated=yes"
+			fcgx_p("Location: /prefs/edit_user/?updated=yes"
 								"\r\n\r\n");
 			return;
 		}
@@ -1349,7 +1346,7 @@ cont:
 	sql_query("UNLOCK TABLES");
 	free(username);
 
-	printf("Location: /approve_receipts/\r\n\r\n");
+	fcgx_p("Location: /approve_receipts/\r\n\r\n");
 }
 
 /*
@@ -2133,10 +2130,10 @@ static void process_receipt(void)
 	if (!tag_error) {
 		tag_image();
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
-			printf("Location: /receipt_info/?image_id=%s\r\n\r\n",
+			fcgx_p("Location: /receipt_info/?image_id=%s\r\n\r\n",
 						get_var(qvars, "image_id"));
 		else
-			printf("Location: /receipts/\r\n\r\n");
+			fcgx_p("Location: /receipts/\r\n\r\n");
 	} else {
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
 			vl = add_html_var(vl, "from", "receipt_info");
@@ -2280,21 +2277,19 @@ out:
  */
 static void env(void)
 {
-	extern char **environ;
-
-	printf("Content-Type: text/html\r\n\r\n");
-	printf("<html>\n");
-	printf("<head>\n");
-	printf("<link href = \"/static/css/main.css\" rel = \"stylesheet\" "
+	fcgx_p("Content-Type: text/html\r\n\r\n");
+	fcgx_p("<html>\n");
+	fcgx_p("<head>\n");
+	fcgx_p("<link href = \"/static/css/main.css\" rel = \"stylesheet\" "
 						"type = \"text/css\" />\n");
-	printf("</head>\n");
-	printf("<body>\n");
+	fcgx_p("</head>\n");
+	fcgx_p("<body>\n");
 
-	for ( ; *environ != NULL; environ++)
-		printf("%s<br />\n", *environ);
+	for ( ; *fcgx_envp != NULL; fcgx_envp++)
+		fcgx_p("%s<br />\n", *fcgx_envp);
 
-	printf("</body>\n");
-	printf("</html>\n");
+	fcgx_p("</body>\n");
+	fcgx_p("</html>\n");
 }
 
 /*
@@ -2348,7 +2343,7 @@ void handle_request(void)
 
 	logged_in = is_logged_in();
 	if (!logged_in) {
-		printf("Location: /login/\r\n\r\n");
+		fcgx_p("Location: /login/\r\n\r\n");
 		goto out2;
 	}
 
@@ -2478,7 +2473,7 @@ void handle_request(void)
 	}
 
 	/* Default location */
-	printf("Location: /login/\r\n\r\n");
+	fcgx_p("Location: /login/\r\n\r\n");
 
 out:
 	free_user_session();

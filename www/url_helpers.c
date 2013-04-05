@@ -1,14 +1,11 @@
 /*
  * url_helpers.c
  *
- * Copyright (C) 2011-2012	OpenTech Labs
+ * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@opentechlabs.co.uk>
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
  */
-
-/* FastCGI stdio wrappers */
-#include <fcgi_stdio.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -563,7 +560,7 @@ void create_session(unsigned long long sid)
 	tctdbclose(tdb);
 	tctdbdel(tdb);
 
-	printf("Set-Cookie: session_id=%s; path=/; httponly\r\n", session_id);
+	fcgx_p("Set-Cookie: session_id=%s; path=/; httponly\r\n", session_id);
 
 	mysql_free_result(res);
 	free_vars(db_row);
@@ -1241,9 +1238,9 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 void send_template(const char *template, TMPL_varlist *varlist,
 						TMPL_fmtlist *fmtlist)
 {
-	printf("Cache-Control: private\r\n");
-	printf("Content-Type: text/html\r\n\r\n");
-	TMPL_write(template, NULL, fmtlist, varlist, stdout, error_log);
+	fcgx_p("Cache-Control: private\r\n");
+	fcgx_p("Content-Type: text/html\r\n\r\n");
+	TMPL_write(template, NULL, fmtlist, varlist, fcgx_out, error_log);
 	fflush(error_log);
 }
 

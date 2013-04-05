@@ -1,14 +1,11 @@
 /*
  * audit.c - Auditing subsystem
  *
- * Copyright (C) 2011-2012	OpenTech Labs
+ * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@opentechlabs.co.uk>
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
  */
-
-/* FastCGI stdio wrappers */
-#include <fcgi_stdio.h>
 
 #include <stdio.h>
 #include <stdlib.h>

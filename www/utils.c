@@ -1,14 +1,11 @@
 /*
  * utils.c
  *
- * Copyright (C) 2011-2012	OpenTech Labs
+ * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@opentechlabs.co.uk>
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
  */
-
-/* FastCGI stdio wrappers */
-#include <fcgi_stdio.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,6 +15,8 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include <fcgiapp.h>
 
 #include <glib.h>
 
@@ -179,19 +178,6 @@ void free_avars(void)
 		g_hash_table_destroy(query_vars);
 	}
 	g_list_free(avars);
-}
-
-/*
- * Given a size in bytes, round up to the next multiple of BUF_SIZE
- *
- * e.g With a BUF_SIZE of 4096, 6363 would return 8192
- */
-static off_t round_bytes_up(off_t size)
-{
-	if (size < BUF_SIZE)
-		size += BUF_SIZE;
-
-	return size + BUF_SIZE - size % BUF_SIZE;
 }
 
 /*
@@ -492,39 +478,21 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 static void process_mime(void)
 {
 	char *data;
-	off_t size;
-	off_t content_length = atoll(getenv("CONTENT_LENGTH"));
+	off_t size = 0;
+	off_t content_length = env_vars.content_length;
+	int bytes_read;
 	GMimeStream *stream;
 	GMimeParser *parser;
 	GMimeObject *parts;
 
-	/*
-	 * Calculate how much storage space to use for the POST data.
-	 *
-	 * We need space for:
-	 *
-	 *	- The POST data itself
-	 *	- Plus an additional BUF_SIZE due to the fread reading in
-	 *	  BUF_SIZE bytes at a time. Without this we can end up in
-	 *	  a situation like:
-	 *
-	 *		CONTENT_LENGTH: 6363
-	 *		Allocating 8192 bytes for POST data
-	 *		Storage space needed: 8293
-	 *
-	 *	With the additional BUF_SIZE we get
-	 *
-	 *		CONTENT_LENGTH: 6375
-	 *		Allocating 12288 bytes for POST data
-	 *		Storage space needed: 8292
-	 */
-	size = round_bytes_up(content_length + BUF_SIZE);
-	data = calloc(size, 1);
-	size = 0;
-	while (!feof(stdin)) {
-		fread(data + size, BUF_SIZE, 1, stdin);
-		size += BUF_SIZE;
-	}
+	if (!content_length)
+		return;
+
+	data = calloc(content_length, 1);
+	do {
+		bytes_read = fcgx_gs(data + size, BUF_SIZE);
+		size += bytes_read;
+	} while (bytes_read == BUF_SIZE);
 
 	g_mime_init(0);
 	stream = g_mime_stream_mem_new();
@@ -567,7 +535,7 @@ void set_vars(void)
 		process_vars(buf);
 	}
 	if (strstr(env_vars.content_type, "x-www-form-urlencoded")) {
-		fread(buf, sizeof(buf) - 1, 1, stdin);
+		fcgx_gs(buf, sizeof(buf) - 1);
 		process_vars(buf);
 	} else if (strstr(env_vars.content_type, "multipart/form-data")) {
 		process_mime();
@@ -641,28 +609,34 @@ const char *get_var(GHashTable *vars, const char *key)
  */
 void set_env_vars(void)
 {
-	if (getenv("REQUEST_URI"))
-		env_vars.request_uri = strdup(getenv("REQUEST_URI"));
+	if (fcgx_param("REQUEST_URI"))
+		env_vars.request_uri = strdup(fcgx_param("REQUEST_URI"));
 	else
 		env_vars.request_uri = NULL;
 
-	if (getenv("REQUEST_METHOD"))
-		env_vars.request_method = strdup(getenv("REQUEST_METHOD"));
+	if (fcgx_param("REQUEST_METHOD"))
+		env_vars.request_method = strdup(fcgx_param("REQUEST_METHOD"));
 	else
 		env_vars.request_method = NULL;
 
-	if (getenv("CONTENT_TYPE"))
-		env_vars.content_type = strdup(getenv("CONTENT_TYPE"));
+	if (fcgx_param("CONTENT_TYPE"))
+		env_vars.content_type = strdup(fcgx_param("CONTENT_TYPE"));
 	else
 		env_vars.content_type = NULL;
 
-	if (getenv("HTTP_COOKIE"))
-		env_vars.http_cookie = strdup(getenv("HTTP_COOKIE"));
+	if (fcgx_param("CONTENT_LENGTH"))
+		env_vars.content_length = atoll(fcgx_param("CONTENT_LENGTH"));
+	else
+		env_vars.content_length = 0;
+
+	if (fcgx_param("HTTP_COOKIE"))
+		env_vars.http_cookie = strdup(fcgx_param("HTTP_COOKIE"));
 	else
 		env_vars.http_cookie = NULL;
 
-	if (getenv("HTTP_USER_AGENT"))
-		env_vars.http_user_agent = strdup(getenv("HTTP_USER_AGENT"));
+	if (fcgx_param("HTTP_USER_AGENT"))
+		env_vars.http_user_agent = strdup(fcgx_param(
+					"HTTP_USER_AGENT"));
 	else
 		/*
 		 * In case it's (null), we still need at least an empty
@@ -670,21 +644,22 @@ void set_env_vars(void)
 		 */
 		env_vars.http_user_agent = strdup("");
 
-	if (getenv("HTTP_X_FORWARDED_FOR") &&
-					IS_SET(getenv("HTTP_X_FORWARDED_FOR")))
-		env_vars.remote_addr = strdup(getenv("HTTP_X_FORWARDED_FOR"));
+	if (fcgx_param("HTTP_X_FORWARDED_FOR") &&
+	    IS_SET(fcgx_param("HTTP_X_FORWARDED_FOR")))
+		env_vars.remote_addr = strdup(fcgx_param(
+					"HTTP_X_FORWARDED_FOR"));
 	else
-		env_vars.remote_addr = strdup(getenv("REMOTE_ADDR"));
+		env_vars.remote_addr = strdup(fcgx_param("REMOTE_ADDR"));
 
-	if (getenv("HTTP_X_FORWARDED_HOST"))
-		env_vars.host = strdup(getenv("HTTP_X_FORWARDED_HOST"));
-	else if (getenv("HTTP_HOST"))
-		env_vars.host = strdup(getenv("HTTP_HOST"));
+	if (fcgx_param("HTTP_X_FORWARDED_HOST"))
+		env_vars.host = strdup(fcgx_param("HTTP_X_FORWARDED_HOST"));
+	else if (fcgx_param("HTTP_HOST"))
+		env_vars.host = strdup(fcgx_param("HTTP_HOST"));
 	else
 		env_vars.host = strdup("");
 
-	if (getenv("QUERY_STRING"))
-		env_vars.query_string = strdup(getenv("QUERY_STRING"));
+	if (fcgx_param("QUERY_STRING"))
+		env_vars.query_string = strdup(fcgx_param("QUERY_STRING"));
 	else
 		env_vars.query_string = NULL;
 }
@@ -937,30 +912,30 @@ TMPL_varlist *add_html_var(TMPL_varlist *varlist, const char *name,
  * I'm taking the, 'Be generous in what you accept, but strict in
  * what you send.', philosophy.
  */
-void de_xss(const char *value, FILE *out)
+void de_xss(const char *value, FCGX_Stream *out)
 {
 	for (; *value != 0; value++) {
 		switch (*value) {
 		case '&':
-			fputs("&amp;", out);
+			fcgx_puts("&amp;");
 			break;
 		case '<':
-			fputs("&lt;", out);
+			fcgx_puts("&lt;");
 			break;
 		case '>':
-			fputs("&gt;", out);
+			fcgx_puts("&gt;");
 			break;
 		case '"':
-			fputs("&quot;", out);
+			fcgx_puts("&quot;");
 			break;
 		case '\'':
-			fputs("&#x27;", out);
+			fcgx_puts("&#x27;");
 			break;
 		case '/':
-			fputs("&#x2F;", out);
+			fcgx_puts("&#x2F;");
 			break;
 		default:
-			fputc(*value, out);
+			fcgx_putc(*value);
 			break;
 		}
 	}

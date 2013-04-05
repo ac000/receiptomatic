@@ -1,14 +1,11 @@
 /*
  * data_extraction.c
  *
- * Copyright (C) 2011-2012	OpenTech Labs
+ * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@opentechlabs.co.uk>
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
  */
-
-/* FastCGI stdio wrappers */
-#include <fcgi_stdio.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,16 +28,16 @@ void send_receipt_data(int fd)
 
 	fstat(fd, &sb);
 
-	printf("Content-Type: application/download; text/csv\r\n");
-	printf("Content-Length: %ld\r\n", sb.st_size);
-	printf("Content-Disposition: attachment; filename=receipt_data.csv"
+	fcgx_p("Content-Type: application/download; text/csv\r\n");
+	fcgx_p("Content-Length: %ld\r\n", sb.st_size);
+	fcgx_p("Content-Disposition: attachment; filename=receipt_data.csv"
 								"\r\n\r\n");
 
 	lseek(fd, 0, SEEK_SET);
 	do {
 		bytes_read = read(fd, &buf, BUF_SIZE);
-		fwrite(buf, bytes_read, 1, stdout);
-	} while (bytes_read > 0);
+		fcgx_ps(buf, bytes_read);
+	} while (bytes_read == BUF_SIZE);
 }
 
 void extract_data_now(int fd)
