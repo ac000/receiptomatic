@@ -28,7 +28,7 @@
 extern char **environ;
 static char **rargv;
 
-static volatile sig_atomic_t create_new_server;
+static volatile sig_atomic_t create_nr_new_server;
 static volatile sig_atomic_t dump_sessions;
 static volatile sig_atomic_t clear_sessions;
 static volatile sig_atomic_t rotate_log_files;
@@ -205,17 +205,23 @@ static void reaper(int signo)
 {
 	int status;
 
-	waitpid(-1, &status, 0);
 	/*
-	 * If a process dies, create a new one.
-	 *
-	 * However, don't create new processes if we get a
-	 * SIGTERM or SIGKILL signal as that will stop the
-	 * thing from being shutdown.
+	 * Make sure we catch multiple children terminating at the same
+	 * time as we will only get one SIGCHLD while in this handler.
 	 */
-	if (WIFSIGNALED(status) && (WTERMSIG(status) != SIGTERM &&
-				WTERMSIG(status) != SIGKILL))
-		create_new_server = 1;
+	while (waitpid(-1, &status, WNOHANG) > 0) {
+		/*
+		 * If a process dies, create a new one.
+		 *
+		 * However, don't create new processes if we get a
+		 * SIGTERM or SIGKILL signal as that will stop the
+		 * thing from being shutdown.
+		 */
+		if (WIFSIGNALED(status) &&
+		    (WTERMSIG(status) != SIGTERM &&
+		     WTERMSIG(status) != SIGKILL))
+			create_nr_new_server++;
+	}
 }
 
 /*
@@ -425,7 +431,7 @@ static void create_server(int nr)
 		}
 	}
 
-	create_new_server = 0;
+	create_nr_new_server = 0;
 }
 
 int main(int argc, char **argv)
@@ -503,8 +509,8 @@ int main(int argc, char **argv)
 	 */
 	for (;;) {
 		pause();
-		if (create_new_server)
-			create_server(1);
+		if (create_nr_new_server)
+			create_server(create_nr_new_server);
 		if (dump_sessions)
 			dump_session_state();
 		if (clear_sessions)
