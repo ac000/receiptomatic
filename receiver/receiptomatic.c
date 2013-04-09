@@ -212,7 +212,7 @@ static char *create_image_id(char *path, char *filename)
 	do {
 		bytes_read = read(fd, &buf, BUF_SIZE);
 		mhash(td, &buf, bytes_read);
-	} while (bytes_read > 0);
+	} while (bytes_read == BUF_SIZE);
 	close(fd);
 	close(dirfd);
 	hash = mhash_end(td);
