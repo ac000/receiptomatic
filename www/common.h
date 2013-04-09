@@ -204,7 +204,6 @@ struct file_info {
 	char *name;
 	char *mime_type;
 };
-struct file_info file_info;
 
 FCGX_Stream *fcgx_in;
 FCGX_Stream *fcgx_out;
