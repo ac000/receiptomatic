@@ -648,12 +648,7 @@ static void admin_stats(void)
 	if (!IS_ADMIN())
 		return;
 
-	vl = add_html_var(vl, "admin", "yes");
-
-	if (IS_APPROVER())
-		vl = add_html_var(vl, "approver", "yes");
-
-	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+	ADD_HDR(vl);
 
 	/* Gather stats covering _all_ users */
 	gather_receipt_stats_for_user(-1, vl);
