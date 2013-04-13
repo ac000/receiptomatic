@@ -544,12 +544,8 @@ static void admin_edit_user(void)
 					"\r\n\r\n", uid);
 		}
 	}
+	ADD_HDR(vl);
 
-	vl = add_html_var(vl, "admin", "yes");
-	if (IS_APPROVER())
-		vl = add_html_var(vl, "approver", "yes");
-
-	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 	vl = add_html_var(vl, "uid", get_var(qvars, "uid"));
 
 	/*
