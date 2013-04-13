@@ -994,12 +994,7 @@ static void prefs_fmap(void)
 			vl = add_html_var(vl, "fields_updated", "yes");
 	}
 
-	if (IS_APPROVER())
-		vl = add_html_var(vl, "approver", "yes");
-	if (IS_ADMIN())
-		vl = add_html_var(vl, "admin", "yes");
-
-	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+	ADD_HDR(vl);
 
 	set_custom_field_names();
 	vl = add_html_var(vl, "receipt_date", DFN_RECEIPT_DATE);
