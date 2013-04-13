@@ -407,12 +407,7 @@ static void admin_add_user(void)
 			return;
 	}
 
-	vl = add_html_var(vl, "admin", "yes");
-
-	if (IS_APPROVER())
-		vl = add_html_var(vl, "approver", "yes");
-
-	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+	ADD_HDR(vl);
 
 	if (!qvars)
 		goto out;
