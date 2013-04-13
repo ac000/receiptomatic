@@ -2162,12 +2162,7 @@ static void stats(void)
 {
 	TMPL_varlist *vl = NULL;
 
-	if (IS_APPROVER())
-		vl = add_html_var(vl, "approver", "yes");
-	if (IS_ADMIN())
-		vl = add_html_var(vl, "admin", "yes");
-
-	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+	ADD_HDR(vl);
 
 	gather_receipt_stats_for_user(user_session.uid, vl);
 
