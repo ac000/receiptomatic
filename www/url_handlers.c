@@ -1705,12 +1705,7 @@ static void receipt_info(void)
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
-	if (IS_APPROVER())
-		vl = add_html_var(vl, "approver", "yes");
-	if (IS_ADMIN())
-		vl = add_html_var(vl, "admin", "yes");
-
-	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+	ADD_HDR(vl);
 
 	if (!tag_info_allowed(get_var(qvars, "image_id"))) {
 		vl = add_html_var(vl, "show_info", "no");
