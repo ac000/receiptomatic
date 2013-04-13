@@ -978,16 +978,19 @@ static void prefs(void)
  */
 static void prefs_fmap(void)
 {
-	bool updated = false;
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
-	if (qvars) {
-		if (!valid_csrf_token())
-			return;
-
+	if (IS_POST()) {
+		if (qvars)
+			if (!valid_csrf_token())
+				return;
 		update_fmap();
-		updated = true;
+		fcgx_p("Location: /prefs/fmap/?updated=yes\r\n\r\n");
+		return;
+	} else {
+		if (IS_SET(get_var(qvars, "updated")))
+			vl = add_html_var(vl, "fields_updated", "yes");
 	}
 
 	if (IS_APPROVER())
@@ -996,9 +999,6 @@ static void prefs_fmap(void)
 		vl = add_html_var(vl, "admin", "yes");
 
 	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
-
-	if (updated)
-		vl = add_html_var(vl, "fields_updated", "yes");
 
 	set_custom_field_names();
 	vl = add_html_var(vl, "receipt_date", DFN_RECEIPT_DATE);
