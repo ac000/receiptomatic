@@ -512,6 +512,7 @@ static void admin_edit_user(void)
 		vl = add_html_var(vl, "approver", "yes");
 
 	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+	uid = atoi(get_var(qvars, "uid"));
 
 	/* If we got a POST, update user settings before showing them. */
 	if (IS_POST()) {
@@ -545,15 +546,15 @@ static void admin_edit_user(void)
 
 		if (!form_err) {
 			do_update_user();
-			vl = add_html_var(vl, "updated", "yes");
+			fcgx_p("Location: /admin/edit_user/?uid=%u&updated=yes"
+					"\r\n\r\n", uid);
 		}
 	}
 
 	vl = add_html_var(vl, "uid", get_var(qvars, "uid"));
-	uid = atoi(get_var(qvars, "uid"));
 
 	/*
-	 * If form_err is still 0, then either we got a GET and just want
+	 * If form_err is false, then either we got a GET and just want
 	 * to show the users settings from the database. Or we got a POST
 	 * and successfully updated the users settings and want to show them.
 	 *
@@ -573,6 +574,9 @@ static void admin_edit_user(void)
 			goto mysql_cleanup;
 
 		db_row = get_dbrow(res);
+
+		if (IS_SET(get_var(qvars, "updated")))
+			vl = add_html_var(vl, "updated", "yes");
 
 		vl = add_html_var(vl, "username", get_var(db_row, "username"));
 		vl = add_html_var(vl, "email1", get_var(db_row, "username"));
