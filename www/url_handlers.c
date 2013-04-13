@@ -1604,15 +1604,11 @@ static void reviewed_receipts(void)
 	if (!IS_APPROVER())
 		return;
 
-	ml = add_html_var(ml, "approver", "yes");
-	if (IS_ADMIN())
-		ml = add_html_var(ml, "admin", "yes");
+	ADD_HDR(ml);
 
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), GRID_SIZE,
 							&page, &from);
-
-	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
 
 	res = sql_query("SELECT (SELECT COUNT(*) FROM reviewed INNER JOIN "
 			"images ON (reviewed.id = images.id)) AS nrows, "
