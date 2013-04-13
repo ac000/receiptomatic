@@ -408,9 +408,9 @@ static void admin_add_user(void)
 	vl = add_html_var(vl, "name", get_var(qvars, "name"));
 
 	if ((!IS_SET(get_var(qvars, "email1")) &&
-				!IS_SET(get_var(qvars, "email2"))) ||
-				(strcmp(get_var(qvars, "email1"),
-				get_var(qvars, "email2")) != 0)) {
+	     !IS_SET(get_var(qvars, "email2"))) ||
+	    (strcmp(get_var(qvars, "email1"),
+		    get_var(qvars, "email2")) != 0)) {
 		form_err = true;
 		vl = add_html_var(vl, "email_error", "yes");
 	}
@@ -418,9 +418,9 @@ static void admin_add_user(void)
 	vl = add_html_var(vl, "email2", get_var(qvars, "email2"));
 
 	if (IS_SET(get_var(qvars, "ap_card")) ||
-				IS_SET(get_var(qvars, "ap_cash")) ||
-				IS_SET(get_var(qvars, "ap_cheque")) ||
-				IS_SET(get_var(qvars, "ap_self"))) {
+	    IS_SET(get_var(qvars, "ap_cash")) ||
+	    IS_SET(get_var(qvars, "ap_cheque")) ||
+	    IS_SET(get_var(qvars, "ap_self"))) {
 		capabilities |= APPROVER;
 		if (IS_SET(get_var(qvars, "ap_card"))) {
 			capabilities |= APPROVER_CARD;
@@ -498,22 +498,22 @@ static void admin_edit_user(void)
 			return;
 
 		if ((!IS_SET(get_var(qvars, "email1")) &&
-				!IS_SET(get_var(qvars, "email2"))) ||
-				(strcmp(get_var(qvars, "email1"),
-					get_var(qvars, "email2")) != 0)) {
+		     !IS_SET(get_var(qvars, "email2"))) ||
+		    (strcmp(get_var(qvars, "email1"),
+			    get_var(qvars, "email2")) != 0)) {
 			vl = add_html_var(vl, "email_error", "yes");
 			form_err = true;
 		}
 		if (strlen(get_var(qvars, "pass1")) > 7 &&
-					strlen(get_var(qvars, "pass2")) > 7) {
+		    strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
-					get_var(qvars, "pass2")) != 0) {
+						get_var(qvars, "pass2")) != 0) {
 				vl = add_html_var(vl, "pass_error",
-								"mismatch");
+						"mismatch");
 				form_err = true;
 			}
 		} else if (IS_SET(get_var(qvars, "pass1")) &&
-					IS_SET(get_var(qvars, "pass2"))) {
+			   IS_SET(get_var(qvars, "pass2"))) {
 			/*
 			 * If the password fields are > 0 in length, then we
 			 * at least tried to update it.
@@ -805,15 +805,15 @@ static void activate_user(void)
 	 */
 	if (IS_POST()) {
 		if (strlen(get_var(qvars, "pass1")) > 7 &&
-					strlen(get_var(qvars, "pass2")) > 7) {
+		    strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
-					get_var(qvars, "pass2")) == 0) {
+						get_var(qvars, "pass2")) == 0) {
 				do_activate_user(get_var(db_row, "uid"), key,
 						get_var(qvars, "pass1"));
 				vl = add_html_var(vl, "activated", "yes");
 			} else {
 				vl = add_html_var(vl, "password_error",
-								"mismatch");
+						"mismatch");
 			}
 		} else {
 			vl = add_html_var(vl, "password_error", "length");
@@ -1053,9 +1053,9 @@ static void prefs_edit_user(void)
 			return;
 
 		if ((!IS_SET(get_var(qvars, "email1")) &&
-				!IS_SET(get_var(qvars, "email2"))) ||
-				(strcmp(get_var(qvars, "email1"),
-				get_var(qvars, "email2")) != 0)) {
+		     !IS_SET(get_var(qvars, "email2"))) ||
+		    (strcmp(get_var(qvars, "email1"),
+			    get_var(qvars, "email2")) != 0)) {
 			vl = add_html_var(vl, "email_error", "yes");
 			form_err = true;
 		} else if (strcmp(user_session.username,
@@ -1066,11 +1066,11 @@ static void prefs_edit_user(void)
 			}
 		}
 		if (strlen(get_var(qvars, "pass1")) > 7 &&
-					strlen(get_var(qvars, "pass2")) > 7) {
+		    strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
-					get_var(qvars, "pass2")) != 0) {
+						get_var(qvars, "pass2")) != 0) {
 				vl = add_html_var(vl, "pass_error",
-								"mismatch");
+						"mismatch");
 				form_err = true;
 			}
 		/*
@@ -1078,7 +1078,7 @@ static void prefs_edit_user(void)
 		 * to update it.
 		 */
 		} else if (IS_SET(get_var(qvars, "pass1")) &&
-					IS_SET(get_var(qvars, "pass2"))) {
+			   IS_SET(get_var(qvars, "pass2"))) {
 			vl = add_html_var(vl, "pass_error", "length");
 			form_err = true;
 		}
@@ -1749,8 +1749,7 @@ static void receipt_info(void)
 
 	/* Only PENDING receipts of the user are editable */
 	if (atoi(get_var(db_row, "approved")) == PENDING &&
-				atoi(get_var(db_row, "uid")) ==
-				user_session.uid) {
+	    atoi(get_var(db_row, "uid")) == user_session.uid) {
 		vl = add_html_var(vl, "showedit", "true");
 		if (strcmp(get_var(qvars, "edit"), "true") == 0) {
 			/* Don't show the Edit button when editing */
@@ -1765,7 +1764,7 @@ static void receipt_info(void)
 			vl = add_html_var(vl, "receipt_date", tbuf);
 		}
 	} else if (atoi(get_var(db_row, "approved")) == APPROVED ||
-			atoi(get_var(db_row, "approved")) == REJECTED) {
+		   atoi(get_var(db_row, "approved")) == REJECTED) {
 		/*
 		 * The receipt has either been APPROVED or REJECTED
 		 * Display the approval/rejection date/time and
@@ -2046,7 +2045,7 @@ static void process_receipt(void)
 	strptime(get_var(qvars, "receipt_date"), "%Y-%m-%d", &tm);
 	strftime(secs, sizeof(secs), "%s", &tm);
 	if (strtol(secs, NULL, 10) < time(NULL) - MAX_RECEIPT_AGE ||
-					strtol(secs, NULL, 10) > time(NULL)) {
+	    strtol(secs, NULL, 10) > time(NULL)) {
 		tag_error = true;
 		vl = add_html_var(vl, "error.receipt_date", "1");
 	}
