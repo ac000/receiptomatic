@@ -280,13 +280,7 @@ static void admin(void)
 	if (!IS_ADMIN())
 		return;
 
-	vl = add_html_var(vl, "admin", "yes");
-
-	if (IS_APPROVER())
-		vl = add_html_var(vl, "approver", "yes");
-
-	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
-
+	ADD_HDR(vl);
 	send_template("templates/admin.tmpl", vl, NULL);
 	TMPL_free_varlist(vl);
 }
