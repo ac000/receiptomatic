@@ -680,11 +680,7 @@ static void admin_user_stats(void)
 	if (!IS_ADMIN() || !qvars)
 		return;
 
-	if (IS_APPROVER())
-		vl = add_html_var(vl, "approver", "yes");
-
-	vl = add_html_var(vl, "admin", "yes");
-	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+	ADD_HDR(vl);
 
 	uid = atoi(get_var(qvars, "uid"));
 
