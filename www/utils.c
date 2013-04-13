@@ -226,7 +226,7 @@ void free_u_files(void)
  * this will ensure that the last GHashTable is added to the GList.
  */
 static void add_multipart_avar(const char *name, const char *value,
-								int finalize)
+			       int finalize)
 {
 	char *token;
 	char *idx;
@@ -832,7 +832,7 @@ bool user_already_exists(const char *username)
  * This is used in the results pagination code.
  */
 void get_page_pagination(const char *req_page_no, int rpp, int *page_no,
-								int *from)
+			 int *from)
 {
 	*page_no = atoi(req_page_no);
 
@@ -891,7 +891,7 @@ TMPL_varlist *do_zebra(TMPL_varlist *varlist, unsigned long row)
  * Simple wrapper around TMPL_add_var()
  */
 TMPL_varlist *add_html_var(TMPL_varlist *varlist, const char *name,
-							const char *value)
+			   const char *value)
 {
 	TMPL_varlist *vlist = NULL;
 
