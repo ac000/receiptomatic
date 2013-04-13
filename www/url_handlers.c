@@ -506,18 +506,12 @@ static void admin_edit_user(void)
 	if (!qvars)
 		return;
 
-	vl = add_html_var(vl, "admin", "yes");
-
-	if (IS_APPROVER())
-		vl = add_html_var(vl, "approver", "yes");
-
-	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 	uid = atoi(get_var(qvars, "uid"));
 
 	/* If we got a POST, update user settings before showing them. */
 	if (IS_POST()) {
 		if (!valid_csrf_token())
-			goto out_csrf;
+			return;
 
 		if ((!IS_SET(get_var(qvars, "email1")) &&
 				!IS_SET(get_var(qvars, "email2"))) ||
@@ -551,6 +545,11 @@ static void admin_edit_user(void)
 		}
 	}
 
+	vl = add_html_var(vl, "admin", "yes");
+	if (IS_APPROVER())
+		vl = add_html_var(vl, "approver", "yes");
+
+	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
 	vl = add_html_var(vl, "uid", get_var(qvars, "uid"));
 
 	/*
@@ -632,8 +631,6 @@ mysql_cleanup:
 	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/admin_edit_user.tmpl", vl, fmtlist);
 	TMPL_free_fmtlist(fmtlist);
-
-out_csrf:
 	TMPL_free_varlist(vl);
 }
 
