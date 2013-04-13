@@ -1379,11 +1379,7 @@ static void approve_receipts(void)
 	if (!IS_APPROVER())
 		return;
 
-	ml = add_html_var(ml, "approver", "yes");
-	if (IS_ADMIN())
-		ml = add_html_var(ml, "admin", "yes");
-
-	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
+	ADD_HDR(ml);
 
 	memset(pmsql, 0, sizeof(pmsql));
 	/*
