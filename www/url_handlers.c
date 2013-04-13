@@ -1890,12 +1890,7 @@ static void tagged_receipts(void)
 		get_page_pagination(get_var(qvars, "page_no"), GRID_SIZE,
 							&page, &from);
 
-	if (IS_APPROVER())
-		ml = add_html_var(ml, "approver", "yes");
-	if (IS_ADMIN())
-		ml = add_html_var(ml, "admin", "yes");
-
-	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
+	ADD_HDR(ml);
 
 	res = sql_query("SELECT (SELECT COUNT(*) FROM tags INNER JOIN images "
 			"ON (tags.id = images.id) WHERE images.tagged = 1 AND "
