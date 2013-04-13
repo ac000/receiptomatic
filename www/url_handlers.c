@@ -1171,12 +1171,7 @@ static void prefs_edit_user(void)
 		vl = add_html_var(vl, "name", get_var(qvars, "name"));
 	}
 
-	if (IS_ADMIN())
-		vl = add_html_var(vl, "admin", "yes");
-	if (IS_APPROVER())
-		vl = add_html_var(vl, "approver", "yes");
-
-	vl = add_html_var(vl, "user_hdr", user_session.user_hdr);
+	ADD_HDR(vl);
 
 	add_csrf_token(vl);
 	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
