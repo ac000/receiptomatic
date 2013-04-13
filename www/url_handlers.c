@@ -320,6 +320,7 @@ static void admin_list_users(void)
 	nr_rows = mysql_num_rows(res);
 	for (i = 0; i < nr_rows; i++) {
 		char caps[33] = "\0";
+		unsigned char capabilities;
 		GHashTable *db_row = NULL;
 		TMPL_varlist *vl = NULL;
 
@@ -333,19 +334,20 @@ static void admin_list_users(void)
 		vl = add_html_var(vl, "name", get_var(db_row, "name"));
 
 		/* Pretty print the set of capabilities */
-		if (atoi(get_var(db_row, "capabilities")) & APPROVER)
+		capabilities = atoi(get_var(db_row, "capabilities"));
+		if (capabilities & APPROVER)
 			strcat(caps, "Approver -");
-		if (atoi(get_var(db_row, "capabilities")) & APPROVER_CARD)
+		if (capabilities & APPROVER_CARD)
 			strcat(caps, " Card");
-		if (atoi(get_var(db_row, "capabilities")) & APPROVER_CASH)
+		if (capabilities & APPROVER_CASH)
 			strcat(caps, " Cash");
-		if (atoi(get_var(db_row, "capabilities")) & APPROVER_CHEQUE)
+		if (capabilities & APPROVER_CHEQUE)
 			strcat(caps, " Cheque");
-		if (atoi(get_var(db_row, "capabilities")) & APPROVER_SELF)
+		if (capabilities & APPROVER_SELF)
 			strcat(caps, " Self");
 		vl = add_html_var(vl, "capabilities", caps);
 
-		if (atoi(get_var(db_row, "capabilities")) & ADMIN)
+		if (capabilities & ADMIN)
 			vl = add_html_var(vl, "admin", "yes");
 		else
 			vl = add_html_var(vl, "admin", "no");
