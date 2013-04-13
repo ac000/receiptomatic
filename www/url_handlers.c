@@ -1216,7 +1216,6 @@ static void process_receipt_approval(void)
 		if (get_avar(i, "reason"))
 			reason = make_mysql_safe_string(get_avar(i, "reason"));
 
-
 		/* Can user approve their own receipts? */
 		if (!(user_session.capabilities & APPROVER_SELF)) {
 			res = sql_query("SELECT id FROM images WHERE id = "
