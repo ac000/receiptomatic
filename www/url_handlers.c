@@ -2192,14 +2192,7 @@ static void receipts(void)
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
 
-	if (IS_APPROVER())
-		ml = add_html_var(ml, "approver", "yes");
-	if (IS_ADMIN())
-		ml = add_html_var(ml, "admin", "yes");
-
-	/* Display the user's name and UID at the top of the page */
-	ml = add_html_var(ml, "user_hdr", user_session.user_hdr);
-
+	ADD_HDR(ml);
 	/*
 	 * Display the users last login time and location, we only show
 	 * this on the /receipts/ page.
