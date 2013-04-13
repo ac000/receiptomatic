@@ -89,6 +89,19 @@
 /* Macro to check if the request method is GET */
 #define IS_GET()	(strstr(env_vars.request_method, "GET"))
 
+/* Macro to add the Approver/Admin/user_hdr parts to the web page */
+#define ADD_HDR(tmpl_varlist) \
+	do { \
+		if (IS_ADMIN()) \
+			tmpl_varlist = add_html_var(tmpl_varlist, \
+					"admin", "yes"); \
+		if (IS_APPROVER()) \
+			tmpl_varlist = add_html_var(tmpl_varlist, \
+					"approver", "yes"); \
+		tmpl_varlist = add_html_var(tmpl_varlist, "user_hdr", \
+				user_session.user_hdr); \
+	} while (0)
+
 /* Unbreak __func__ by my_global.h */
 #ifdef __func__
 	#undef __func__
