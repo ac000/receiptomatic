@@ -218,10 +218,10 @@ struct file_info {
 	char *mime_type;
 };
 
-FCGX_Stream *fcgx_in;
-FCGX_Stream *fcgx_out;
-FCGX_Stream *fcgx_err;
-FCGX_ParamArray fcgx_envp;
+extern FCGX_Stream *fcgx_in;
+extern FCGX_Stream *fcgx_out;
+extern FCGX_Stream *fcgx_err;
+extern FCGX_ParamArray fcgx_envp;
 
 /* Default Field Names */
 #define DFN_RECEIPT_DATE	"Receipt Date"

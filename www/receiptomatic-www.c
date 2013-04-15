@@ -39,6 +39,11 @@ static char error_log_path[PATH_MAX];
 static char sql_log_path[PATH_MAX];
 static char debug_log_path[PATH_MAX];
 
+FCGX_Stream *fcgx_in;
+FCGX_Stream *fcgx_out;
+FCGX_Stream *fcgx_err;
+FCGX_ParamArray fcgx_envp;
+
 FILE *access_log;
 FILE *sql_log;
 FILE *error_log;
