@@ -393,10 +393,8 @@ static void admin_add_user(void)
 		return;
 
 	/* Prevent CSRF attack */
-	if (IS_POST()) {
-		if (!valid_csrf_token())
-			return;
-	}
+	if (IS_POST() && !valid_csrf_token())
+		return;
 
 	ADD_HDR(vl);
 
