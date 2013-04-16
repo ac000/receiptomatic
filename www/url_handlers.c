@@ -706,7 +706,7 @@ static void admin_pending_activations(void)
 
 	if (qvars)
 		get_page_pagination(get_var(qvars, "page_no"), rpp, &page,
-									&from);
+				&from);
 
 	res = sql_query("SELECT (SELECT COUNT(*) FROM activations INNER JOIN "
 			"passwd ON (activations.user = passwd.username)) AS "
@@ -734,7 +734,7 @@ static void admin_pending_activations(void)
 		}
 
 		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
-								(float)rpp);
+				(float)rpp);
 
 		vl = do_zebra(vl, i);
 		vl = add_html_var(vl, "name", get_var(db_row, "name"));
