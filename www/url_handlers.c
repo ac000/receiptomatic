@@ -953,16 +953,12 @@ static void prefs_fmap(void)
 	TMPL_varlist *vl = NULL;
 	TMPL_fmtlist *fmtlist;
 
-	if (IS_POST()) {
-		if (qvars)
-			if (!valid_csrf_token())
-				return;
+	if (IS_POST() && valid_csrf_token()) {
 		update_fmap();
 		fcgx_p("Location: /prefs/fmap/?updated=yes\r\n\r\n");
 		return;
-	} else {
-		if (IS_SET(get_var(qvars, "updated")))
-			vl = add_html_var(vl, "fields_updated", "yes");
+	} else if (IS_GET() && IS_SET(get_var(qvars, "updated"))) {
+		vl = add_html_var(vl, "fields_updated", "yes");
 	}
 
 	ADD_HDR(vl);
