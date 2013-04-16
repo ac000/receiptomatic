@@ -1236,7 +1236,7 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
  * Send the specified template to the user.
  */
 void send_template(const char *template, TMPL_varlist *varlist,
-						TMPL_fmtlist *fmtlist)
+		   TMPL_fmtlist *fmtlist)
 {
 	fcgx_p("Cache-Control: private\r\n");
 	fcgx_p("Content-Type: text/html\r\n\r\n");

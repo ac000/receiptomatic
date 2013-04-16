@@ -32,7 +32,7 @@ void do_edit_user(void);
 void do_activate_user(const char *uid, const char *key, const char *password);
 void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist);
 void send_template(const char *template, TMPL_varlist *varlist,
-							TMPL_fmtlist *fmtlist);
+		   TMPL_fmtlist *fmtlist);
 bool match_uri(const char *request_uri, const char *match);
 
 #endif /* _URL_HELPERS_H_ */
