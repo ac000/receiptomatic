@@ -493,10 +493,7 @@ static void admin_edit_user(void)
 	uid = atoi(get_var(qvars, "uid"));
 
 	/* If we got a POST, update user settings before showing them. */
-	if (IS_POST()) {
-		if (!valid_csrf_token())
-			return;
-
+	if (IS_POST() && valid_csrf_token()) {
 		if ((!IS_SET(get_var(qvars, "email1")) &&
 		     !IS_SET(get_var(qvars, "email2"))) ||
 		    (strcmp(get_var(qvars, "email1"),
