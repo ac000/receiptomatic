@@ -1052,10 +1052,7 @@ static void prefs_edit_user(void)
 	 * If we got POST data, update the users settings before
 	 * showing them.
 	 */
-	if (IS_POST()) {
-		if (!valid_csrf_token())
-			return;
-
+	if (IS_POST() && valid_csrf_token()) {
 		if ((!IS_SET(get_var(qvars, "email1")) &&
 		     !IS_SET(get_var(qvars, "email2"))) ||
 		    (strcmp(get_var(qvars, "email1"),
@@ -1100,7 +1097,7 @@ static void prefs_edit_user(void)
 	}
 
 	/*
-	 * If form_err is still 0, then either we got a GET and just want
+	 * If form_err is still false, then either we got a GET and just want
 	 * to show the users settings from the database. Or we got a POST
 	 * and successfully updated the users settings and want to show them.
 	 *
