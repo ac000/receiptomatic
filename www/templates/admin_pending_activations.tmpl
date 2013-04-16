@@ -16,12 +16,16 @@
 	<big><big>| Admin / Pending Activations</big></big>
 	<hr />
 
+	<form action = "/admin/pending_activations/" method = "POST">
 	<table cellpadding = "4">
 	<tbody>
 	<tr>
 		<td><strong>Name</strong></td>
 		<td><strong>Username</strong></td>
 		<td><strong>Expires</strong></td>
+		<td><strong>Renew</strong></td>
+		<td><strong>Remove</strong></td>
+		<td><strong>Leave</strong></td>
 	</tr>
 <tmpl_loop name = "table">
 <tmpl_if name = "zebra" value = "yes">
@@ -40,10 +44,24 @@
 			</span>
 		</tmpl_if>
 		</td>
+		<td>
+		<input type = "radio" name = "i<tmpl_var name = 'item' />[action]" value = "renew">
+		</td>
+		<td>
+		<input type = "radio" name = "i<tmpl_var name = 'item' />[action]" value = "delete">
+		</td>
+		<td>
+		<input type = "radio" name = "i<tmpl_var name = 'item' />[action]" value = "leave" checked>
+		<input type = "hidden" name = "i<tmpl_var name = 'item' />[uid]" value = "<tmpl_var name = 'uid' />" >
+		<input type = "hidden" name = "i<tmpl_var name = 'item' />[akey]" value = "<tmpl_var name = 'akey' />" >
+		</td>
 	</tr>
 </tmpl_loop>
 	</tbody>
 	</table>
+	<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />">
+	<input type = "submit" value = "Submit" />
+	</form>
 
 <tmpl_if name = "no_pages">
 <tmpl_else>

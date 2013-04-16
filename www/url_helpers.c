@@ -711,6 +711,34 @@ out:
 }
 
 /*
+ * Process changes to the list of pending account activations
+ */
+void process_activation_changes(void)
+{
+	unsigned int i;
+	unsigned int list_size;
+
+	list_size = g_list_length(avars);
+	for (i = 0; i < list_size; i++) {
+		const char *action = get_avar(i, "action");
+		const char *akey = get_avar(i, "akey");
+
+		if (strcmp(action, "leave") == 0) {
+			continue;
+		} else if (strcmp(action, "renew") == 0) {
+			sql_query("UPDATE activations SET expires = '%ld'"
+					"WHERE akey = '%s'",
+					time(NULL) + KEY_EXP, akey);
+		} else {
+			sql_query("DELETE FROM activations WHERE akey = "
+					"'%s' LIMIT 1", akey);
+			sql_query("DELETE FROM passwd WHERE uid = %u LIMIT 1",
+					atoi(get_avar(i, "uid")));
+		}
+	}
+}
+
+/*
  * Stores custom image tag field names for a user in the database.
  */
 void update_fmap(void)

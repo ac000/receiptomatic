@@ -702,6 +702,9 @@ static void admin_pending_activations(void)
 	if (!IS_ADMIN())
 		return;
 
+	if (IS_POST() && valid_csrf_token() && avars)
+		process_activation_changes();
+
 	ADD_HDR(ml);
 
 	if (qvars)
@@ -710,14 +713,16 @@ static void admin_pending_activations(void)
 
 	res = sql_query("SELECT (SELECT COUNT(*) FROM activations INNER JOIN "
 			"passwd ON (activations.user = passwd.username)) AS "
-			"nrows, passwd.name, activations.user, "
-			"activations.expires FROM activations INNER JOIN "
-			"passwd ON (activations.user = passwd.username) LIMIT "
+			"nrows, passwd.name, passwd.uid, activations.user, "
+			"activations.expires, activations.akey FROM "
+			"activations INNER JOIN passwd ON "
+			"(activations.user = passwd.username) LIMIT "
 			"%d, %d", from, rpp);
 
 	nr_rows = mysql_num_rows(res);
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
+		char item[3];
 		time_t secs;
 		GHashTable *db_row = NULL;
 		TMPL_varlist *vl = NULL;
@@ -745,10 +750,16 @@ static void admin_pending_activations(void)
 		strftime(tbuf, sizeof(tbuf), "%F %H:%M:%S", localtime(&secs));
 		vl = add_html_var(vl, "expires", tbuf);
 
+		vl = add_html_var(vl, "uid", get_var(db_row, "uid"));
+		vl = add_html_var(vl, "akey", get_var(db_row, "akey"));
+		snprintf(item, sizeof(item), "%lu", i);
+		vl = add_html_var(vl, "item", item);
+
 		loop = TMPL_add_varlist(loop, vl);
 		free_vars(db_row);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
+	add_csrf_token(ml);
 	do_pagination(ml, page, nr_pages);
 
 	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);

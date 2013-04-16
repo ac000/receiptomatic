@@ -24,6 +24,7 @@ void create_session(unsigned long long sid);
 int check_amounts(double gross, double net, double vat, double vr);
 void set_default_field_names(void);
 void set_custom_field_names(void);
+void process_activation_changes(void);
 void update_fmap(void);
 void tag_image(void);
 int do_add_user(unsigned char capabilities);
