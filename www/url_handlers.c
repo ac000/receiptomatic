@@ -1193,10 +1193,7 @@ static void process_receipt_approval(void)
 		return;
 
 	/* Prevent CSRF attack */
-	if (!valid_csrf_token())
-		return;
-
-	if (!avars)
+	if (!(valid_csrf_token() && avars))
 		return;
 
 	username = make_mysql_safe_string(user_session.username);
