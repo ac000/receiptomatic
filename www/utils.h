@@ -2,7 +2,8 @@
  * utils.h
  *
  * Copyright (C) 2011-2013	OpenTech Labs
- *				Andrew Clayton <andrew@opentechlabs.co.uk>
+ *				Andrew Clayton <andrew@digital-domain.net>
+ *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
  */
