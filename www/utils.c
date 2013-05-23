@@ -595,13 +595,18 @@ const char *get_var(GHashTable *vars, const char *key)
 {
 	char *val;
 
+	if (!vars)
+		goto out_err;
+
 	val = g_hash_table_lookup(vars, key);
-	if (!val) {
-		d_fprintf(debug_log, "Unknown var: %s\n", key);
-		return "\0";
-	}
+	if (!val)
+		goto out_err;
 
 	return val;
+
+out_err:
+	d_fprintf(debug_log, "Unknown var: %s\n", key);
+	return "\0";
 }
 
 /*
