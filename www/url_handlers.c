@@ -510,7 +510,7 @@ static void admin_edit_user(void)
 						"mismatch");
 				form_err = true;
 			}
-		} else if (IS_SET(get_var(qvars, "pass1")) &&
+		} else if (IS_SET(get_var(qvars, "pass1")) ||
 			   IS_SET(get_var(qvars, "pass2"))) {
 			/*
 			 * If the password fields are > 0 in length, then we
@@ -1079,7 +1079,7 @@ static void prefs_edit_user(void)
 		 * If the password fields are > 0 in length, then we tried
 		 * to update it.
 		 */
-		} else if (IS_SET(get_var(qvars, "pass1")) &&
+		} else if (IS_SET(get_var(qvars, "pass1")) ||
 			   IS_SET(get_var(qvars, "pass2"))) {
 			vl = add_html_var(vl, "pass_error", "length");
 			form_err = true;
