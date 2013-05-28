@@ -309,7 +309,7 @@ static void init_clear_session_timer(void)
 	sev.sigev_notify = SIGEV_SIGNAL;
 	sev.sigev_signo = SIGRTMIN;
 	sev.sigev_value.sival_ptr = &timerid;
-	timer_create(CLOCK_REALTIME, &sev, &timerid);
+	timer_create(CLOCK_MONOTONIC, &sev, &timerid);
 
 	its.it_value.tv_sec = SESSION_CHECK;
 	its.it_value.tv_nsec = 0;
