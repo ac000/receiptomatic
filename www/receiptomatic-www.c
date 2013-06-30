@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <signal.h>
@@ -331,6 +332,8 @@ static void sh_rotate_log_files(int signo)
 
 static void init_logs(void)
 {
+	mode_t smask;
+
 	if (rotate_log_files) {
 		d_fprintf(debug_log,
 			  "logrotation: closing and re-opening log files\n");
@@ -357,10 +360,13 @@ static void init_logs(void)
 			 "%s/receiptomatic-www.debug.log", LOG_DIR);
 	}
 
+	/* Create the log files as -rw-r----- */
+	smask = umask(0027);
 	access_log = fopen(ACCESS_LOG, "a");
 	error_log = fopen(ERROR_LOG, "a");
 	sql_log = fopen(SQL_LOG, "a");
 	debug_log = fopen(DEBUG_LOG, "a");
+	umask(smask);
 
 	/* Make stderr point to the error_log */
 	dup2(fileno(error_log), STDERR_FILENO);
