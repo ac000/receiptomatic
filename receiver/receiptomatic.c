@@ -514,7 +514,7 @@ int main(int argc, char **argv)
 		bytes_wrote = write(fd, buf, bytes_read);
 		if (bytes_wrote != bytes_read)
 			exit(EXIT_FAILURE);
-	} while (bytes_read == BUF_SIZE);
+	} while (bytes_read > 0);
 	close(fd);
 
 	umask(0007);
