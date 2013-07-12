@@ -493,7 +493,7 @@ static void process_mime(void)
 	do {
 		bytes_read = fcgx_gs(data + size, BUF_SIZE);
 		size += bytes_read;
-	} while (bytes_read == BUF_SIZE);
+	} while (bytes_read > 0);
 
 	g_mime_init(0);
 	stream = g_mime_stream_mem_new();

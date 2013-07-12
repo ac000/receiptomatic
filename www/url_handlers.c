@@ -261,7 +261,7 @@ static void get_image(void)
 	do {
 		bytes_read = read(fd, &buf, BUF_SIZE);
 		fcgx_ps(buf, bytes_read);
-	} while (bytes_read == BUF_SIZE);
+	} while (bytes_read > 0);
 
 	magic_close(cookie);
 	close(fd);

@@ -38,7 +38,7 @@ void send_receipt_data(int fd)
 	do {
 		bytes_read = read(fd, &buf, BUF_SIZE);
 		fcgx_ps(buf, bytes_read);
-	} while (bytes_read == BUF_SIZE);
+	} while (bytes_read > 0);
 }
 
 void extract_data_now(int fd)
