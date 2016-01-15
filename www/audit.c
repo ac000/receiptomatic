@@ -15,7 +15,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <arpa/inet.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
 
@@ -36,31 +36,21 @@ unsigned long long log_login(void)
 	char *hostname;
 	char *ip_addr;
 	char host[NI_MAXHOST] = "\0";
+	struct addrinfo hints;
+	struct addrinfo *ares;
 	struct timespec login_at;
-	struct sockaddr_in addr4;
-	struct sockaddr_in6 addr6;
-	struct sockaddr *addr = (struct sockaddr *)&addr4;
 	unsigned long long sid;
 	unsigned int uid;
-	socklen_t addr_len = sizeof(addr4);
 	MYSQL_RES *res;
 	MYSQL_ROW row;
 
 	clock_gettime(CLOCK_REALTIME, &login_at);
 
-	if (!strchr(env_vars.remote_addr, ':')) {
-		/* IPv4 */
-		inet_pton(AF_INET, env_vars.remote_addr, &addr4.sin_addr);
-		addr4.sin_family = AF_INET;
-	} else {
-		/* IPv6 */
-		inet_pton(AF_INET6, env_vars.remote_addr, &addr6.sin6_addr);
-		addr6.sin6_family = AF_INET6;
-
-		addr = (struct sockaddr *)&addr6;
-		addr_len = sizeof(addr6);
-	}
-	getnameinfo(addr, addr_len, host, NI_MAXHOST, NULL, 0, 0);
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;
+	getaddrinfo(env_vars.remote_addr, NULL, &hints, &ares);
+	getnameinfo(ares->ai_addr, ares->ai_addrlen, host, NI_MAXHOST, NULL, 0,
+			0);
 
 	username = make_mysql_safe_string(get_var(qvars, "username"));
 	hostname = make_mysql_safe_string(host);
@@ -90,6 +80,7 @@ unsigned long long log_login(void)
 	free(username);
 	free(hostname);
 	free(ip_addr);
+	freeaddrinfo(ares);
 
 	return sid;
 }
