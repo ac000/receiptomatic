@@ -666,6 +666,11 @@ void set_env_vars(void)
 	else
 		env_vars.host = strdup("");
 
+	if (fcgx_param("REMOTE_PORT"))
+		env_vars.remote_port = atoi(fcgx_param("REMOTE_PORT"));
+	else
+		env_vars.remote_port = 0;
+
 	if (fcgx_param("QUERY_STRING"))
 		env_vars.query_string = strdup(fcgx_param("QUERY_STRING"));
 	else

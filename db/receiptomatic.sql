@@ -165,6 +165,7 @@ CREATE TABLE IF NOT EXISTS `utmp` (
   `uid` int(10) unsigned NOT NULL,
   `username` varchar(255) NOT NULL,
   `ip` varchar(39) NOT NULL,
+  `port` int(5) unsigned NOT NULL,
   `hostname` varchar(255) NOT NULL,
   `sid` bigint(20) unsigned NOT NULL,
   UNIQUE KEY `sid` (`sid`),

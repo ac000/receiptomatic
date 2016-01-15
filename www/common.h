@@ -197,6 +197,7 @@ struct env_vars {
 	char *http_cookie;
 	char *http_user_agent;
 	char *remote_addr;
+	int remote_port;
 	char *host;
 	char *query_string;
 };
