@@ -403,18 +403,24 @@ static void process_vars(const char *query)
  *
  * This will extract files and variable name/data pairs.
  */
-static void process_mime_part(GMimeObject *part, gpointer user_data)
+static void process_mime_part(GMimeObject *parent, GMimeObject *part,
+			      gpointer user_data)
 {
-	const GMimeContentType *content_type;
+	GMimeContentType *content_type;
 	GMimeStream *stream;
 	GMimeDataWrapper *content;
-	GMimeDisposition *disposition;
+	GMimeContentDisposition *disposition;
+	const char *dfname;
+	const char *dname;
 
 	content_type = g_mime_object_get_content_type(part);
-	disposition = g_mime_disposition_new(g_mime_object_get_header(part,
-						"Content-Disposition"));
+	disposition = g_mime_content_disposition_new_from_string(
+			g_mime_object_get_header(part, "Content-Disposition"));
 
-	if (g_mime_disposition_get_parameter(disposition, "filename")) {
+	dname = g_mime_content_disposition_get_parameter(disposition, "name");
+	dfname = g_mime_content_disposition_get_parameter(disposition,
+			"filename");
+	if (dfname) {
 		char temp_name[] = "/tmp/u_files/pgv-XXXXXX";
 		struct file_info *file_info;
 		int fd;
@@ -429,11 +435,9 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 		memset(file_info, 0, sizeof(struct file_info));
 		snprintf(file_info->orig_file_name,
 				sizeof(file_info->orig_file_name), "%s",
-				g_mime_disposition_get_parameter(
-					disposition, "filename"));
+				dfname);
 		strcpy(file_info->temp_file_name, temp_name);
-		file_info->name = strdup(g_mime_disposition_get_parameter(
-					disposition, "name"));
+		file_info->name = strdup(dname);
 		file_info->mime_type = strdup(g_mime_content_type_to_string(
 					content_type));
 
@@ -457,19 +461,16 @@ static void process_mime_part(GMimeObject *part, gpointer user_data)
 		g_mime_stream_read(stream, buf, bytes);
 		buf[bytes] = '\0';
 
-		if (strstr(g_mime_disposition_get_parameter(
-						disposition, "name"), "["))
-			add_multipart_avar(g_mime_disposition_get_parameter(
-						disposition, "name"), buf, 0);
+		if (strstr(dname, "["))
+			add_multipart_avar(dname, buf, 0);
 		else
-			add_multipart_var(g_mime_disposition_get_parameter(
-						disposition, "name"), buf);
+			add_multipart_var(dname, buf);
 		free(buf);
 	}
 
-	g_mime_disposition_destroy(disposition);
 	g_object_unref(content);
 	g_object_unref(stream);
+	g_object_unref(disposition);
 }
 
 /*
@@ -508,7 +509,7 @@ static void process_mime(void)
 	parser = g_mime_parser_new_with_stream(stream);
 	parts = g_mime_parser_construct_part(parser);
 	g_mime_multipart_foreach((GMimeMultipart *)parts,
-			(GMimePartFunc)process_mime_part, NULL);
+			(GMimeObjectForeachFunc)process_mime_part, NULL);
 
 	g_object_unref(parts);
 	g_object_unref(stream);

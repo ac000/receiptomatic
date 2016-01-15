@@ -23,7 +23,7 @@ To build you will need at least the following (older versions may work)
 For receiptomatic
 
     glib2{-devel}-2.12.3
-    gmime{-devel}-2.2.25
+    gmime{-devel}-2.6.20
     GraphicsMagick{-devel}-1.3.7
     mhash{-devel}-0.9.9
     mysql{-devel}-5.0.77
@@ -36,7 +36,7 @@ For receiptomatic-www
 
      fcgi{-devel}-2.4.0
      glib2{-devel}-2.12.3
-     gmime{-devel}-2.2.25
+     gmime{-devel}-2.6.20
      mhash{-devel}-0.9.9
      file-4.17-15
      mysql{-devel}-5.0.77
