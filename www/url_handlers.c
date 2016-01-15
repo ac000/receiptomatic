@@ -22,6 +22,7 @@
 #include <fcntl.h>
 #include <time.h>
 #include <stdbool.h>
+#include <setjmp.h>
 
 #include <mhash.h>
 
@@ -2194,7 +2195,7 @@ out:
  *
  * Displays the environment list.
  */
-static void env(void)
+static void print_env(void)
 {
 	fcgx_p("Content-Type: text/html\r\n\r\n");
 	fcgx_p("<html>\n");
@@ -2211,13 +2212,64 @@ static void env(void)
 	fcgx_p("</html>\n");
 }
 
+static char *request_uri;
+/*
+ * Given a URI we are checking for against request_uri
+ * Return:
+ *     true for a match and
+ *     false for no match.
+ */
+static bool match_uri(const char *uri)
+{
+	size_t rlen;
+	size_t mlen = strlen(uri);
+	const char *request;
+	char *req = strdupa(request_uri);
+
+	/*
+	 * Handle URLs in the form /something/?key=value by stripping
+	 * everything from the ? onwards and matching on the initial part.
+	 */
+	if (strchr(request_uri, '?'))
+		request = strtok(req, "?");
+	else
+		request = request_uri;
+
+	rlen = strlen(request);
+
+	/*
+	 * The image URLs are a bit different, we only want to match on
+	 * the first /.../ part and they don't contain a ?.
+	 */
+	if (strstr(request, "/get_image/") && strstr(uri, "/get_image/"))
+		return true;
+	else if (strncmp(request, uri, mlen) == 0 && rlen == mlen)
+		return true;
+	else
+		return false;
+}
+
+static jmp_buf env;
+/*
+ * This is the main URI mapping/routing function.
+ *
+ * Takes a URI string to match and the function to run if it matches
+ * request_uri.
+ */
+static inline void uri_map(const char *uri, void (uri_handler)(void))
+{
+	if (match_uri(uri)) {
+		uri_handler();
+		longjmp(env, 1);
+	}
+}
+
 /*
  * Main application. This is where the requests come in and routed.
  */
 void handle_request(void)
 {
 	bool logged_in = false;
-	char *request_uri;
 	struct timespec stp;
 	struct timespec etp;
 
@@ -2236,29 +2288,18 @@ void handle_request(void)
 	if (!conn)
 		goto out2;
 
+	/* Return from non-authenticated URIs and goto 'out2' */
+	if (setjmp(env))
+		goto out2;
+
 	/*
 	 * Some routes need to come before the login / session stuff as
 	 * they can't be logged in and have no session.
 	 */
-	if (match_uri(request_uri, "/activate_user/")) {
-		activate_user();
-		goto out2;
-	}
-
-	if (match_uri(request_uri, "/generate_new_key/")) {
-		generate_new_key();
-		goto out2;
-	}
-
-	if (match_uri(request_uri, "/forgotten_password/")) {
-		forgotten_password();
-		goto out2;
-	}
-
-	if (match_uri(request_uri, "/login/")) {
-		login();
-		goto out2;
-	}
+	uri_map("/activate_user/", activate_user);
+	uri_map("/generate_new_key/", generate_new_key);
+	uri_map("/forgotten_password/", forgotten_password);
+	uri_map("/login/", login);
 
 	logged_in = is_logged_in();
 	if (!logged_in) {
@@ -2269,127 +2310,35 @@ void handle_request(void)
 	/* Logged in, set-up the user_session structure */
 	set_user_session();
 
+	/* Return from authenticated URIs and goto 'out' */
+	if (setjmp(env))
+		goto out;
+
 	/* Add new url handlers after here */
-
-	if (match_uri(request_uri, "/receipts/")) {
-		receipts();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/process_receipt/")) {
-		process_receipt();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/tagged_receipts/")) {
-		tagged_receipts();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/receipt_info/")) {
-		receipt_info();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/approve_receipts/")) {
-		approve_receipts();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/process_receipt_approval/")) {
-		process_receipt_approval();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/reviewed_receipts/")) {
-		reviewed_receipts();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/extract_data/")) {
-		extract_data();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/do_extract_data/")) {
-		do_extract_data();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/get_image/")) {
-		get_image();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/delete_image/")) {
-		delete_image();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/env/")) {
-		env();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/prefs/fmap/")) {
-		prefs_fmap();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/prefs/edit_user/")) {
-		prefs_edit_user();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/prefs/")) {
-		prefs();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/admin/list_users/")) {
-		admin_list_users();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/admin/add_user/")) {
-		admin_add_user();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/admin/edit_user/")) {
-		admin_edit_user();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/admin/user_stats/")) {
-		admin_user_stats();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/admin/stats/")) {
-		admin_stats();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/admin/pending_activations/")) {
-		admin_pending_activations();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/admin/")) {
-		admin();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/stats/")) {
-		stats();
-		goto out;
-	}
-
-	if (match_uri(request_uri, "/logout/")) {
-		logout();
-		goto out;
-	}
+	uri_map("/receipts/", receipts);
+	uri_map("/process_receipt/", process_receipt);
+	uri_map("/tagged_receipts/", tagged_receipts);
+	uri_map("/receipt_info/", receipt_info);
+	uri_map("/approve_receipts/", approve_receipts);
+	uri_map("/process_receipt_approval/", process_receipt_approval);
+	uri_map("/reviewed_receipts/", reviewed_receipts);
+	uri_map("/extract_data/", extract_data);
+	uri_map("/do_extract_data/", do_extract_data);
+	uri_map("/get_image/", get_image);
+	uri_map("/delete_image/", delete_image);
+	uri_map("/prefs/fmap/", prefs_fmap);
+	uri_map("/prefs/edit_user/", prefs_edit_user);
+	uri_map("/prefs/", prefs);
+	uri_map("/admin/list_users/", admin_list_users);
+	uri_map("/admin/add_user/", admin_add_user);
+	uri_map("/admin/edit_user/", admin_edit_user);
+	uri_map("/admin/user_stats/", admin_user_stats);
+	uri_map("/admin/stats/", admin_stats);
+	uri_map("/admin/pending_activations/", admin_pending_activations);
+	uri_map("/admin/", admin);
+	uri_map("/stats/", stats);
+	uri_map("/logout/", logout);
+	uri_map("/print_env/", print_env);
 
 	/* Default location */
 	fcgx_p("Location: /login/\r\n\r\n");
