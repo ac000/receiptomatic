@@ -22,6 +22,7 @@
 #include <signal.h>
 #include <limits.h>
 #include <sys/sysinfo.h>
+#include <time.h>
 
 #include <fcgiapp.h>
 
