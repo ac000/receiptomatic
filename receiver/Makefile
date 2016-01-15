@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -std=c99 -O2 -D_FILE_OFFSET_BITS=64
-LIBS=`pkg-config --libs gmime-2.0` `mysql_config --libs` `GraphicsMagick-config --ldflags --libs` -lmhash
-INCS=`pkg-config --cflags gmime-2.0` `mysql_config --cflags` `GraphicsMagick-config --cppflags`
+LIBS=-L../../libctemplate `pkg-config --libs gmime-2.6` `mysql_config --libs` `GraphicsMagick-config --ldflags --libs` -lmhash
+INCS=-I../../libctemplate `pkg-config --cflags gmime-2.6` `mysql_config --cflags` `GraphicsMagick-config --cppflags`
 
 receiptomatic: receiptomatic.c
 	$(CC) $(CFLAGS) -c ../www/get_config.c ${INCS}

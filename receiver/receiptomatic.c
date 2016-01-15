@@ -4,9 +4,13 @@
  * Copyright (C) 2011-2012	OpenTech Labs
  * 				Andrew Clayton <andrew@digital-domain.net>
  *
+ * 		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
  */
+
+#define _GNU_SOURCE 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,18 +32,18 @@
 
 #include <glib.h>
 
-#include <my_global.h>
 #include <mysql.h>
 
 #include "../www/receiptomatic_config.h"
 #include "../www/get_config.h"
-
 
 #define BUF_SIZE	4096
 #define SQL_MAX		8192
 
 #define IMG_MEDIUM	1
 #define IMG_SMALL	0
+
+#define TENANT_MAX	64
 
 /* dummy declarations for extern declarations in receiptomatic_config.h */
 char *log_dir;
@@ -54,7 +58,7 @@ unsigned int db_flags = 0;
 struct email_headers {
 	char *from;
 	char *to;
-} email_headers;
+};
 
 /*
  * Opens up a MySQL connection and returns the connection handle.
@@ -188,7 +192,7 @@ static void  get_tenant(const char *email_addr, char *tenant)
 	token = NULL;
 	token = strtok(token, ".");
 
-	snprintf(tenant, sizeof(tenant), "%s", token);
+	snprintf(tenant, TENANT_MAX, "%s", token);
 }
 
 /*
@@ -309,9 +313,10 @@ static void save_image(GMimeObject *part, const char *path,
 /*
  * Process a MIME part of the mail message
  */
-static void process_part(GMimeObject *part, struct email_headers *eh)
+static void process_part(GMimeObject *parent, GMimeObject *part,
+			 struct email_headers *eh)
 {
-	const GMimeContentType *content_type;
+	GMimeContentType *content_type;
 	char ymd[11];	/* YYYY/MM/DD */
 	char filename[NAME_MAX + 1];
 	char ext[5];
@@ -441,10 +446,10 @@ static void process_message(int dirfd, const char *filename)
 	GMimeMessage *message;
 	GMimeStream *stream;
 	GMimeParser *parser;
-	const InternetAddressList *recips;
+	InternetAddressList *recips;
 	InternetAddress *addr;
 	int fd;
-	struct email_headers *eh;
+	struct email_headers eh;
 
 	g_mime_init(0);
 
@@ -454,21 +459,18 @@ static void process_message(int dirfd, const char *filename)
 	message = g_mime_parser_construct_message(parser);
 	recips = g_mime_message_get_recipients(message,
 						GMIME_RECIPIENT_TYPE_TO);
-	addr = internet_address_list_get_address(recips);
+	addr = internet_address_list_get_address(recips, 0);
 	printf("From: %s\n", (char *)g_mime_message_get_sender(message));
 	printf("To: %s\n", internet_address_to_string(addr, FALSE));
 	printf("Subject: %s\n", (char *)g_mime_message_get_subject(message));
 
-	eh = malloc(sizeof(struct email_headers));
-	eh->from = (char *)g_mime_message_get_sender(message);
-	eh->to = internet_address_to_string(addr, FALSE);
-	g_mime_message_foreach_part(message, (GMimePartFunc)process_part,
-				(struct email_headers *)eh);
-	free(eh);
+	eh.from = (char *)g_mime_message_get_sender(message);
+	eh.to = internet_address_to_string(addr, FALSE);
+	g_mime_message_foreach(message, (GMimeObjectForeachFunc)process_part,
+				(struct email_headers *)&eh);
 
 	g_object_unref(stream);
 	g_object_unref(parser);
-	g_object_unref(message);
 
 	g_mime_shutdown();
 }
