@@ -4,9 +4,13 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
+ *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
  */
+
+#define _GNU_SOURCE 1
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,6 +20,7 @@
 #include <time.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 
 #include <fcgiapp.h>
 
@@ -233,7 +238,6 @@ static void add_multipart_avar(const char *name, const char *value,
 	char *idx;
 	static char lidx[128] = "\0";
 	char *string;
-	char *key;
 	static GHashTable *query_values = NULL;
 
 	if (finalize) {
@@ -256,12 +260,9 @@ static void add_multipart_avar(const char *name, const char *value,
 	token = NULL;
 
 	token = strtok(token, "=");
-	key = alloca(strlen(token));
-	memset(key, 0, strlen(token));
-	snprintf(key, sizeof(key), "%s", token);
 
-	d_fprintf(debug_log, "Adding key: %s with value: %s\n", key, value);
-	g_hash_table_replace(query_values, g_strdup(key), g_strdup(value));
+	d_fprintf(debug_log, "Adding key: %s with value: %s\n", token, value);
+	g_hash_table_replace(query_values, g_strdup(token), g_strdup(value));
 }
 
 /*

@@ -11,15 +11,6 @@
 #ifndef _COMMON_H_
 #define _COMMON_H_
 
-/*
- * Lets not pretend we care about running this on anything
- * other than Linux.
- *
- * On Linux, MySQL defines _GNU_SOURCE 1 in my_global.h, but
- * lets do it explicitly here anyway.
- */
-#define _GNU_SOURCE 1
-
 #include <stdio.h>
 #include <string.h>
 #include <sys/types.h>

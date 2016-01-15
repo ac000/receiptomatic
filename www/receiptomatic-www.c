@@ -4,9 +4,13 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
+ *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
  */
+
+#define _GNU_SOURCE 1
 
 #include <stdio.h>
 #include <stdlib.h>
