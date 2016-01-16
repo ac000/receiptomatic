@@ -79,7 +79,7 @@ unsigned long long log_login(void)
 	sid = strtoull(row[0], NULL, 10) + 1;
 
 	/* Divide tv_nsec by 1000 to get a rough microseconds value */
-	sql_query("INSERT INTO utmp VALUES (%ld.%ld, %u, '%s', '%s', %d, "
+	sql_query("INSERT INTO utmp VALUES (%ld.%06ld, %u, '%s', '%s', %d, "
 			"'%s', %llu)",
 			login_at.tv_sec, login_at.tv_nsec / NS_USEC,
 			uid, username, ip_addr, env_vars.remote_port,
