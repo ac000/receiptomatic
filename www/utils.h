@@ -4,12 +4,26 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
+ *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
  */
 
 #ifndef _UTILS_H_
 #define _UTILS_H_
+
+#include <stdbool.h>
+
+#include <ctemplate.h>
+
+struct pagination {
+	int requested_page;	/* Page requested by client */
+	int page_no;		/* Page being returned to client */
+	int rows_per_page;	/* Rows to show on each page */
+	int nr_pages;		/* Number of pages across result set */
+	int from;		/* Index into the result set to start from */
+};
 
 /* Pagination macro's */
 #define IS_MULTI_PAGE(nr_pages)		(((nr_pages) > 1) ? 1 : 0)
@@ -34,9 +48,8 @@ void send_activation_mail(const char *name, const char *address,
 char *generate_password_hash(int hash_type, const char *password);
 void delete_user_session(unsigned int uid);
 bool user_already_exists(const char *username);
-void get_page_pagination(const char *req_page_no, int rpp, int *page_no,
-			 int *from);
-void do_pagination(TMPL_varlist *varlist, int page, int nr_pages);
+void get_page_pagination(struct pagination *pn);
+void do_pagination(TMPL_varlist *varlist, const struct pagination *pn);
 TMPL_varlist *do_zebra(TMPL_varlist *varlist, unsigned long row);
 TMPL_varlist *add_html_var(TMPL_varlist *varlist, const char *name,
 			   const char *value);

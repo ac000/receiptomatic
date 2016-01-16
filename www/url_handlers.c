@@ -301,29 +301,28 @@ static void admin(void)
  */
 static void admin_list_users(void)
 {
-	int rpp = 15;	/* Rows Per Page to display */
 	unsigned long nr_rows;
 	unsigned long i;
-	int nr_pages = 0;
-	int page = 1;
-	int from = 0;
 	MYSQL_RES *res;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
+	struct pagination pn = { .rows_per_page = 15, .requested_page = 1,
+				 .from = 0, .nr_pages = 0, .page_no = 1 };
 
 	if (!IS_ADMIN())
 		return;
 
 	ADD_HDR(ml);
 
-	if (qvars)
-		get_page_pagination(get_var(qvars, "page_no"), rpp, &page,
-									&from);
+	if (qvars) {
+		pn.requested_page = atoi(get_var(qvars, "page_no"));
+		get_page_pagination(&pn);
+	}
 
 	res = sql_query("SELECT (SELECT COUNT(*) FROM passwd) AS nrows, uid, "
 			"username, name, capabilities, enabled, activated "
-			"FROM passwd LIMIT %d, %d", from, rpp);
+			"FROM passwd LIMIT %d, %d", pn.from, pn.rows_per_page);
 	nr_rows = mysql_num_rows(res);
 	for (i = 0; i < nr_rows; i++) {
 		char caps[33] = "\0";
@@ -332,8 +331,8 @@ static void admin_list_users(void)
 		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
-		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
-								(float)rpp);
+		pn.nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+			(float)pn.rows_per_page);
 
 		vl = do_zebra(vl, i);
 		vl = add_html_var(vl, "uid", get_var(db_row, "uid"));
@@ -373,7 +372,7 @@ static void admin_list_users(void)
 		free_vars(db_row);
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
-	do_pagination(ml, page, nr_pages);
+	do_pagination(ml, &pn);
 
 	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/admin_list_users.tmpl", ml, fmtlist);
@@ -690,16 +689,14 @@ out:
  */
 static void admin_pending_activations(void)
 {
-	int rpp = 15;	/* Rows Per Page to display */
 	unsigned long nr_rows;
 	unsigned long i;
-	int nr_pages = 0;
-	int page = 1;
-	int from = 0;
 	MYSQL_RES *res;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
+	struct pagination pn = { .rows_per_page = 15, .requested_page = 1,
+				 .from = 0, .nr_pages = 0, .page_no = 1 };
 
 	if (!IS_ADMIN())
 		return;
@@ -709,9 +706,10 @@ static void admin_pending_activations(void)
 
 	ADD_HDR(ml);
 
-	if (qvars)
-		get_page_pagination(get_var(qvars, "page_no"), rpp, &page,
-				&from);
+	if (qvars) {
+		pn.requested_page = atoi(get_var(qvars, "page_no"));
+		get_page_pagination(&pn);
+	}
 
 	res = sql_query("SELECT (SELECT COUNT(*) FROM activations INNER JOIN "
 			"passwd ON (activations.user = passwd.username)) AS "
@@ -719,8 +717,7 @@ static void admin_pending_activations(void)
 			"activations.expires, activations.akey FROM "
 			"activations INNER JOIN passwd ON "
 			"(activations.user = passwd.username) LIMIT "
-			"%d, %d", from, rpp);
-
+			"%d, %d", pn.from, pn.rows_per_page);
 	nr_rows = mysql_num_rows(res);
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
@@ -740,8 +737,8 @@ static void admin_pending_activations(void)
 			break;
 		}
 
-		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
-				(float)rpp);
+		pn.nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+				(float)pn.rows_per_page);
 
 		vl = do_zebra(vl, i);
 		vl = add_html_var(vl, "name", get_var(db_row, "name"));
@@ -762,7 +759,7 @@ static void admin_pending_activations(void)
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 	add_csrf_token(ml);
-	do_pagination(ml, page, nr_pages);
+	do_pagination(ml, &pn);
 
 	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
 	send_template("templates/admin_pending_activations.tmpl", ml, fmtlist);
@@ -1320,12 +1317,12 @@ static void approve_receipts(void)
 	MYSQL_RES *res;
 	unsigned long i;
 	unsigned long nr_rows;
-	int from = 0;
-	int page = 1;
-	int nr_pages = 0;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
+	struct pagination pn = { .rows_per_page = APPROVER_ROWS,
+				 .requested_page = 1, .from = 0, .nr_pages = 0,
+				 .page_no = 1 };
 
 	if (!IS_APPROVER())
 		return;
@@ -1376,16 +1373,17 @@ static void approve_receipts(void)
 		return;
 	}
 
-	if (qvars)
-		get_page_pagination(get_var(qvars, "page_no"), APPROVER_ROWS,
-							&page, &from);
-
 	memset(assql, 0, sizeof(assql));
 	/* If the user isn't APPROVER_SELF, don't show them their receipts */
 	if (!(user_session.capabilities & APPROVER_SELF))
 		sprintf(assql, "AND images.uid != %u", user_session.uid);
 	else
 		assql[0] = '\0';
+
+	if (qvars) {
+		pn.requested_page = atoi(get_var(qvars, "page_no"));
+		get_page_pagination(&pn);
+	}
 
 	res = sql_query("SELECT (SELECT COUNT(*) FROM images INNER JOIN "
 			"tags ON (images.id = tags.id) WHERE "
@@ -1401,7 +1399,7 @@ static void approve_receipts(void)
 			"tags.receipt_date, tags.reason, tags.payment_method "
 			"FROM images INNER JOIN tags ON (images.id = tags.id) "
 			"WHERE images.approved = 1 AND (%s) %s LIMIT %d, %d",
-			pmsql, assql, pmsql, assql, from, APPROVER_ROWS);
+			pmsql, assql, pmsql, assql, pn.from, APPROVER_ROWS);
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
 		ml = add_html_var(ml, "receipts", "no");
@@ -1424,8 +1422,8 @@ static void approve_receipts(void)
 
 		db_row = get_dbrow(res);
 
-		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
-							(float)APPROVER_ROWS);
+		pn.nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+				(float)pn.rows_per_page);
 
 		vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
 		vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
@@ -1516,7 +1514,7 @@ static void approve_receipts(void)
 	}
 	free_fields();
 	ml = TMPL_add_loop(ml, "table", loop);
-	do_pagination(ml, page, nr_pages);
+	do_pagination(ml, &pn);
 	/* Only use csrf if there is receipts to process */
 	add_csrf_token(ml);
 
@@ -1540,22 +1538,23 @@ static void reviewed_receipts(void)
 	unsigned long nr_rows;
 	unsigned long i;
 	int c = 1;		/* column number */
-	int from = 0;
-	int page = 1;
-	int nr_pages = 0;
 	MYSQL_RES *res;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
+	struct pagination pn = { .rows_per_page = GRID_SIZE,
+				 .requested_page = 1, .from = 0, .nr_pages = 0,
+				 .page_no = 1 };
 
 	if (!IS_APPROVER())
 		return;
 
 	ADD_HDR(ml);
 
-	if (qvars)
-		get_page_pagination(get_var(qvars, "page_no"), GRID_SIZE,
-							&page, &from);
+	if (qvars) {
+		pn.requested_page = atoi(get_var(qvars, "page_no"));
+		get_page_pagination(&pn);
+	}
 
 	res = sql_query("SELECT (SELECT COUNT(*) FROM reviewed INNER JOIN "
 			"images ON (reviewed.id = images.id)) AS nrows, "
@@ -1566,7 +1565,7 @@ static void reviewed_receipts(void)
 			"(reviewed.id = images.id) INNER JOIN passwd ON "
 			"(images.uid = passwd.uid) ORDER BY "
 			"reviewed.timestamp DESC LIMIT %d, %d",
-			from, GRID_SIZE);
+			pn.from, GRID_SIZE);
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
 		ml = add_html_var(ml, "receipts", "no");
@@ -1584,8 +1583,8 @@ static void reviewed_receipts(void)
 
 		db_row = get_dbrow(res);
 
-		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
-							(float)GRID_SIZE);
+		pn.nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+				(float)pn.rows_per_page);
 
 		vl = add_html_var(vl, "id", get_var(db_row, "id"));
 		vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
@@ -1621,7 +1620,7 @@ static void reviewed_receipts(void)
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 	free_fields();
-	do_pagination(ml, page, nr_pages);
+	do_pagination(ml, &pn);
 
 out:
 	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
@@ -1815,19 +1814,20 @@ static void tagged_receipts(void)
 	unsigned long nr_rows;
 	unsigned long i;
 	int c = 1;		/* column number */
-	int from = 0;
-	int page = 1;
-	int nr_pages = 0;
 	MYSQL_RES *res;
 	TMPL_varlist *ml = NULL;
 	TMPL_loop *loop = NULL;
 	TMPL_fmtlist *fmtlist;
-
-	if (qvars)
-		get_page_pagination(get_var(qvars, "page_no"), GRID_SIZE,
-							&page, &from);
+	struct pagination pn = { .rows_per_page = GRID_SIZE,
+				 .requested_page = 1, .from = 0, .nr_pages = 0,
+				 .page_no = 1 };
 
 	ADD_HDR(ml);
+
+	if (qvars) {
+		pn.requested_page = atoi(get_var(qvars, "page_no"));
+		get_page_pagination(&pn);
+	}
 
 	res = sql_query("SELECT (SELECT COUNT(*) FROM tags INNER JOIN images "
 			"ON (tags.id = images.id) WHERE images.tagged = 1 AND "
@@ -1838,7 +1838,8 @@ static void tagged_receipts(void)
 			"LEFT JOIN reviewed ON (tags.id = reviewed.id) WHERE "
 			"images.tagged = 1 AND images.uid = %u ORDER BY "
 			"tags.timestamp DESC LIMIT %d, %d",
-			user_session.uid, user_session.uid, from, GRID_SIZE);
+			user_session.uid, user_session.uid, pn.from,
+			GRID_SIZE);
 	nr_rows = mysql_num_rows(res);
 	if (nr_rows == 0) {
 		ml = add_html_var(ml, "receipts", "no");
@@ -1856,8 +1857,8 @@ static void tagged_receipts(void)
 
 		db_row = get_dbrow(res);
 
-		nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
-							(float)GRID_SIZE);
+		pn.nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
+				(float)pn.rows_per_page);
 
 		vl = add_html_var(vl, "id", get_var(db_row, "id"));
 		vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
@@ -1901,7 +1902,7 @@ static void tagged_receipts(void)
 	}
 	ml = TMPL_add_loop(ml, "table", loop);
 	free_fields();
-	do_pagination(ml, page, nr_pages);
+	do_pagination(ml, &pn);
 
 out:
 	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
