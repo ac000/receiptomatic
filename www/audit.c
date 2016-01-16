@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <pthread.h>
 
 #include <ctemplate.h>
 
@@ -138,6 +139,45 @@ out3:
 	return login_ok;
 }
 
+struct utmp_info {
+	char ip[INET6_ADDRSTRLEN];	/* IP address of client */
+	unsigned long long sid;		/* Session ID of client */
+};
+
+/*
+ * Thread to lookup the hostname of the client IP address and update
+ * the umtp table at login.
+ *
+ * This is done in a separate thread as it can sometimes take a number
+ * of seconds to complete and there's no need to hold up the login for it.
+ */
+static void *log_utmp_host(void *arg)
+{
+	char *hostname;
+	char host[NI_MAXHOST] = "\0";
+	struct addrinfo hints;
+	struct addrinfo *res;
+	struct utmp_info *ui = (struct utmp_info *)arg;
+	MYSQL *db;
+
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_family = AF_UNSPEC;
+	getaddrinfo(ui->ip, NULL, &hints, &res);
+	getnameinfo(res->ai_addr, res->ai_addrlen, host, NI_MAXHOST, NULL, 0,
+			0);
+
+	db = db_conn();
+	hostname = make_mysql_safe_string(host);
+	sql_query("UPDATE utmp SET hostname = '%s' WHERE sid = %llu",
+			hostname, ui->sid);
+	mysql_close(db);
+	free(hostname);
+	free(ui);
+	freeaddrinfo(res);
+
+	return NULL;
+}
+
 /*
  * Add a login entry to the utmp table.
  *
@@ -147,32 +187,24 @@ out3:
 unsigned long long log_login(void)
 {
 	char *username;
-	char *hostname;
 	char *ip_addr;
-	char host[NI_MAXHOST] = "\0";
-	struct addrinfo hints;
-	struct addrinfo *ares;
 	struct timespec login_at;
+	struct utmp_info *ui;
 	unsigned long long sid;
 	unsigned int uid;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
+	pthread_t tid;
+	pthread_attr_t attr;
 
 	clock_gettime(CLOCK_REALTIME, &login_at);
 
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_UNSPEC;
-	getaddrinfo(env_vars.remote_addr, NULL, &hints, &ares);
-	getnameinfo(ares->ai_addr, ares->ai_addrlen, host, NI_MAXHOST, NULL, 0,
-			0);
-
 	username = make_mysql_safe_string(get_var(qvars, "username"));
-	hostname = make_mysql_safe_string(host);
 	ip_addr = make_mysql_safe_string(env_vars.remote_addr);
 	res = sql_query("SELECT uid FROM passwd WHERE username = '%s'",
 			username);
 	row = mysql_fetch_row(res);
-	uid = atoi(row[0]);
+	uid = strtoul(row[0], NULL, 10);
 	mysql_free_result(res);
 
 	/* We need to be sure a new sid isn't inserted here */
@@ -184,17 +216,26 @@ unsigned long long log_login(void)
 
 	/* Divide tv_nsec by 1000 to get a rough microseconds value */
 	sql_query("INSERT INTO utmp VALUES (%ld.%06ld, %u, '%s', '%s', %d, "
-			"'%s', %llu)",
+			"'', %llu)",
 			login_at.tv_sec, login_at.tv_nsec / NS_USEC,
-			uid, username, ip_addr, env_vars.remote_port,
-			hostname, sid);
+			uid, username, ip_addr, env_vars.remote_port, sid);
 	sql_query("UNLOCK TABLES");
 
 	mysql_free_result(res);
 	free(username);
-	free(hostname);
 	free(ip_addr);
-	freeaddrinfo(ares);
+
+	/*
+	 * ui is free'd in the log_utmp_host thread as it will need to
+	 * exist beyond the life of this function.
+	 */
+	ui = malloc(sizeof(struct utmp_info));
+	snprintf(ui->ip, sizeof(ui->ip), "%s", env_vars.remote_addr);
+	ui->sid = sid;
+	pthread_attr_init(&attr);
+	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+	pthread_create(&tid, &attr, log_utmp_host, (void *)ui);
+	pthread_attr_destroy(&attr);
 
 	return sid;
 }

@@ -1,7 +1,7 @@
 CC=gcc
 CFLAGS=-Wall -std=c99 -O2 -g -Wp,-D_FORTIFY_SOURCE=2 -D_FILE_OFFSET_BITS=64 -D_HAVE_FCGX -fexceptions -fstack-protector --param=ssp-buffer-size=4 -fPIE
 LDFLAGS=-Wl,-z,now -pie
-LIBS=-L../../libctemplate `pkg-config --libs glib-2.0` `pkg-config --libs gmime-2.6` `mysql_config --libs` -lm -lrt -lcrypt -lfcgi -lmhash -ltokyocabinet -lmagic -lctemplate-fcgx
+LIBS=-L../../libctemplate `pkg-config --libs glib-2.0` `pkg-config --libs gmime-2.6` `mysql_config --libs` -lm -lrt -lcrypt -lfcgi -lmhash -ltokyocabinet -lmagic -lctemplate-fcgx -pthread
 INCS=-I../../libctemplate `pkg-config --cflags glib-2.0` `pkg-config --cflags gmime-2.6` `mysql_config --cflags`
 
 objects = receiptomatic-www.o get_config.o url_handlers.o url_helpers.o data_extraction.o utils.o db.o audit.o
