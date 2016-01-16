@@ -1,9 +1,7 @@
-.*
+*.swp
 *~
 *.o
 config/receiptomatic.cfg
 receiver/receiptomatic
 tools/passcrypt
 www/receiptomatic-www
-
-!.gitignore
