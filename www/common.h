@@ -4,6 +4,8 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
+ *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
  */
@@ -101,24 +103,25 @@
 
 /*
  * Wrapper around fprintf(). It will prepend the text passed it with
- * seconds.microseconds pid function:
+ * [datestamp] pid function:
  *
  * e.g if you call it like: d_fprintf(debug, "This is a test\n");
  * You will get:
  *
- * 1304600723.663486 1843 main: This is a test
+ * [2016-01-16 17:31:40 +0000] 1843 main: This is a test
  */
 #define d_fprintf(stream, fmt, ...) \
 	do { \
 		if (stream == debug_log && !DEBUG_LEVEL) \
 			break; \
-		struct timespec tp; \
+		time_t secs = time(NULL); \
+		struct tm *tm = localtime(&secs); \
+		char ts_buf[32]; \
 		char tenant[TENANT_MAX + 1]; \
 		get_tenant(env_vars.host, tenant); \
-		clock_gettime(CLOCK_REALTIME, &tp); \
-		fprintf(stream, "%ld.%06ld %d %s %s: " fmt, tp.tv_sec, \
-				tp.tv_nsec / NS_USEC, getpid(), tenant, \
-				__func__, ##__VA_ARGS__); \
+		strftime(ts_buf, sizeof(ts_buf), "%F %T %z", tm); \
+		fprintf(stream, "[%s] %d %s %s: " fmt, ts_buf, getpid(), \
+				tenant, __func__, ##__VA_ARGS__); \
 		fflush(stream); \
 	} while (0)
 
