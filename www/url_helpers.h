@@ -14,16 +14,11 @@
 #define _URL_HELPERS_H_
 
 char *username_to_name(const char *username);
-bool is_logged_in(void);
-int check_auth(void);
 bool is_users_receipt(const char *id);
 bool tag_info_allowed(const char *image_id);
 bool image_access_allowed(const char *path);
-void set_user_session(void);
 void add_csrf_token(TMPL_varlist *varlist);
 bool valid_csrf_token(void);
-void display_last_login(TMPL_varlist *varlist);
-void create_session(unsigned long long sid);
 int check_amounts(double gross, double net, double vat, double vr);
 void set_default_field_names(void);
 void set_custom_field_names(void);
