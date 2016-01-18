@@ -1,0 +1,30 @@
+Optional per user IP Access Control
+-----------------------------------
+
+Users can enable IP ACL's on their account. This is done by setting the
+'enabled' field of the ipacl table to 1.
+
+The entries should be stored as space separated values in the 'list' field
+of the ipacl table.
+
+Entries can be either IPv4 or IPv6 IP addresses or networks. e.g
+
+    192.168.1.10
+    2001:db8::/32
+
+entries can also be commented out by pre-pending a '#' to the entry e.g
+
+    #10.1.2.3
+
+When storing the entries, SQL such as
+
+    REPLACE INTO ipacl (uid, enabled, list) VALUES (%u, %d, \
+	REPLACE('%s', '\r\n', ' '))
+
+can be used and similarly when extracting the list
+
+    SELECT username, name, ipacl.enabled, REPLACE(ipacl.list, ' ', '\r\n') AS \
+	list FROM passwd, ipacl WHERE passwd.uid = %u AND \
+	ipacl.uid = passwd.uid
+
+The ACL check is performed transparently via the check_auth() function.

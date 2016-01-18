@@ -68,6 +68,8 @@ static void login(void)
 		vl = add_html_var(vl, "logged_in", "no");
 	if (ret == -2)
 		vl = add_html_var(vl, "enabled", "no");
+	if (ret == -3)
+		vl = add_html_var(vl, "ipacl", "denied");
 	vl = add_html_var(vl, "rip", env_vars.remote_addr);
 
 	send_template("templates/login.tmpl", vl, NULL);

@@ -19,6 +19,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <pthread.h>
 
@@ -30,17 +32,162 @@
 #include "utils.h"
 
 /*
+ * Check if the given IPv6 address belongs to the specified network.
+ * Based on the tcp wrappers IPv6 code from
+ * Casper Dik (Casper.Dik@Holland.Sun.COM)
+ *
+ * Returns:
+ * 	 0 for a match
+ * 	-1 for no match
+ */
+static int match_ipv6(const char *ip, const char *network,
+		      unsigned short prefixlen)
+{
+	unsigned char ip6b[sizeof(struct in6_addr)];
+	unsigned char *p = ip6b;
+	char ip6s[INET6_ADDRSTRLEN];
+
+	inet_pton(AF_INET6, ip, ip6b);
+
+	p += prefixlen / 8;
+	prefixlen %= 8;
+
+	if (prefixlen !=  0)
+		*p &= 0xff << (8 - prefixlen);
+
+	while (p < ip6b + sizeof(ip6b))
+		*p++ = 0;
+
+	inet_ntop(AF_INET6, ip6b, ip6s, INET6_ADDRSTRLEN);
+	if (strcmp(network, ip6s) == 0)
+		return 0;
+	else
+		return -1;
+}
+
+/*
+ * Check if the given IPv4 address belongs to the specified network.
+ *
+ * Returns:
+ * 	0 for a match
+ * 	-1 for no match
+ */
+static int match_ipv4(const char *ip, const char *network, unsigned short cidr)
+{
+	struct in_addr addr;
+	uint32_t n_addr;
+
+	inet_aton(ip, &addr);
+	n_addr = addr.s_addr & htonl(~0 << (32 - cidr));
+	addr.s_addr = n_addr;
+
+	if (strcmp(network, inet_ntoa(addr)) == 0)
+		return 0;
+	else
+		return -1;
+}
+
+/*
+ * Checks if a login is allowed from the current IP address of the user
+ * against their IP ACL, if they have IP access control enabled.
+ *
+ * Returns:
+ * 	 0 Continue with auth check
+ * 	-1 Deny login
+ */
+static int check_ip_acl(void)
+{
+	int ret = -1;
+	int entries = 0;
+	int skipped = 0;
+	char *username;
+	char *token;
+	char *acl;
+	const char *rip = env_vars.remote_addr;
+	MYSQL_RES *res;
+	MYSQL_ROW row;
+
+	username = make_mysql_safe_string(get_var(qvars, "username"));
+	res = sql_query("SELECT passwd.uid, ipacl.enabled, ipacl.list FROM "
+			"passwd, ipacl WHERE passwd.username = '%s' AND "
+			"ipacl.uid = passwd.uid", username);
+	if (mysql_num_rows(res) < 1) {
+		ret = 0;
+		goto out;
+	}
+	row = mysql_fetch_row(res);
+	if (atoi(row[1]) == 0) {
+		ret = 0;
+		goto out;
+	}
+
+	acl = strdup(row[2]);
+	token = strtok(acl, " ");
+	while (token) {
+		entries++;
+		if (token[0] == '#') {
+			/* Entry commented out */
+			skipped++;
+			goto skip;
+		}
+		if (!strchr(token, '/')) {
+			if (strcmp(token, rip) == 0) {
+				ret = 0;
+				break;
+			}
+		} else {
+			int err;
+			gchar **ipp = g_strsplit(token, "/", 0);
+
+			if (strchr(rip, ':'))
+				err = match_ipv6(rip, ipp[0], atoi(ipp[1]));
+			else
+				err = match_ipv4(rip, ipp[0], atoi(ipp[1]));
+
+			g_strfreev(ipp);
+			if (err == 0) {
+				ret = 0;
+				break;
+			}
+		}
+skip:
+		token = strtok(NULL, " ");
+	}
+	free(acl);
+
+	/* If all entries are commented out, carry on with auth check */
+	if (skipped == entries)
+		ret = 0;
+out:
+	mysql_free_result(res);
+	free(username);
+
+	return ret;
+}
+
+/*
  * Authenticates the user. Takes their password, crypt()'s it using
  * the salt from their password entry and compares the result with
  * their stored password.
+ *
+ * Returns:
+ * 	 0 for successful authentication
+ * 	-1 for authentication failed
+ * 	-2 for account disabled
+ * 	-3 for denied by IP ACL
  */
 int check_auth(void)
 {
 	int ret = -1;
+	int err;
 	char *username;
 	char *enc_passwd;
 	MYSQL_RES *res;
 	MYSQL_ROW row;
+
+	err = check_ip_acl();
+	if (err == -1)
+		return -3;
 
 	username = make_mysql_safe_string(get_var(qvars, "username"));
 	res = sql_query("SELECT password, enabled FROM passwd WHERE username "

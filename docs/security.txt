@@ -6,6 +6,7 @@ The application uses a number of techniques to prevent malevolent activity.
 These include:
 
     - Login Authentication
+    - Optional per user IP address access control
     - Request origin checking
     - User privilege checks (user vs approver vs admin)
     - User vs User checks, users can't access other users data
@@ -24,6 +25,13 @@ hashing method.
 
 Upon successful login, a session cookie is created in the users browser, this
 is what the application uses to track which user is which.
+
+
+IP address access control
+-------------------------
+
+Users have the ability to limit logins from specified IPs & Networks.
+See docs/ip-acl.txt for details.
 
 
 Request origin checking

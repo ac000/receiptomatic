@@ -87,6 +87,19 @@ CREATE TABLE IF NOT EXISTS `images` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `ipacl`
+--
+
+CREATE TABLE IF NOT EXISTS `ipacl` (
+  `uid` int(10) unsigned NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT '0',
+  `list` varchar(255) NOT NULL,
+  UNIQUE KEY `uid` (`uid`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `passwd`
 --
 
