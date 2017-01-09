@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -33,36 +34,36 @@
 
 /*
  * Check if the given IPv6 address belongs to the specified network.
- * Based on the tcp wrappers IPv6 code from
- * Casper Dik (Casper.Dik@Holland.Sun.COM)
+ *
+ * Based on code from nginx.
  *
  * Returns:
  * 	 0 for a match
  * 	-1 for no match
  */
-static int match_ipv6(const char *ip, const char *network,
-		      unsigned short prefixlen)
+static int match_ipv6(const char *ip, const char *network, uint8_t prefixlen)
 {
-	unsigned char ip6b[sizeof(struct in6_addr)];
-	unsigned char *p = ip6b;
-	char ip6s[INET6_ADDRSTRLEN];
+	int i;
+	unsigned char netb[sizeof(struct in6_addr)];
+	unsigned char maskb[sizeof(struct in6_addr)];
+	unsigned char ipb[sizeof(struct in6_addr)];
 
-	inet_pton(AF_INET6, ip, ip6b);
+	inet_pton(AF_INET6, network, netb);
+	inet_pton(AF_INET6, ip, ipb);
 
-	p += prefixlen / 8;
-	prefixlen %= 8;
+	/* Create a mask based on prefixlen */
+	for (i = 0; i < 16; i++) {
+		uint8_t s = (prefixlen > 8) ? 8 : prefixlen;
 
-	if (prefixlen !=  0)
-		*p &= 0xff << (8 - prefixlen);
+		prefixlen -= s;
+		maskb[i] = (0xffu << (8 - s));
+	}
 
-	while (p < ip6b + sizeof(ip6b))
-		*p++ = 0;
+	for (i = 0; i < 16; i++)
+		if ((ipb[i] & maskb[i]) != netb[i])
+			return -1;
 
-	inet_ntop(AF_INET6, ip6b, ip6s, INET6_ADDRSTRLEN);
-	if (strcmp(network, ip6s) == 0)
-		return 0;
-	else
-		return -1;
+	return 0;
 }
 
 /*
