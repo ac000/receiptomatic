@@ -38,11 +38,12 @@ For receiptomatic-www
      glib2{-devel}-2.28.8
      gmime{-devel}-2.6.20
      mhash{-devel}-0.9.9
-     file-4.17-15
+     file{-devel}-4.17-15
      mysql{-devel}-5.0.77
      tokyocabinet{-devel}-1.4.9
 
-and the otl branch of libctemplate from
+you will also want the spawn-fcgi package whose use is described further
+below and the otl branch of libctemplate from
 
      git://github.com/opentechlabs/libctemplate.git
 
@@ -245,7 +246,7 @@ Run
     The application itself is started with the spawn-fcgi command, something
     like
 
-    $ export LD_LIBRARY_PATH=/path/to/libctemplate spawn-fcgi -a 127.0.0.1 -p 9191 -P /tmp/receiptomatic-www.pid -- /path/to/receiptomatic-www /usr/local/etc/receiptomatic.cfg
+    $ LD_LIBRARY_PATH=/path/to/libctemplate spawn-fcgi -a 127.0.0.1 -p 9191 -P /tmp/receiptomatic-www.pid -- /path/to/receiptomatic-www /usr/local/etc/receiptomatic.cfg
 
     The 9191 is the port that the application is listening on, the one that is
     specified in nginx.conf
