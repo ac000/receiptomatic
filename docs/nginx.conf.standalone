@@ -1,13 +1,8 @@
-server {
-        listen          80;
-        server_name     localhost;
-
         location ^~ /static/ {
-                root    /var/www/html;
+                root    /var/www/receiptomatic;
         }
 
         location / {
                 include fastcgi_params;
                 fastcgi_pass 127.0.0.1:9191;
         }
-}
