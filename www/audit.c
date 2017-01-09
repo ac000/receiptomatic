@@ -293,7 +293,7 @@ struct utmp_info {
 
 /*
  * Thread to lookup the hostname of the client IP address and update
- * the umtp table at login.
+ * the utmp table at login.
  *
  * This is done in a separate thread as it can sometimes take a number
  * of seconds to complete and there's no need to hold up the login for it.
