@@ -141,11 +141,28 @@
  * Given a string it will return a string, that must be free'd, that is safe
  * to pass to mysql.
  */
+static inline char *__make_mysql_safe_string(MYSQL *dbconn, const char *string)
+{
+	char *safe = malloc(strlen(string)*2 + 1);
+
+	mysql_real_escape_string(dbconn, safe, string, strlen(string));
+	return safe;
+}
+
+/*
+ * Warppaer around __make_mysql_safe_string() using the global db connection.
+ */
 static inline char *make_mysql_safe_string(const char *string)
 {
-	char *safe = malloc(strlen(string) * 2 + 1);
-	mysql_real_escape_string(conn, safe, string, strlen(string));
-	return safe;
+	return __make_mysql_safe_string(conn, string);
+}
+
+/*
+ * Warppaer around __make_mysql_safe_string() using the local db connection.
+ */
+static inline char *make_mysql_safe_stringl(MYSQL *dbconn, const char *string)
+{
+	return __make_mysql_safe_string(dbconn, string);
 }
 
 /*
