@@ -394,7 +394,7 @@ static void process_part(GMimeObject *parent, GMimeObject *part,
 	dir = opendir(path);
 	if (!dir) {
 		g_mkdir_with_parents(path, 0777);
-		strcpy(filename, "000-receipt_image");
+		strcpy(filename, "000");
 		strcat(filename, ext);
 	} else {
 		struct dirent64 *entry;
@@ -410,7 +410,7 @@ static void process_part(GMimeObject *parent, GMimeObject *part,
 		}
 		closedir(dir);
 
-		sprintf(filename, "%03d-receipt_image%s", ne, ext);
+		sprintf(filename, "%03d%s", ne, ext);
 	}
 
 	printf("Creating file: %s/%s\n", path, filename);
