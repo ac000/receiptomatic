@@ -419,8 +419,8 @@ static void process_part(GMimeObject *parent, GMimeObject *part,
 		while ((entry = readdir64(dir)) != NULL) {
 			/* skip . .. medium & small entries */
 			if (entry->d_name[0] == '.' ||
-						entry->d_name[0] == 'm' ||
-						entry->d_name[0] == 's')
+			    entry->d_name[0] == 'm' ||
+			    entry->d_name[0] == 's')
 				continue;
 			ne++;
 		}
