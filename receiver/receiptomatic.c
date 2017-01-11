@@ -178,7 +178,7 @@ static char *get_email_addr(const char *addr)
  *
  * It will return the tenant part.
  */
-static void  get_tenant(const char *email_addr, char *tenant)
+static void get_tenant(const char *email_addr, char *tenant)
 {
 	char *email;
 	char *token;
