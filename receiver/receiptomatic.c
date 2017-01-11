@@ -251,12 +251,16 @@ static void resize_image(const char *path, const char *filename, int size)
 		exit(EXIT_FAILURE);
 
 	if (size == IMG_SMALL) {
-		mkdir("small", 0777);
+		err = mkdir("small", 0777);
+		if (err)
+			perror("mkdir: small/");
 		snprintf(output_file, PATH_MAX, "small/%s", filename);
 		x = 180;
 		y = 180;
 	} else if (size == IMG_MEDIUM) {
-		mkdir("medium", 0777);
+		err = mkdir("medium", 0777);
+		if (err)
+			perror("mkdir: medium/");
 		snprintf(output_file, PATH_MAX, "medium/%s", filename);
 		x = 300;
 		y = 300;
@@ -288,7 +292,7 @@ out:
  * Save the attached image to the filesystem
  */
 static void save_image(GMimeObject *part, const char *path,
-							const char *filename)
+		       const char *filename)
 {
 	int fd;
 	int dirfd;
@@ -297,6 +301,10 @@ static void save_image(GMimeObject *part, const char *path,
 
 	dirfd = open(path, O_RDONLY);
 	fd = openat(dirfd, filename, O_CREAT | O_WRONLY | O_TRUNC, 0666);
+	if (fd == -1) {
+		perror("openat");
+		goto out;
+	}
 
 	stream = g_mime_stream_fs_new(fd);
 	content = g_mime_part_get_content_object((GMimePart *)part);
@@ -306,6 +314,7 @@ static void save_image(GMimeObject *part, const char *path,
 	g_object_unref(content);
         g_object_unref(stream);
 
+out:
 	close(dirfd);
 }
 
@@ -393,7 +402,14 @@ static void process_part(GMimeObject *parent, GMimeObject *part,
 
 	dir = opendir(path);
 	if (!dir) {
-		g_mkdir_with_parents(path, 0777);
+		int err;
+
+		err = g_mkdir_with_parents(path, 0777);
+		if (err) {
+			perror("g_mkdir_with_parents");
+			goto out;
+		}
+
 		strcpy(filename, "000");
 		strcat(filename, ext);
 	} else {
