@@ -66,10 +66,9 @@ struct email_headers {
 static MYSQL *db_conn(void)
 {
 	MYSQL *conn;
-	MYSQL *ret;
 
 	conn = mysql_init(NULL);
-	ret = mysql_real_connect(conn, DB_HOST, DB_USER, DB_PASS, DB_NAME,
+	mysql_real_connect(conn, DB_HOST, DB_USER, DB_PASS, DB_NAME,
 			DB_PORT_NUM, DB_SOCKET_NAME, DB_FLAGS);
 
 	return conn;
