@@ -82,6 +82,57 @@ static int quark_from_string(const char *str)
 }
 
 /*
+ * Function comes from: http://www.geekhideout.com/urlcode.shtml
+ *
+ * Converts a hex character to its integer value
+ */
+static char from_hex(char ch)
+{
+	return isdigit(ch) ? ch - '0' : tolower(ch) - 'a' + 10;
+}
+
+/*
+ * Function comes from: http://www.geekhideout.com/urlcode.shtml
+ *
+ * Returns a url-decoded version of str
+ *
+ * Note that we don't use glibs g_uri_unescape_string() as it doesn't
+ * transform the '+' character back into a space.
+ *
+ * IMPORTANT: be sure to free() the returned string after use
+ */
+static char *url_decode(const char *str)
+{
+	char *buf;
+	char *pbuf;
+
+	buf = malloc(strlen(str) + 1);
+	if (!buf) {
+		perror("malloc");
+		_exit(EXIT_FAILURE);
+	}
+	pbuf = buf;
+
+	while (*str) {
+		if (*str == '%') {
+			if (str[1] && str[2]) {
+				*pbuf++ = from_hex(str[1]) << 4 |
+							from_hex(str[2]);
+				str += 2;
+			}
+		} else if (*str == '+') {
+			*pbuf++ = ' ';
+		} else {
+			*pbuf++ = *str;
+		}
+		str++;
+	}
+	*pbuf = '\0';
+
+	return buf;
+}
+
+/*
  * Given a hostname like host.example.com it returns just 'host'
  */
 char *get_tenant(const char *host, char *tenant)
@@ -308,7 +359,7 @@ static void add_avar(const char *qvar)
 	if (!ht) {
 		/* New array index, new hash table */
 		ht = g_hash_table_new_full(g_str_hash, g_str_equal, g_free,
-				g_free);
+				free);
 		new = true;
 	}
 
@@ -321,16 +372,14 @@ static void add_avar(const char *qvar)
 	token = NULL;
 	token = strtok(token, "=");
 	if (token)
-		value = g_uri_unescape_string(token, NULL);
+		value = url_decode(token);
 	else
-		value = g_strdup("");
+		value = strdup("");
 
 	d_fprintf(debug_log, "Adding key: %s with value: %s\n", key, value);
-	g_hash_table_replace(ht, g_strdup(key), g_strdup(value));
+	g_hash_table_replace(ht, g_strdup(key), value);
 	if (new)
 		avars = g_list_append(avars, ht);
-
-	g_free(value);
 }
 
 /*
@@ -346,7 +395,7 @@ static void add_var(const char *qvar)
 
 	if (!qvars)
 		qvars = g_hash_table_new_full(g_str_hash, g_str_equal,
-							g_free, g_free);
+				g_free, free);
 
 	string = strdupa(qvar);
 
@@ -356,13 +405,12 @@ static void add_var(const char *qvar)
 
 	token = strtok(token, "=");
 	if (token)
-		value = g_uri_unescape_string(token, NULL);
+		value = url_decode(token);
 	else
-		value = g_strdup("");
+		value = strdup("");
 
 	d_fprintf(debug_log, "Adding key: %s with value: %s\n", key, value);
-	g_hash_table_replace(qvars, g_strdup(key), g_strdup(value));
-	g_free(value);
+	g_hash_table_replace(qvars, g_strdup(key), value);
 }
 
 /*
