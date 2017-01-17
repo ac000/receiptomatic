@@ -26,7 +26,7 @@
 #include <mhash.h>
 
 /* HTML template library */
-#include <ctemplate.h>
+#include <flate.h>
 
 #include <glib.h>
 
@@ -211,15 +211,14 @@ static void generate_csrf_token(char *csrf_token)
 }
 
 /*
- * Given a template varlist, this will add a csrf token variable.
+ * Add a csrf token to a web page.
  */
-void add_csrf_token(TMPL_varlist *varlist)
+void add_csrf_token(Flate *f)
 {
 	char csrf_token[CSRF_LEN + 1];
 
 	generate_csrf_token(csrf_token);
-	varlist = TMPL_add_var(varlist, "csrf_token", csrf_token,
-							(char *)NULL);
+	lf_set_var(f, "csrf_token", csrf_token, NULL);
 }
 
 /*
@@ -813,12 +812,11 @@ void do_activate_user(const char *uid, const char *key, const char *password)
  * unsigned int, we need to be able to pass in -1, long long should cover
  * this and the max unsigned int value.
  */
-void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
+void gather_receipt_stats_for_user(long long uid, Flate *f)
 {
 	unsigned long i;
 	unsigned long nr_rows;
 	MYSQL_RES *res;
-	TMPL_loop *loop = NULL;
 
 	/* Total of approved receipts */
 	if (uid > -1)
@@ -838,16 +836,14 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 	nr_rows = mysql_num_rows(res);
 	for (i = 0; i < nr_rows; i++) {
 		GHashTable *db_row = NULL;
-		TMPL_varlist *ll = NULL;
 
 		db_row = get_dbrow(res);
-		ll = add_html_var(ll, "nr_rows", get_var(db_row, "nr_rows"));
-		ll = add_html_var(ll, "currency", get_var(db_row, "currency"));
-		ll = add_html_var(ll, "total", get_var(db_row, "gross_total"));
-		loop = TMPL_add_varlist(loop, ll);
+		lf_set_var(f, "nr_rows", get_var(db_row, "nr_rows"), NULL);
+		lf_set_var(f, "currency", get_var(db_row, "currency"), NULL);
+		lf_set_var(f, "total", get_var(db_row, "gross_total"), NULL);
+		lf_set_row(f, "approved");
 		free_vars(db_row);
 	}
-	varlist = TMPL_add_loop(varlist, "approved", loop);
 	mysql_free_result(res);
 
 	/* Total of rejected receipts */
@@ -866,19 +862,16 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 				"images.approved = %d GROUP BY currency",
 				REJECTED);
 	nr_rows = mysql_num_rows(res);
-	loop = NULL;
 	for (i = 0; i < nr_rows; i++) {
 		GHashTable *db_row = NULL;
-		TMPL_varlist *ll = NULL;
 
 		db_row = get_dbrow(res);
-		ll = add_html_var(ll, "nr_rows", get_var(db_row, "nr_rows"));
-		ll = add_html_var(ll, "currency", get_var(db_row, "currency"));
-		ll = add_html_var(ll, "total", get_var(db_row, "gross_total"));
-		loop = TMPL_add_varlist(loop, ll);
+		lf_set_var(f, "nr_rows", get_var(db_row, "nr_rows"), NULL);
+		lf_set_var(f, "currency", get_var(db_row, "currency"), NULL);
+		lf_set_var(f, "total", get_var(db_row, "gross_total"), NULL);
+		lf_set_row(f, "rejects");
 		free_vars(db_row);
 	}
-	varlist = TMPL_add_loop(varlist, "rejects", loop);
 	mysql_free_result(res);
 
 	/* Total of pending receipts */
@@ -897,19 +890,16 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 				"images.approved = %d GROUP BY currency",
 				PENDING);
 	nr_rows = mysql_num_rows(res);
-	loop = NULL;
 	for (i = 0; i < nr_rows; i++) {
 		GHashTable *db_row = NULL;
-		TMPL_varlist *ll = NULL;
 
 		db_row = get_dbrow(res);
-		ll = add_html_var(ll, "nr_rows", get_var(db_row, "nr_rows"));
-		ll = add_html_var(ll, "currency", get_var(db_row, "currency"));
-		ll = add_html_var(ll, "total", get_var(db_row, "gross_total"));
-		loop = TMPL_add_varlist(loop, ll);
+		lf_set_var(f, "nr_rows", get_var(db_row, "nr_rows"), NULL);
+		lf_set_var(f, "currency", get_var(db_row, "currency"), NULL);
+		lf_set_var(f, "total", get_var(db_row, "gross_total"), NULL);
+		lf_set_row(f, "pending");
 		free_vars(db_row);
 	}
-	varlist = TMPL_add_loop(varlist, "pending", loop);
 	mysql_free_result(res);
 
 	/* Number of un-tagged receipts */
@@ -924,8 +914,7 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 		GHashTable *db_row = NULL;
 
 		db_row = get_dbrow(res);
-		varlist = add_html_var(varlist, "untagged",
-						get_var(db_row, "nr_rows"));
+		lf_set_var(f, "untagged", get_var(db_row, "nr_rows"), NULL);
 		free_vars(db_row);
 	}
 	mysql_free_result(res);
@@ -934,11 +923,21 @@ void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist)
 /*
  * Send the specified template to the user.
  */
-void send_template(const char *template, TMPL_varlist *varlist,
-		   TMPL_fmtlist *fmtlist)
+void send_template(Flate *f)
 {
 	fcgx_p("Cache-Control: private\r\n");
-	fcgx_p("Content-Type: text/html\r\n\r\n");
-	TMPL_write(template, NULL, fmtlist, varlist, fcgx_out, error_log);
+	lf_send(f, "text/html", fcgx_out);
 	fflush(error_log);
+}
+
+/*
+ * Wrapper around send_template() to just send a plain html page.
+ */
+void send_page(char *file)
+{
+	Flate *f = NULL;
+
+	lf_set_tmpl(&f, file);
+	send_template(f);
+	lf_free(f);
 }

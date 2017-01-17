@@ -15,12 +15,12 @@
 
 #include <stdbool.h>
 
-#include <ctemplate.h>
+#include <flate.h>
 
 int check_auth(void);
 bool is_logged_in(void);
 unsigned long long log_login(void);
-void display_last_login(TMPL_varlist *varlist);
+void display_last_login(Flate *f);
 void create_session(unsigned long long sid);
 void set_user_session(void);
 

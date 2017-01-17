@@ -5,20 +5,20 @@
 </head>
 <body>
 	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a>  | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/">preferences</a> |
-	<tmpl_if name = "approver">
+	<!-- #BEGINZONE approver -->
 	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/">approve receipts</a> | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
-	</tmpl_if>
-	<tmpl_if name = "admin">
+	<!-- #ENDZONE approver -->
+	<!-- #BEGINZONE admin -->
 	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
-	</tmpl_if>
+	<!-- #ENDZONE admin -->
 	<p />
-	<tmpl_var name = "user_hdr" />
+	##user_hdr##
 	<big><big>| Change Field Names</big></big>
 	<hr />
 
-	<tmpl_if name = "fields_updated" value = "yes">
+	<!-- #BEGINZONE fields_updated -->
 		<big>Fields updated</big><p />
-	</tmpl_if>
+	<!-- #ENDZONE fields_updated -->
 
 	<form action = "/prefs/fmap/" method = "POST">
 
@@ -31,82 +31,98 @@
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "receipt_date" /></td>
-		<td><input type = "text" name = "receipt_date" value = "<tmpl_var name = 'alt_receipt_date' fmt = 'de_xss' />" /></td>
+		<td>##receipt_date##</td>
+		<td><input type = "text" name = "receipt_date"
+			value = "##alt_receipt_date##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "department" /></td>
-		<td><input type = "text" name = "department" value = "<tmpl_var name = 'alt_department' fmt = 'de_xss' />" /></td>
+		<td>##department##</td>
+		<td><input type = "text" name = "department"
+			value = "##alt_department##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "employee_number" /></td>
-		<td><input type = "text" name = "employee_number" value = "<tmpl_var name = 'alt_employee_number' fmt = 'de_xss' />" /></td>
+		<td>##employee_number##</td>
+		<td><input type = "text" name = "employee_number"
+			value = "##alt_employee_number##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "reason" /></td>
-		<td><input type = "text" name = "reason" value = "<tmpl_var name = 'alt_reason' fmt = 'de_xss' />" /></td>
+		<td>##reason##</td>
+		<td><input type = "text" name = "reason"
+			value = "##alt_reason##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "po_num" /></td>
-		<td><input type = "text" name = "po_num" value = "<tmpl_var name = 'alt_po_num' fmt = 'de_xss' />" /></td>
+		<td>##po_num##</td>
+		<td><input type = "text" name = "po_num"
+			value = "##alt_po_num##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "cost_codes" /></td>
-		<td><input type = "text" name = "cost_codes" value = "<tmpl_var name = 'alt_cost_codes' fmt = 'de_xss' />" /></td>
+		<td>##cost_codes##</td>
+		<td><input type = "text" name = "cost_codes"
+			value = "##alt_cost_codes##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "account_codes" /></td>
-		<td><input type = "text" name = "account_codes" value = "<tmpl_var name = 'alt_account_codes' fmt = 'de_xss' />" /></td>
+		<td>##account_codes##</td>
+		<td><input type = "text" name = "account_codes"
+			value = "##alt_account_codes##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "supplier_name" /></td>
-		<td><input type = "text" name = "supplier_name" value = "<tmpl_var name = 'alt_supplier_name' fmt = 'de_xss' />" /></td>
+		<td>##supplier_name##</td>
+		<td><input type = "text" name = "supplier_name"
+			value = "##alt_supplier_name##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "supplier_town" /></td>
-		<td><input type = "text" name = "supplier_town" value = "<tmpl_var name = 'alt_supplier_town' fmt = 'de_xss' />" /></td>
+		<td>##supplier_town##</td>
+		<td><input type = "text" name = "supplier_town"
+			value = "##alt_supplier_town##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "vat_number" /></td>
-		<td><input type = "text" name = "vat_number" value = "<tmpl_var name = 'alt_vat_number' fmt = 'de_xss' />" /></td>
+		<td>##vat_number##</td>
+		<td><input type = "text" name = "vat_number"
+			value = "##alt_vat_number##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "gross_amount" /></td>
-		<td><input type = "text" name = "gross_amount" value = "<tmpl_var name = 'alt_gross_amount' fmt = 'de_xss' />" /></td>
+		<td>##gross_amount##</td>
+		<td><input type = "text" name = "gross_amount"
+			value = "##alt_gross_amount##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "net_amount" /></td>
-		<td><input type = "text" name = "net_amount" value = "<tmpl_var name = 'alt_net_amount' fmt = 'de_xss' />" /></td>
+		<td>##net_amount##</td>
+		<td><input type = "text" name = "net_amount"
+			value = "##alt_net_amount##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "vat_amount" /></td>
-		<td><input type = "text" name = "vat_amount" value = "<tmpl_var name = 'alt_vat_amount' fmt = 'de_xss' />" /></td>
+		<td>##vat_amount##</td>
+		<td><input type = "text" name = "vat_amount"
+			value = "##alt_vat_amount##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "vat_rate" /></td>
-		<td><input type = "text" name = "vat_rate" value = "<tmpl_var name = 'alt_vat_rate' fmt = 'de_xss' />" /></td>
+		<td>##vat_rate##</td>
+		<td><input type = "text" name = "vat_rate"
+			value = "##alt_vat_rate##" /></td>
 	</tr>
 
 	<tr>
-		<td><tmpl_var name = "currency" /></td>
-		<td><input type = "text" name = "currency" value = "<tmpl_var name = 'alt_currency' fmt = 'de_xss' />" /></td>
+		<td>##currency##</td>
+		<td><input type = "text" name = "currency"
+			value = "##alt_currency##" /></td>
 	</tr>
 	<tr>
-		<td><tmpl_var name = "payment_method" /></td>
-		<td><input type = "text" name = "payment_method" value = "<tmpl_var name = 'alt_payment_method' fmt = 'de_xss' />" /></td>
+		<td>##payment_method##</td>
+		<td><input type = "text" name = "payment_method"
+			value = "##alt_payment_method##" /></td>
 	</tr>
 
 	</tbody>
@@ -114,7 +130,7 @@
 
 	<p />
 
-	<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
+	<input type = "hidden" name = "csrf_token" value = "##csrf_token##" />
 	<input type = "submit" value = "Make it so">
 	</form>
 

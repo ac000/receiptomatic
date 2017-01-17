@@ -15,7 +15,7 @@
 
 #include <stdbool.h>
 
-#include <ctemplate.h>
+#include <flate.h>
 
 struct pagination {
 	int requested_page;	/* Page requested by client */
@@ -49,11 +49,8 @@ char *generate_password_hash(int hash_type, const char *password);
 void delete_user_session(unsigned int uid);
 bool user_already_exists(const char *username);
 void get_page_pagination(struct pagination *pn);
-void do_pagination(TMPL_varlist *varlist, const struct pagination *pn);
-TMPL_varlist *do_zebra(TMPL_varlist *varlist, unsigned long row);
-TMPL_varlist *add_html_var(TMPL_varlist *varlist, const char *name,
-			   const char *value);
-void de_xss(const char *value, FCGX_Stream *out);
-char *xss_safe_string(const char *string);
+void do_pagination(Flate *f, const struct pagination *pn);
+void do_zebra(Flate *f, unsigned long row, const char *zebra);
+char *de_xss(const char *string);
 
 #endif /* _UTILS_H_ */

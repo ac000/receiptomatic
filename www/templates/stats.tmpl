@@ -5,121 +5,80 @@
 </head>
 <body>
 	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/">preferences</a> |
-	<tmpl_if name = "approver">
+	<!-- #BEGINZONE approver -->
 	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/">approve receipts</a> | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
-	</tmpl_if>
-	<tmpl_if name = "admin">
+	<!-- #ENDZONE approver -->
+	<!-- #BEGINZONE admin -->
 	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
-	</tmpl_if>
+	<!-- #ENDZONE admin -->
 	<p />
-	<tmpl_var name = "user_hdr" />
+	##user_hdr##
 	<big><big>| Stats</big></big><br />
 	<hr />
 
 <big><big>Your Receipts</big></big>
 <p />
 
-<tmpl_if name = "approved">
-	<big><span class = "lighter">Approved Receipts</span></big>
-	<table cellpadding = "2">
-	<tbody>
+<big><span class = "lighter">Approved Receipts</span></big>
+<table cellpadding = "2">
+<tbody>
 	<tr>
-	<td>
-		<b>Currency</b>
-	</td>
-	<td>
-		<b>Number Of Receipts</b>
-	</td>
-	<td>
-		<b>Gross Total</b>
-	</td>
-<tmpl_loop name = "approved">
+		<td><b>Currency</b></td>
+		<td><b>Number Of Receipts</b></td>
+		<td><b>Gross Total</b></td>
+	<!-- #BEGINTABLE approved -->
 	<tr>
-	<td>
-		<tmpl_var name = "currency" />
-	</td>
-	<td>
-		<tmpl_var name  = "nr_rows" />
-	</td>
-	<td>
-		<tmpl_var name  = "total" />
-	</td>
+		<td>##currency##</td>
+		<td>##nr_rows##</td>
+		<td>##total##</td>
 	</tr>
-</tmpl_loop>
-	</tbody>
-	</table>
+	<!-- #ENDTABLE approved -->
+</tbody>
+</table>
 
-	<p />
-</tmpl_if>
+<p />
 
-<tmpl_if name = "rejects">
-	<big><span class = "lighter">Rejected Receipts</span></big>
-	<table cellpadding = "2">
-	<tbody>
+<big><span class = "lighter">Rejected Receipts</span></big>
+<table cellpadding = "2">
+<tbody>
 	<tr>
-	<td>
-		<b>Currency</b>
-	</td>
-	<td>
-		<b>Number Of Receipts</b>
-	</td>
-	<td>
-		<b>Gross Total</b>
-	</td>
-<tmpl_loop name = "rejects">
+		<td> <b>Currency</b></td>
+		<td><b>Number Of Receipts</b></td>
+		<td><b>Gross Total</b></td>
+	<!-- #BEGINTABLE rejects -->
 	<tr>
-	<td>
-		<tmpl_var name = "currency" />
-	</td>
-	<td>
-		<tmpl_var name  = "nr_rows" />
-	</td>
-	<td>
-		<tmpl_var name  = "total" />
-	</td>
+		<td>##currency##</td>
+		<td>##nr_rows##</td>
+		<td>##total##</td>
 	</tr>
-</tmpl_loop>
-	</tbody>
-	</table>
+	<!-- #ENDTABLE rejects -->
+</tbody>
+</table>
 
-	<p />
-</tmpl_if>
+<p />
 
-<tmpl_if name = "pending">
-	<big><span class = "lighter">Pending Receipts</span></big>
-	<table cellpadding = "2">
-	<tbody>
+<big><span class = "lighter">Pending Receipts</span></big>
+<table cellpadding = "2">
+<tbody>
 	<tr>
-	<td>
-		<b>Currency</b>
-	</td>
-	<td>
-		<b>Number Of Receipts</b>
-	</td>
-	<td>
-		<b>Gross Total</b>
-	</td>
-<tmpl_loop name = "pending">
+		<td><b>Currency</b></td>
+		<td><b>Number Of Receipts</b></td>
+		<td><b>Gross Total</b></td>
+	<!-- #BEGINTABLE pending -->
 	<tr>
-	<td>
-		<tmpl_var name = "currency" />
-	</td>
-	<td>
-		<tmpl_var name  = "nr_rows" />
-	</td>
-	<td>
-		<tmpl_var name  = "total" />
-	</td>
+		<td>##currency##</td>
+		<td>##nr_rows##</td>
+		<td>##total##</td>
 	</tr>
-</tmpl_loop>
-	</tbody>
-	</table>
+	<!-- #ENDTABLE pending -->
+</tbody>
+</table>
 
-	<p />
-</tmpl_if>
+<p />
 
-	<p />
-	You have <b><tmpl_var name  = "untagged" /></b> untagged receipts.
+<p />
+
+You have <b>##untagged##</b> untagged receipts.
 
 </body>
 </html>

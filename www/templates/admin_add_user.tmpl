@@ -5,55 +5,63 @@
 </head>
 <body>
 	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/">preferences</a> |
-	<tmpl_if name = "approver">
+	<!-- #BEGINZONE approver -->
 	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/">approve receipts</a> | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
-	</tmpl_if>
-	<tmpl_if name = "admin">
+	<!-- #ENDZONE approver -->
+	<!-- #BEGINZONE admin -->
 	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
-	</tmpl_if>
+	<!-- #ENDZONE admin -->
 	<p />
-	<tmpl_var name = "user_hdr" />
+	##user_hdr##
 	<big><big>| Admin / Add User</big></big>
 	<hr />
 
-	<tmpl_if name = "dup_user">
+	<!-- #BEGINZONE dup_user -->
 		<span class = "t_red">
 		<big><big>User Already Exists</big></big><p />
 		</span>
-	</tmpl_if>
+	<!-- #ENDZONE dup_user -->
 
 	<form action = "/admin/add_user/" method = "POST">
-	Name: <input type = "text" name = "name" value = "<tmpl_var name = 'name' fmt = 'de_xss' />" size = "40" maxlength = "255" class = "
-		<tmpl_if name = 'name_error'>
+	Name: <input type = "text" name = "name" value = "##name##" size = "40"
+			maxlength = "255" class = "
+		<!--#BEGINZONE  name_error -->
 			input_error
-		</tmpl_if>
+		<!-- #ENDZONE name_error -->
 		" />
 	<p />
-	Email address: <input type = "text" name = "email1" value = "<tmpl_var name = 'email1' fmt = 'de_xss' />" size = "40" maxlength = "255" class = "
-		<tmpl_if name = 'email_error'>
+	Email address: <input type = "text" name = "email1"
+		value = "##email1##" size = "40" maxlength = "255" class = "
+		<!-- #BEGINZONE email_error -->
 			input_error
-		</tmpl_if>
+		<!-- #ENDZONE email_error -->
 		" />
 	<br />
-	Email address: <input type = "text" name = "email2" value = "<tmpl_var name = 'email2' fmt = 'de_xss' />" size = "40" maxlength = "255" class = "
-		<tmpl_if name = 'email_error'>
+	Email address: <input type = "text" name = "email2"
+		value = "##email2##" size = "40" maxlength = "255" class = "
+		<!-- #BEGINZONE email_error -->
 			input_error
-		</tmpl_if>
+		<!-- #ENDZONE email_error -->
 		" />
 	<p />
 	User can approve:<br />
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Card: <input type = "checkbox" name = "ap_card" value = "true" <tmpl_if name = 'ap_card'>checked</tmpl_if> />
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Card: <input type = "checkbox"
+		name = "ap_card" value = "true" ##ap_card## />
 	<br />
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cash: <input type = "checkbox" name = "ap_cash" value = "true" <tmpl_if name = 'ap_cash'>checked</tmpl_if> />
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cash: <input type = "checkbox"
+		name = "ap_cash" value = "true" ##ap_cash## />
 	<br />
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cheque: <input type = "checkbox" name = "ap_cheque" value = "true" <tmpl_if name = 'ap_cheque'>checked</tmpl_if> />
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cheque: <input type = "checkbox"
+		name = "ap_cheque" value = "true" ##ap_cheque## />
 	<br />
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <input type = "checkbox" name = "ap_self" value = "true" <tmpl_if name = 'ap_self'>checked</tmpl_if> />
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <input type = "checkbox"
+		name = "ap_self" value = "true" ##ap_self## />
 	<br />
 	<p />
-	User is an admin: <input type = "checkbox" name = "is_admin" value = "true" <tmpl_if name = 'is_admin'>checked</tmpl_if> />
+	User is an admin: <input type = "checkbox" name = "is_admin"
+		value = "true" ##is_admin## />
 	<p />
-	<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
+	<input type = "hidden" name = "csrf_token" value = "##csrf_token##" />
 	<input type = "submit" value = "Add" />
 	</form>
 

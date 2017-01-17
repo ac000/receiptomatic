@@ -5,64 +5,64 @@
 </head>
 <body>
 	| <a href = "/logout/">logout</a> | receipts | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/">preferences</a> |
-	<tmpl_if name = "approver">
+	<!-- #BEGINZONE approver -->
 	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/">approve receipts</a> | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
-	</tmpl_if>
-	<tmpl_if name = "admin">
+	<!-- #ENDZONE approver -->
+	<!-- #BEGINZONE admin -->
 	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
-        </tmpl_if>
+	<!-- #ENDZONE admin -->
 	<p />
-	<tmpl_var name = "user_hdr" />
+	##user_hdr##
 	<big><big>| Un-tagged Receipts | <a href = "/stats/">View Stats</a></big></big><br />
-	Last login: <span class = "lighter"><tmpl_var name = "last_login" />
-	<tmpl_if name = "last_login_from"> from <tmpl_var name = "last_login_from" /></tmpl_if></span>
+	Last login: <span class = "lighter">##last_login##
+	<!-- #BEGINZONE last_login_from -->
+	from ##last_login_from##
+	<!-- #ENDZONE last_login_from -->
+	</span>
 	<hr />
 
-<tmpl_if name = "receipts" value = "no">
-</body>
-</html>
-<tmpl_else>
+<!-- #BEGINZONE receipts -->
 	<table>
 	<tbody>
 
-<tmpl_loop name = "table">
+<!-- #BEGINTABLE table -->
 	<tr>
 		<td rowspan = "16" width = "45%">
 		<form action = "/process_receipt/" method = "POST">
-		<a href = "/get_image/<tmpl_var name = 'image_path' />/<tmpl_var name = 'image_name' />"><img src = "/get_image/<tmpl_var name = 'image_path' />/medium/<tmpl_var name = 'image_name' />" width = "300" height = "300" /></a>
+		<a href = "/get_image/##image_path##/##image_name##"><img src = "/get_image/##image_path##/medium/##image_name##" width = "300" height = "300" /></a>
 		<p />
-		<span class = "lighter">Uploaded at:</span> <tmpl_var name = "timestamp" />
+		<span class = "lighter">Uploaded at:</span> ##timestamp##
 		</td>
 
-		<td><big><tmpl_var name = "fields.department" fmt = "de_xss" /> </big></td>
+		<td><big>##f.department## </big></td>
 		<td> : <input type = "text" name = "department" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.employee_number" fmt = "de_xss" /> </big></td>
+		<td><big>##f.employee_number## </big></td>
 		<td> : <input type = "text" name = "employee_number" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.cost_codes" fmt = "de_xss" /> </big></td>
+		<td><big>##f.cost_codes## </big></td>
 		<td> : <input type = "text" name = "cost_codes" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.account_codes" fmt = "de_xss" /> </big></td>
+		<td><big>##f.account_codes## </big></td>
 		<td> : <input type = "text" name = "account_codes" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.po_num" fmt = "de_xss" /> </big></td>
+		<td><big>##f.po_num## </big></td>
 		<td> : <input type = "text" name = "po_num" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.supplier_name" fmt = "de_xss" /> </big></td>
+		<td><big>##f.supplier_name## </big></td>
 		<td> : <input type = "text" name = "supplier_name" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.supplier_town" fmt = "de_xss" /> </big></td>
+		<td><big>##f.supplier_town## </big></td>
 		<td> : <input type = "text" name = "supplier_town" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.currency" fmt = "de_xss" /> </big></td>
+		<td><big>##f.currency## </big></td>
 		<td> : <select name = "currency">
 			<option value = "GBP">GBP&nbsp;</option>
 			<option value = "USD">USD&nbsp;</option>
@@ -71,35 +71,35 @@
 		</td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.gross_amount" fmt = "de_xss" /> </big></td>
+		<td><big>##f.gross_amount## </big></td>
 		<td> : <input type = "text" name = "gross_amount" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.vat_amount" fmt = "de_xss" /> </big></td>
+		<td><big>##f.vat_amount## </big></td>
 		<td> : <input type = "text" name = "vat_amount" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.net_amount" fmt = "de_xss" /> </big></td>
+		<td><big>##f.net_amount## </big></td>
 		<td> : <input type = "text" name = "net_amount" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.vat_rate" fmt = "de_xss" /> </big></td>
+		<td><big>##f.vat_rate## </big></td>
 		<td> : <input type = "text" name = "vat_rate" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.vat_number" fmt = "de_xss" /> </big></td>
+		<td><big>##f.vat_number## </big></td>
 		<td> : <input type = "text" name = "vat_number" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.reason" fmt = "de_xss" /> </big></td>
+		<td><big>##f.reason## </big></td>
 		<td> : <input type = "text" name = "reason" /></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.receipt_date" fmt = "de_xss" /> </big></td>
+		<td><big>##f.receipt_date## </big></td>
 		<td> : <input type = "text" name = "receipt_date" /><small>(YYYY-MM-DD)</small></td>
 	</tr>
 	<tr>
-		<td><big><tmpl_var name = "fields.payment_method" fmt = "de_xss" /> </big></td>
+		<td><big>##f.payment_method## </big></td>
 		<td> : <select name = "payment_method">
 			<option value = "card">Card</option>
 			<option value = "cash">Cash</option>
@@ -111,25 +111,25 @@
 		<td></td>
 		<td></td>
 		<td align = "right">
-		<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'id' />" />
-		<input type = "hidden" name = "image_path" value = "<tmpl_var name = 'image_path' />" />
-		<input type = "hidden" name = "image_name" value = "<tmpl_var name = 'image_name' />" />
-		<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
+		<input type = "hidden" name = "image_id" value = "##id##" />
+		<input type = "hidden" name = "image_path" value = "##image_path##" />
+		<input type = "hidden" name = "image_name" value = "##image_name##" />
+		<input type = "hidden" name = "csrf_token" value = "##csrf_token##" />
 		<input type = "submit" value = "Tag It" />
 		</form>
 		<form action = "/delete_image/" method = "POST">
-		<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'id' />" />
-		<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
+		<input type = "hidden" name = "image_id" value = "##id##" />
+		<input type = "hidden" name = "csrf_token" value = "##csrf_token##" />
 		<input type = "submit" value = "Delete" />
 		</form>
 		<hr style = "color: rgb(230, 230, 230);" />
 		</td>
 	</tr>
-</tmpl_loop>
+<!-- #ENDTABLE table -->
 
 	</tbody>
 	</table>
+<!-- #ENDZONE receipts -->
 
-	</body>
-	</html>
-</tmpl_if>
+</body>
+</html>

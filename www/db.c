@@ -59,7 +59,7 @@ static MYSQL *__db_conn(int db_conn_type)
 				"%s\n", mysql_error(dbc));
 		switch (mysql_errno(dbc)) {
 		case ER_BAD_DB_ERROR:	/* unknown database */
-			send_template("templates/invalid.tmpl", NULL, NULL);
+			send_page("templates/invalid.tmpl");
 			break;
 		}
 		dbc = NULL;

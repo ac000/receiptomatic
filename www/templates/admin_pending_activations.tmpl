@@ -5,14 +5,14 @@
 </head>
 <body>
 	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/">preferences</a> |
-	<tmpl_if name = "approver">
+	<!-- #BEGINZONE approver -->
 	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/">approve receipts</a> | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
-	</tmpl_if>
-	<tmpl_if name = "admin">
+	<!-- #ENDZONE approver -->
+	<!-- #BEGINZONE admin -->
 	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
-	</tmpl_if>
+	<!-- #ENDZONE admin -->
 	<p />
-	<tmpl_var name = "user_hdr" />
+	##user_hdr##
 	<big><big>| Admin / Pending Activations</big></big>
 	<hr />
 
@@ -27,56 +27,52 @@
 		<td><strong>Remove</strong></td>
 		<td><strong>Leave</strong></td>
 	</tr>
-<tmpl_loop name = "table">
-<tmpl_if name = "zebra" value = "yes">
-	<tr class = "listzebra">
-<tmpl_else>
-	<tr>
-</tmpl_if>
-		<td><tmpl_var name = "name" fmt = "de_xss" /></td>
-		<td><tmpl_var name = "username" fmt = "de_xss" /></td>
+<!-- #BEGINTABLE table -->
+	<tr class = "##zebra##">
+		<td>##name##</td>
+		<td>##username##</td>
 		<td>
-		<tmpl_if name = "expired">
+		<!-- #BEGINZONE expired -->
 			<span class = t_red>
-		</tmpl_if>
-			<tmpl_var name = "expires" />
-		<tmpl_if name = "expired">
+		<!-- #ENDZONE expired -->
+			##expires##
+		<!-- #BEGINZONE expired -->
 			</span>
-		</tmpl_if>
+		<!-- #ENDZONE expired -->
 		</td>
 		<td>
-		<input type = "radio" name = "i<tmpl_var name = 'item' />[action]" value = "renew">
+		<input type = "radio" name = "i##item##[action]"
+			value = "renew">
 		</td>
 		<td>
-		<input type = "radio" name = "i<tmpl_var name = 'item' />[action]" value = "delete">
+		<input type = "radio" name = "i##item##[action]"
+			value = "delete">
 		</td>
 		<td>
-		<input type = "radio" name = "i<tmpl_var name = 'item' />[action]" value = "leave" checked>
-		<input type = "hidden" name = "i<tmpl_var name = 'item' />[uid]" value = "<tmpl_var name = 'uid' />" >
-		<input type = "hidden" name = "i<tmpl_var name = 'item' />[akey]" value = "<tmpl_var name = 'akey' />" >
+		<input type = "radio" name = "i##item##[action]"
+			value = "leave" checked>
+		<input type = "hidden" name = "i##item##[uid]"
+			value = "##uid##" >
+		<input type = "hidden" name = "i##item##[akey]"
+			value = "##akey##" >
 		</td>
 	</tr>
-</tmpl_loop>
+<!-- #ENDTABLE table -->
 	</tbody>
 	</table>
-	<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />">
+	<input type = "hidden" name = "csrf_token" value = "##csrf_token##">
 	<input type = "submit" value = "Submit" />
 	</form>
 
-<tmpl_if name = "no_pages">
-<tmpl_else>
-	<tmpl_if name = "prev_page">
-		<a href = "/admin/pending_activations/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
-	<tmpl_else>
-		<span class = "lighter">Prev Page</span>
-	</tmpl_if>
+<!-- #BEGINZONE multi_page -->
+	<!-- #BEGINZONE prev_page -->
+		<a href = "/admin/pending_activations/?page_no=##prev_page##"> Prev Page </a>
+	<!-- #ENDZONE prev_page -->
 	&nbsp;::&nbsp;
-	<tmpl_if name = "next_page">
-		<a href = "/admin/pending_activations/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
-	<tmpl_else>
-		<span class = "lighter">Next Page</span>
-	</tmpl_if>
-</tmpl_if>
+	<!-- #BEGINZONE next_page -->
+		<a href = "/admin/pending_activations/?page_no=##next_page##"> Next Page </a>
+	<!-- #ENDZONE next_page -->
+<!-- #ENDZONE multi_page -->
 
 </body>
 </html>

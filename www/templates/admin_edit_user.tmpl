@@ -5,89 +5,100 @@
 </head>
 <body>
 	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/">preferences</a> |
-	<tmpl_if name = "approver">
+	<!-- #BEGINZONE approver -->
 	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/">approve receipts</a> | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
-	</tmpl_if>
-	<tmpl_if name = "admin">
+	<!-- #ENDZONE approver -->
+	<!-- #BEGINZONE admin -->
 	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
-	</tmpl_if>
+	<!-- #ENDZONE admin -->
 	<p />
-	<tmpl_var name = "user_hdr" />
+	##user_hdr##
 	<big><big>| Admin / Edit User</big></big>
 	<hr />
 
-<tmpl_if name = "updated" value = "yes">
+<!-- #BEGINZONE updated -->
 	<big><big><span class = "lighter">Updated</span></big></big>
 	<p />
-</tmpl_if>
-	<big>Editing user: <big><tmpl_var name = "name" fmt = "de_xss" /> </big><small><span class = "lighter"> (<tmpl_var name = "uid" />) </span></small>
+<!-- #ENDZONE updated -->
+	<big>Editing user: <big>##name## </big><small><span class = "lighter"> (##uid##) </span></small>
 	<p />
 
 	<form action = "/admin/edit_user/" method = "POST">
-	Name: <input type = "text" name = "name" value = "<tmpl_var name = 'name' fmt = 'de_xss' />" size = "40" maxlength = "255" class = "
-		<tmpl_if name = 'name_error'>
-			input_error
-		</tmpl_if>
-		" />
+	Name: <input type = "text" name = "name" value = "##name##"
+		size = "40" maxlength = "255" />
 	<p />
-<tmpl_if name = "email_error">
+<!-- #BEGINZONE email_error -->
 	<span class = "t_red">Usernames do not match</span><br />
-</tmpl_if>
-	Username: <input type = "text" name = "email1" value = "<tmpl_var name = 'email1' fmt = 'de_xss' />" size = "40" maxlength = "255" class = "
-		<tmpl_if name = 'email_error'>
+<!-- #ENDZONE email_error -->
+	Username: <input type = "text" name = "email1" value = "##email1##"
+		size = "40" maxlength = "255" class = "
+		<!-- #BEGINZONE email_error -->
 			input_error
-		</tmpl_if>
+		<!-- #ENDZONE email_error -->
 		" />
 	<br />
-	Username: <input type = "text" name = "email2" value = "<tmpl_var name = 'email2' fmt = 'de_xss' />" size = "40" maxlength = "255" class = "
-		<tmpl_if name = 'email_error'>
+	Username: <input type = "text" name = "email2" value = "##email2##"
+		size = "40" maxlength = "255" class = "
+		<!-- #BEGINZONE email_error -->
 			input_error
-		</tmpl_if>
+		<!-- #ENDZONE email_error -->
 		" />
 	<p />
-<tmpl_if name = "pass_error" value = "mismatch">
+<!-- #BEGINZONE pass_err_mismatch -->
 	<span class = "t_red">Passwords do not match</span><br />
-<tmpl_elsif name = "pass_error" value = "length">
+<!-- #ENDZONE pass_err_mismatch -->
+<!-- #BEGINZONE pass_err_length -->
 	<span class = "t_red">Password should be at least 8 characters long</span><br/>
-</tmpl_if>
-	Password: <input type = "password" name = "pass1" value = "<tmpl_var name = 'pass2' />" size = "12" maxlength = "64" class = "
-		<tmpl_if name = 'pass_error'>
+<!-- #ENDZONE pass_err_length -->
+	Password: <input type = "password" name = "pass1" value = "##pass1##"
+		size = "12" maxlength = "64" class = "
+		<!-- #BEGINZONE pass_error -->
 			input_error
-		</tmpl_if>
+		<!-- #ENDZONE pass_error -->
 		" />
 	<br />
-        Password: <input type = "password" name = "pass2" value = "<tmpl_var name = 'pass2' />" size = "12" maxlength = "64" class = "
-		<tmpl_if name = 'pass_error'>
+        Password: <input type = "password" name = "pass2" value = "##pass2##"
+		size = "12" maxlength = "64" class = "
+		<!-- #BEGINZONE pass_error -->
 			input_error
-		</tmpl_if>
+		<!-- #ENDZONE pass_error -->
 		" />
 	<p />
 	User can approve:<br />
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Card: <input type = "checkbox" name = "ap_card" value = "1" <tmpl_if name = 'ap_card'>checked</tmpl_if> />
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Card: <input type = "checkbox"
+		name = "ap_card" value = "1" ##ap_card## />
 	<br />
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cash: <input type = "checkbox" name = "ap_cash" value = "1" <tmpl_if name = 'ap_cash'>checked</tmpl_if> />
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cash: <input type = "checkbox"
+		name = "ap_cash" value = "1" ##ap_cash## />
 	<br />
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cheque: <input type = "checkbox" name = "ap_cheque" value = "1" <tmpl_if name = 'ap_cheque'>checked</tmpl_if> />
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cheque: <input type = "checkbox"
+		name = "ap_cheque" value = "1" ##ap_cheque## />
 	<p />
-	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <input type = "checkbox" name = "ap_self" value = "1" <tmpl_if name = 'ap_self'>checked</tmpl_if> />
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Self: <input type = "checkbox"
+		name = "ap_self" value = "1" ##ap_self## />
 	<br />
 	<p />
-	User is an admin: <input type = "checkbox" name = "is_admin" value = "1" <tmpl_if name = 'is_admin'>checked</tmpl_if> />
+	User is an admin: <input type = "checkbox" name = "is_admin"
+		value = "1" ##is_admin## />
 	<p />
 	<span class = "lighter">
-<tmpl_if name = "is_activated">
+<!-- #BEGINZONE is_activated -->
 	Account has been activated
 	<input type = "hidden" name = "activated" value = "1" />
-<tmpl_else>
+<!-- #ENDZONE is_activated -->
+<!-- #BEGINZONE not_activated -->
 	Account has NOT been activated
 	<input type = "hidden" name = "activated" value = "0" />
-</tmpl_if>
+<!-- #ENDZONE not_activated -->
 	</span><br />
-	Account is enabled: <input type = "checkbox" name = "enabled" value = "1" <tmpl_if name = 'is_enabled'>checked</tmpl_if> /><br />
-	<span class = "lighter">Reason account is disabled: </span><input type = "text" name = "d_reason" value = "<tmpl_var name = 'd_reason' fmt = 'de_xss' />" size = "60" maxlength = "250" />
+	Account is enabled: <input type = "checkbox" name = "enabled"
+		value = "1" ##is_enabled## /><br />
+	<span class = "lighter">Reason account is disabled: </span>
+	<input type = "text" name = "d_reason" value = "##d_reason##"
+		size = "60" maxlength = "250" />
 	<p />
-	<input type = "hidden" name = "uid" value = "<tmpl_var name = 'uid' />" />
-	<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
+	<input type = "hidden" name = "uid" value = "##uid##" />
+	<input type = "hidden" name = "csrf_token" value = "##csrf_token##" />
 	<input type = "submit" value = "Update" />
 	</form>
 

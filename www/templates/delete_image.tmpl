@@ -9,7 +9,8 @@
 <big><big><big>You have chosen to delete this image.</big></big></big>
 <p />
 
-<img src = "/get_image/<tmpl_var name = 'image_path' />/medium/<tmpl_var name = 'image_name' />" width = "300" height = "300" />
+<img src = "/get_image/##image_path##/medium/##image_name##" width = "300"
+		height = "300" />
 <p />
 
 <big><big><big>
@@ -19,10 +20,10 @@ Do you wish to continue with deletion?
 <div style = "width; 100%">
 <div style = "width: 50%; float: left;">
 <form action = "/delete_image/" method = "POST">
-<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'image_id' />">
+<input type = "hidden" name = "image_id" value = "##image_id##">
 <input type = "hidden" name = "confirm" value = "yes">
 <input type = "submit" value = "Yes" />
-<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
+<input type = "hidden" name = "csrf_token" value = "##csrf_token##" />
 </form>
 </div>
 

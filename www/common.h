@@ -23,7 +23,7 @@
 #include <fcgiapp.h>
 
 /* HTML template library */
-#include <ctemplate.h>
+#include <flate.h>
 
 #include <glib.h>
 
@@ -86,16 +86,13 @@
 #define IS_GET()	(strstr(env_vars.request_method, "GET"))
 
 /* Macro to add the Approver/Admin/user_hdr parts to the web page */
-#define ADD_HDR(tmpl_varlist) \
+#define ADD_HDR(f) \
 	do { \
 		if (IS_ADMIN()) \
-			tmpl_varlist = add_html_var(tmpl_varlist, \
-					"admin", "yes"); \
+			lf_set_var(f, "admin", "", NULL); \
 		if (IS_APPROVER()) \
-			tmpl_varlist = add_html_var(tmpl_varlist, \
-					"approver", "yes"); \
-		tmpl_varlist = add_html_var(tmpl_varlist, "user_hdr", \
-				user_session.user_hdr); \
+			lf_set_var(f, "approver", "", NULL); \
+		lf_set_var(f, "user_hdr", user_session.user_hdr, NULL); \
 	} while (0)
 
 /* Unbreak __func__ by my_global.h */
@@ -134,6 +131,13 @@
 #define fcgx_putc(c)		FCGX_PutChar(c, fcgx_out)
 #define fcgx_puts(s)		FCGX_PutS(s, fcgx_out)
 #define fcgx_gs(buf, size)	FCGX_GetStr(buf, size, fcgx_in)
+
+/* Nicer names for the libflate stuff */
+#define lf_set_tmpl		flateSetFile
+#define lf_set_var		flateSetVar
+#define lf_set_row		flateDumpTableLine
+#define lf_send			flatePrint
+#define lf_free			flateFreeMem
 
 /*
  * Wrapper around mysql_real_escape_string()

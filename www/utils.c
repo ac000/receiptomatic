@@ -32,7 +32,7 @@
 #include <mhash.h>
 
 /* HTML template library */
-#include <ctemplate.h>
+#include <flate.h>
 
 #include "common.h"
 #include "utils.h"
@@ -898,7 +898,7 @@ void get_page_pagination(struct pagination *pn)
 /*
  * Create the next / prev page navigation links.
  */
-void do_pagination(TMPL_varlist *varlist, const struct pagination *pn)
+void do_pagination(Flate *f, const struct pagination *pn)
 {
 	int nr_pages = pn->nr_pages;
 
@@ -909,106 +909,41 @@ void do_pagination(TMPL_varlist *varlist, const struct pagination *pn)
 		if (IS_FIRST_PAGE(rqpage)) {
 			/* Wrap around to end */
 			snprintf(page_no, sizeof(page_no), "%d", nr_pages);
-			varlist = TMPL_add_var(varlist, "prev_page", page_no,
-					(char *)NULL);
+			lf_set_var(f, "prev_page", page_no, NULL);
 		} else if (!IS_FIRST_PAGE(rqpage)) {
 			snprintf(page_no, sizeof(page_no), "%d", rqpage - 1);
-			varlist = TMPL_add_var(varlist, "prev_page", page_no,
-					(char *)NULL);
+			lf_set_var(f, "prev_page", page_no, NULL);
 		}
 		if (IS_LAST_PAGE(rqpage, nr_pages)) {
 			/* Wrap around to start */
-			varlist = TMPL_add_var(varlist, "next_page", page_no,
-					(char *)NULL);
+			lf_set_var(f, "next_page", "1", NULL);
 		} else if (!IS_LAST_PAGE(rqpage, nr_pages)) {
 			snprintf(page_no, sizeof(page_no), "%d", rqpage + 1);
-			varlist = TMPL_add_var(varlist, "next_page", page_no,
-					(char *)NULL);
+			lf_set_var(f, "next_page", page_no, NULL);
 		}
-	} else {
-		varlist = TMPL_add_var(varlist, "no_pages", "true",
-				(char *)NULL);
+		lf_set_var(f, "multi_page", "", NULL);
 	}
 }
 
 /*
  * Create a zebra list with alternating highlighted rows.
  *
- * If varlist is NULL it returns a _new_ varlist otherwise
- * it returns _the_ varlist.
+ * Even numbered rows are highligted.
  */
-TMPL_varlist *do_zebra(TMPL_varlist *varlist, unsigned long row)
+void do_zebra(Flate *f, unsigned long row, const char *zebra)
 {
-	TMPL_varlist *vlist = NULL;
-
-	if (!(row % 2))
-		vlist = TMPL_add_var(varlist, "zebra", "yes", (char *)NULL);
-	else
-		vlist = TMPL_add_var(varlist, "zebra", "no", (char *)NULL);
-
-	return vlist;
+	lf_set_var(f, "zebra", (row % 2) ? "" : zebra, NULL);
 }
 
-/*
- * Simple wrapper around TMPL_add_var()
- */
-TMPL_varlist *add_html_var(TMPL_varlist *varlist, const char *name,
-			   const char *value)
-{
-	TMPL_varlist *vlist = NULL;
-
-	vlist = TMPL_add_var(varlist, name, value, (char *)NULL);
-	return vlist;
-}
-
+#define STR_ALLOC_SZ	512
 /*
  * Simple anti-xss mechanism.
  *
  * Escape the HTML characters listed here: https://www.owasp.org/index.php/XSS_%28Cross_Site_Scripting%29_Prevention_Cheat_Sheet#RULE_.231_-_HTML_Escape_Before_Inserting_Untrusted_Data_into_HTML_Element_Content
  *
- * This is run as an output filter in libctemplate.
- *
- * We don't use TMPL_encode_entity from libctemplate, as we do some
- * different things and it saves messing with the external library.
- *
- * I'm taking the, 'Be generous in what you accept, but strict in
- * what you send.', philosophy.
+ * This can be used as a format function to lf_set_var()
  */
-void de_xss(const char *value, FCGX_Stream *out)
-{
-	for (; *value != 0; value++) {
-		switch (*value) {
-		case '&':
-			fcgx_puts("&amp;");
-			break;
-		case '<':
-			fcgx_puts("&lt;");
-			break;
-		case '>':
-			fcgx_puts("&gt;");
-			break;
-		case '"':
-			fcgx_puts("&quot;");
-			break;
-		case '\'':
-			fcgx_puts("&#x27;");
-			break;
-		case '/':
-			fcgx_puts("&#x2F;");
-			break;
-		default:
-			fcgx_putc(*value);
-			break;
-		}
-	}
-}
-
-#define STR_ALLOC_SZ	512
-/*
- * A function similar to de_xss, but returns a dynamically allocated
- * string that must be free'd.
- */
-char *xss_safe_string(const char *string)
+char *de_xss(const char *string)
 {
 	char *safe_string = malloc(STR_ALLOC_SZ);
 	size_t alloc = STR_ALLOC_SZ;

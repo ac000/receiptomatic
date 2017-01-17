@@ -43,9 +43,9 @@ For receiptomatic-www
      tokyocabinet{-devel}-1.4.9
 
 you will also want the spawn-fcgi package whose use is described further
-below and the otl branch of libctemplate from
+below and the fcgx branch of libflate (HTML templating library) from
 
-     git://github.com/opentechlabs/libctemplate.git
+     https://github.com/ac000/libflate
 
 
 Build
@@ -53,25 +53,20 @@ Build
 
 Something like this
 
-    $ git clone git://github.com/opentechlabs/receiptomatic.git
-    $ git clone git://github.com/opentechlabs/libctemplate.git
+    $ git clone git://github.com/ac000/receiptomatic.git
+    $ git clone git://github.com/ac000/libflate.git
 
-libctemplate
+libflate
 
-    $ cd libctemplate
-    $ git checkout -b otl origin/otl
-    $ make
-    $ ln -s libctemplate-fcgx.so.1.4.0 libctemplate-fcgx.so
-    $ ln -s libctemplate-fcgx.so.1.4.0 libctemplate-fcgx.so.1
-
-receiptomatic-www
-
-    $ cd www
+    $ cd libflate
+    $ git checkout --track -b fcgx origin/fcgx
     $ make
 
 receiptomatic
 
-    $ cd ../receiver
+    $ cd ../receiptomatic/receiver
+    $ make
+    $ cd ../www
     $ make
 
 

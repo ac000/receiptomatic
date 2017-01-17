@@ -5,104 +5,104 @@
 </head>
 <body>
 	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/">preferences</a> |
-	<tmpl_if name = "approver">
+	<!-- #BEGINZONE approver -->
 	&nbsp;<span class = t_red>|</span> approve receipts | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
-	</tmpl_if>
-	<tmpl_if name = "admin">
+	<!-- #ENDZONE approver -->
+	<!-- #BEGINZONE admin -->
 	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
-	</tmpl_if>
+	<!-- #ENDZONE admin -->
 	<p />
-	<tmpl_var name = "user_hdr" />
+	##user_hdr##
 	<big><big>| Approve Receipts</big></big>
 	<hr />
 
-<tmpl_if name = "receipts" value = "no">
-</body>
-</html>
-<tmpl_else>
+<!-- #BEGINZONE receipts -->
 	<form action = "/process_receipt_approval/" method = "POST">
 	<table>
 	<tbody>
 
-<tmpl_loop name = "table">
+<!-- #BEGINTABLE table -->
 	<tr>
 		<td><small><span class = "lighter">User</span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.department" fmt = "de_xss" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.employee_number" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter">##f.department##</span></small></td>
+		<td><small><span class = "lighter">##f.employee_number##</span></small></td>
 		<td><small><span class = "lighter">Uploaded at</span></small></td>
 		<td><small><span class = "lighter">Tagged at</span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.receipt_date" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter">##f.receipt_date##</span></small></td>
 		<td width = "5%"></td>
 		<td rowspan = "8">
-		<a href = "/get_image/<tmpl_var name = 'image_path' />/<tmpl_var name = 'image_name' />"><img src = "/get_image/<tmpl_var name = 'image_path' />/small/<tmpl_var name = 'image_name' />" width = "145" height = "145" /></a>
+		<a href = "/get_image/##image_path##/##image_name##">
+		<img src = "/get_image/##image_path##/small/##image_name##"
+			width = "145" height = "145" /></a>
 		</td>
 	</tr>
 	<tr>
-		<td><small><tmpl_var name = "name" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "department" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "employee_number" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "images_timestamp" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "tags_timestamp" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "receipt_date" fmt = "de_xss" /></small></td>
+		<td><small>##name##</small></td>
+		<td><small>##department##</small></td>
+		<td><small>##employee_number##</small></td>
+		<td><small>##images_timestamp##</small></td>
+		<td><small>##tags_timestamp##</small></td>
+		<td><small>##receipt_date##</small></td>
 	</tr>
 	<tr>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.cost_codes" fmt = "de_xss" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.account_codes" fmt = "de_xss" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.po_num" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter">##f.cost_codes##</span></small></td>
+		<td><small><span class = "lighter">##f.account_codes##</span></small></td>
+		<td><small><span class = "lighter">##f.po_num##</span></small></td>
 	</tr>
 	<tr>
-		<td><small><tmpl_var name = "cost_codes" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "account_codes" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "po_num" fmt = "de_xss" /></small></td>
+		<td><small>##cost_codes##</small></td>
+		<td><small>##account_codes##</small></td>
+		<td><small>##po_num##</small></td>
 	</tr>
 	<tr>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.gross_amount" fmt = "de_xss" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_amount" fmt = "de_xss" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.net_amount" fmt = "de_xss" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_rate" fmt = "de_xss" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.currency" fmt = "de_xss" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.payment_method" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter">##f.gross_amount##</span></small></td>
+		<td><small><span class = "lighter">##f.vat_amount##</span></small></td>
+		<td><small><span class = "lighter">##f.net_amount##</span></small></td>
+		<td><small><span class = "lighter">##f.vat_rate##</span></small></td>
+		<td><small><span class = "lighter">##f.currency##</span></small></td>
+		<td><small><span class = "lighter">##f.payment_method##</span></small></td>
 	</tr>
-	<tmpl_if name = "amnt_err" value = "no">
+	<!-- #BEGINZONE amnt_ok -->
 	<tr style = "background-color: rgb(210, 250, 200);">
-	<tmpl_else>
+	<!-- #ENDZONE amnt_ok -->
+	<!-- #BEGINZONE amnt_err -->
 	<tr style = "background-color: rgb(240, 180, 175);">
-	</tmpl_if>
-		<td><small><tmpl_var name = "gross_amount" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "vat_amount" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "net_amount" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "vat_rate" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "currency" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "payment_method" fmt = "de_xss" /></small></td>
+	<!-- #ENDZONE amnt_err -->
+		<td><small>##gross_amount##</small></td>
+		<td><small>##vat_amount##</small></td>
+		<td><small>##net_amount##</small></td>
+		<td><small>##vat_rate##</small></td>
+		<td><small>##currency##</small></td>
+		<td><small>##payment_method##</small></td>
 	</tr>
 	<tr>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.supplier_name" fmt = "de_xss" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.supplier_town" fmt = "de_xss" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.vat_number" fmt = "de_xss" /></span></small></td>
-		<td><small><span class = "lighter"><tmpl_var name = "fields.reason" fmt = "de_xss" /></span></small></td>
+		<td><small><span class = "lighter">##f.supplier_name##</span></small></td>
+		<td><small><span class = "lighter">##f.supplier_town##</span></small></td>
+		<td><small><span class = "lighter">##f.vat_number##</span></small></td>
+		<td><small><span class = "lighter">##f.reason##</span></small></td>
 	</tr>
 	<tr>
-		<td><small><tmpl_var name = "supplier_name" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "supplier_town" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "vat_number" fmt = "de_xss" /></small></td>
-		<td><small><tmpl_var name = "reason" fmt = "de_xss" /></small></td>
+		<td><small>##supplier_name##</small></td>
+		<td><small>##supplier_town##</small></td>
+		<td><small>##vat_number##</small></td>
+		<td><small>##reason##</small></td>
 	</tr>
 	<tr>
 		<td colspan = "6">
 		<small><span class = "lighter">Reason </span>
-		<input type = "text" name = "i<tmpl_var name = 'item' />[reason]" size = "60" /></small>
+		<input type = "text" name = "i##item##[reason]" size = "60" /></small>
 		</td>
 		<td colspan = "2">
-		<input type = "hidden" name = "i<tmpl_var name = 'item' />[id]" value = "<tmpl_var name = 'id' />" />
-		Skip <input type = "radio" name = "i<tmpl_var name = 'item' />[approved_status]" value = "s" checked />&nbsp;&nbsp;
-		Approve <input type = "radio" name = "i<tmpl_var name = 'item' />[approved_status]" value = "a" />&nbsp;&nbsp;
-		Reject <input type = "radio" name = "i<tmpl_var name = 'item' />[approved_status]" value = "r" />
+		<input type = "hidden" name = "i##item##[id]" value = "##id##" />
+		Skip <input type = "radio" name = "i##item##[approved_status]" value = "s" checked />&nbsp;&nbsp;
+		Approve <input type = "radio" name = "i##item##[approved_status]" value = "a" />&nbsp;&nbsp;
+		Reject <input type = "radio" name = "i##item##[approved_status]" value = "r" />
 		</td>
 	</tr>
 	<tr>
 		<td colspan = "8"><p /></td>
 	</tr>
-</tmpl_loop>
+<!-- #ENDTABLE table -->
 
 	</tbody>
 	</table>
@@ -113,28 +113,24 @@
 		<div id = "form_btn" style = "width: 75%; float: left;">
 		<input type = "submit" value = "Submit" />
 		</div>
-		<tmpl_if name = "no_pages">
-		<tmpl_else>
+
+		<!-- #BEGINZONE multi_page -->
 			<div id = "page_nav" style = "width: 25%; float: right;">
-			<tmpl_if name = "prev_page">
-				<a href = "/approve_receipts/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
-			<tmpl_else>
-				<span class = "lighter">Prev Page</span>
-			</tmpl_if>
+			<!-- #BEGINZONE prev_page -->
+				<a href = "/approve_receipts/?page_no=##prev_page##"> Prev Page </a>
+			<!-- #ENDZONE prev_page -->
 			&nbsp;::&nbsp;
-			<tmpl_if name = "next_page">
-				<a href = "/approve_receipts/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
-			<tmpl_else>
-				<span class = "lighter">Next Page</span>
-			</tmpl_if>
+			<!-- #BEGINZONE next_page -->
+				<a href = "/approve_receipts/?page_no=##next_page##"> Next Page </a>
+			<!-- #ENDZONE next_page -->
 			</div>
-		</tmpl_if>
+		<!-- #ENDZONE multi_page -->
 	</div>
 
-	<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
+	<input type = "hidden" name = "csrf_token" value = "##csrf_token##" />
 	</form>
 
-</tmpl_if>
+<!-- #ENDZONE receipts -->
 
 </body>
 </html>

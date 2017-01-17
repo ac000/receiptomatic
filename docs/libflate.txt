@@ -1,0 +1,140 @@
+libflate AKA Flate AKA FLATE Library is a library for handling HTML templates
+in C by Fabien Menemenlis. Website here http://flate.dead-inside.org/
+
+However receiptomatic uses a slightly modified version of the library to
+work with the FastCGI FCGX API, which can be found here
+https://github.com/ac000/libflate/tree/fcgx
+
+This document will describe that interface (I have created wrappers around
+some of the original Flate functions to keep in with my naming conventions).
+
+The functions currently used are
+
+lf_set_tmpl	- Used to tell Flate which template file to operate on.
+lf_set_var	- Used to create a template variable.
+lf_set_row	- Used to indicate a row of data in a loop.
+lf_send		- Used to send the template to the client.
+lf_free		- Free all memory used by Flate.
+
+
+Flate *lf_set_tmpl(Flate **tmplte, char *filename)
+
+This takes a pointer to a NULL Flate data structure and the path (relative to
+the DOCUMENT_ROOT) to the template to be processed. tmplte is also modified
+in place.
+
+void lf_set_var(Flate *tmplte, char *fld, char *val, char *(*fmt)(const char *))
+
+This takes a Flate data structure as initialised by lf_set_tmpl, a template
+variable name that will link it to the template file and a string containing
+the value for that variable.
+
+This function can also optionally take a format function as its fourth
+argument or NULL. If the fourth argument is not NULL then it is the name of
+a function that will be called to process the string passed in as val.
+
+This can be useful for things like anti-xss where you want to make safe
+strings before sending them to the client. Indeed, there is a de_xss function
+for this very purpose.
+
+This format function should have the following prototype
+
+    char *fmt_func(const char *)
+
+it will return a dynamically allocated string, which will be freed by lf_free.
+
+void lf_set_row(Flate *tmplte, char *line)
+
+This takes a previously initialised Flate data structure and a string to
+identify it to the template.
+
+This is used to construct rows of variables gathered from a loop to display
+for example in a table.
+
+void lf_send(Flate *tmplte, char *type, FCGX_Stream *out)
+
+This takes a previously initialised Flate data structure, a string containing
+the content type of the template and the FCGX network stream.
+
+Note that this functions shouldn't be used directly, instead the
+send_template fucntion should be used instead. It has the following prototype
+
+    void send_template(Flate *f)
+
+This just takes the Flate data structure and calls lf_send with the right
+arguments.
+
+void lf_free(Flate *tmplte)
+
+This takes a Flate data structure and free's all its associated memory.
+
+
+Here's a simple example. See http://flate.dead-inside.org/README.txt for some
+more details. NOTE: This is independent of receiptomatic
+
+#include <fcgiapp.h>
+#include <flate.h>
+
+#define lf_set_tmpl		flateSetFile
+#define lf_set_var		flateSetVar
+#define lf_set_row		flateDumpTableLine
+#define lf_send			flatePrint
+#define lf_free			flateFreeMem
+
+#define NR_OS			5
+
+struct os {
+	char *name;
+	char *used;
+};
+
+static struct os oses[NR_OS] = {
+	{ "Linux",	"Yes" },
+	{ "FreeBSD",	"Yes" },
+	{ "Solaris",	"Yes" },
+	{ "UP-UX",	"No" },
+	{ "True64",	"No" },
+};
+
+int main(int argc, char *argv[])
+{
+	FCGX_Stream *fcgx_in;
+	FCGX_Stream *fcgx_out;
+	FCGX_Stream *fcgx_err;
+	FCGX_ParamArray fcgx_envp;
+
+	while (FCGX_Accept(&fcgx_in, &fcgx_out, &fcgx_err, &fcgx_envp) >= 0) {
+		Flate *f = NULL;
+		int i;
+
+		lf_set_tmpl(&f, "page.tmpl");
+		for (i = 0; i < NR_OS; i++) {
+			lf_set_var(f, "os", oses[i].name, NULL);
+			lf_set_var(f, "used", oses[i].used, NULL);
+			lf_set_row(f, "oses");
+		}
+
+		lf_send(f, "text/html", fcgx_out);
+		lf_free(f);
+		FCGX_Finish();
+	}
+}
+
+
+<html>
+<head>
+	<meta HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=utf-8">
+</head>
+<body>
+
+<table>
+<!-- #BEGINTABLE oses -->
+<tr>
+	<td>##os##</td>
+	<td>##used##</td>
+</tr>
+<!-- #ENDTABLE oses -->
+</table>
+
+</body>
+</html>

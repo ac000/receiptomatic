@@ -5,83 +5,73 @@
 </head>
 <body>
 	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | <a href = "/prefs/">preferences</a> |
-	<tmpl_if name = "approver">
+	<!-- #BEGINZONE approver -->
 	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/"> approve receipts</a> | reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
-	</tmpl_if>
-	<tmpl_if name = "admin">
+	<!-- #ENDZONE approver -->
+	<!-- #BEGINZONE admin -->
 	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
-	</tmpl_if>
+	<!-- #ENDZONE admin -->
 	<p />
-	<tmpl_var name = "user_hdr" />
+	##user_hdr##
 	<big><big>| Previously Reviewed Receipts</big></big>
 	<hr />
 
-<tmpl_if name = "receipts" value = "no">
-</body>
-</html>
-<tmpl_else>
+<!-- #BEGINZONE receipts -->
 	<center>
 	<table cellpadding = "4">
 	<tbody>
 	<tr>
 
-<tmpl_loop name = "table">
+<!-- #BEGINTABLE table -->
 		<td>
-		<a href = "/receipt_info/?image_id=<tmpl_var name = 'id' />">
-		<img src = "/get_image/<tmpl_var name = 'image_path' />/small/<tmpl_var name = 'image_name' />" width = "180" height = "180" /></a>
+		<a href = "/receipt_info/##id##">
+		<img src = "/get_image/##image_path##/small/##image_name##"
+			width = "180" height = "180" /></a>
 		<br />
 		<span class = "lighter">
 			User:
 		</span>
-		&nbsp;<tmpl_var name = "user" fmt = "de_xss" />
-		<span class = "lighter"><small>&nbsp;(<tmpl_var name = "uid" />)</small></span>
+		&nbsp;##user##
+		<span class = "lighter"><small>&nbsp;(##uid##)</small></span>
 		<br />
-		<span class = "lighter">
-			<tmpl_var name = "review_date" fmt = "de_xss" />:
-		</span>
-		&nbsp;<tmpl_var name = "apdate" />
+		<span class = "lighter">##review_date##:</span>
+		&nbsp;##apdate##
 		<br />
-		<span class = "lighter">
-			<tmpl_var name = "receipt_date" fmt = "de_xss" />:
-		</span>
-		&nbsp;<tmpl_var name = "rdate" />
+		<span class = "lighter">##f.receipt_date##:</span>
+		&nbsp;##rdate##
 		<br />
 		<span style = "color: rgb(130, 130, 130);">
 			Approval Status:&nbsp;
 		</span>
-		<tmpl_if name = "status" value = "rejected">
+		<!-- #BEGINZONE rejected -->
 			<span class = "t_red">Rejected</span>
-		<tmpl_else>
+		<!-- #ENDZONE rejected -->
+		<!-- #BEGINZONE approved -->
 			<span class = "t_green">Approved</span>
-		</tmpl_if>
+		<!-- #ENDZONE approved -->
 		</td>
-		<tmpl_if name = "close_row" value = "yes">
+		<!-- #BEGINZONE close_row -->
 			</tr>
-		</tmpl_if>
-		<tmpl_if name = "new_row" value = "yes">
+		<!-- #ENDZONE close_row -->
+		<!-- #BEGINZONE new_row -->
 			<tr>
-		</tmpl_if>
-</tmpl_loop>
+		<!-- #ENDZONE new_row -->
+<!-- #ENDTABLE table -->
 	</tr>
 	</tbody>
 	</table>
 	</center>
 
-	<tmpl_if name = "no_pages">
-	<tmpl_else>
-		<tmpl_if name = "prev_page">
-			<a href = "/reviewed_receipts/?page_no=<tmpl_var name = 'prev_page' />"> Prev Page </a>
-		<tmpl_else>
-			<span class = "lighter">Prev Page</span>
-		</tmpl_if>
+	<!-- #BEGINZONE multi_page -->
+		<!-- #BEGINZONE prev_page -->
+			<a href = "/reviewed_receipts/?page_no=##prev_page##"> Prev Page </a>
+		<!-- #ENDZONE prev_page -->
 		&nbsp;::&nbsp;
-		<tmpl_if name = "next_page">
-			<a href = "/reviewed_receipts/?page_no=<tmpl_var name = 'next_page' />"> Next Page </a>
-		<tmpl_else>
-			<span class = "lighter">Next Page</span>
-		</tmpl_if>
-	</tmpl_if>
+		<!-- #BEGINZONE next_page -->
+			<a href = "/reviewed_receipts/?page_no=##next_page##"> Next Page </a>
+		<!-- #ENDZONE next_page -->
+	<!-- #ENDZONE multi_page -->
 
+<!-- #ENDZONE receipts -->
 </body>
 </html>
-</tmpl_if>

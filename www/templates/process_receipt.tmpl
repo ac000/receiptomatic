@@ -27,151 +27,140 @@
 
 <tr>
 	<td rowspan = "16">
-	<a href = "/get_image/<tmpl_var name = 'image_path' />/<tmpl_var name = 'image_name' />">
-	<img src = '/get_image/<tmpl_var name = "image_path" />/medium/<tmpl_var name = "image_name" />' width = "300" height = "300" />
+	<a href = "/get_image/##image_path##/##image_name##">
+	<img src = "/get_image/##image_path##/medium/##image_name##" width = "300" height = "300" />
 	</a>
 	</td>
-	<td><span class = "lighter"><tmpl_var name = "fields.department" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "department" value = "<tmpl_var name = 'department' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.department'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.department##</span></td>
+	<td> : <input type = "text" name = "department"
+		value = "##department##"
+		<!-- #BEGINZONE e.department -->
+		class = "input_error"
+		<!-- #ENDZONE e.department --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.employee_number" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "employee_number" value = "<tmpl_var name = 'employee_number' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.employee_number'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.employee_number##</span></td>
+	<td> : <input type = "text" name = "employee_number"
+		value = "##employee_number##"
+		<!-- #BEGINZONE e.employee_number -->
+		class = "input_error"
+		<!-- #ENDZONE e.employee_number --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.cost_codes" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "cost_codes" value = "<tmpl_var name = 'cost_codes' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.cost_codes'>
-			input_error
-                </tmpl_if>
-		" />
+	<td><span class = "lighter">##f.cost_codes##</span></td>
+	<td> : <input type = "text" name = "cost_codes"
+		value = "##cost_codes##"
+		<!-- #BEGINZONE e.cost_codes -->
+		class = "input_error"
+		<!-- #ENDZONE e.cost_codes --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.account_codes" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "account_codes" value = "<tmpl_var name = 'account_codes' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.account_codes'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.account_codes##</span></td>
+	<td> : <input type = "text" name = "account_codes"
+		value = "##account_codes##"
+		<!-- #BEGINZONE e.account_codes -->
+		class = "input_error"
+		<!-- #ENDZONE e.account_codes --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.po_num" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "po_num" value = "<tmpl_var name = 'po_num' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.po_num'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.po_num##</span></td>
+	<td> : <input type = "text" name = "po_num"
+		value = "##po_num##"
+		<!-- #BEGINZONE e.po_num -->
+		class = "input_error"
+		<!-- #ENDZONE e.po_num --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.supplier_name" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "supplier_name" value = "<tmpl_var name = 'supplier_name' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.supplier_name'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.supplier_name##</span></td>
+	<td> : <input type = "text" name = "supplier_name"
+		value = "##supplier_name##"
+		<!-- #BEGINZONE e.supplier_name -->
+		class = "input_error"
+		<!-- #ENDZONE e.supplier_name --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.supplier_town" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "supplier_town" value = "<tmpl_var name = 'supplier_town' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.supplier_town'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.supplier_town##</span></td>
+	<td> : <input type = "text" name = "supplier_town"
+		value = "##supplier_town##"
+		<!-- #BEGINZONE e.supplier_town -->
+		class = "input_error"
+		<!-- #ENDZONE e.supplier_town --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.currency" fmt = "de_xss" /></span></td>
-	<input type = "hidden" name = "currency" value = "<tmpl_var name = 'currency' fmt = 'de_xss' />" />
-	<td> : <tmpl_var name = "currency" fmt = "de_xss" />
+	<td><span class = "lighter">##f.currency##</span></td>
+	<input type = "hidden" name = "currency"
+		value = "##currency##" />
+	<td> : ##currency##
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.gross_amount" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "gross_amount" value = "<tmpl_var name = 'gross_amount' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.amounts'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.gross_amount##</span></td>
+	<td> : <input type = "text" name = "gross_amount"
+		value = "##gross_amount##"
+		<!-- #BEGINZONE e.amounts -->
+		class = "input_error"
+		<!-- #ENDZONE e.amounts --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.vat_amount" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "vat_amount" value = "<tmpl_var name = 'vat_amount' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.amounts'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.vat_amount##</span></td>
+	<td> : <input type = "text" name = "vat_amount"
+		value = "##vat_amount##"
+		<!-- #BEGINZONE e.amounts -->
+		class = "input_error"
+		<!-- #ENDZONE e.amounts --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.net_amount" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "net_amount" value = "<tmpl_var name = 'net_amount' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.amounts'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.net_amount##</span></td>
+	<td> : <input type = "text" name = "net_amount"
+		value = "##net_amount##"
+		<!-- #BEGINZONE e.amounts -->
+		class = "input_error"
+		<!-- #ENDZONE e.amounts --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.vat_rate" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "vat_rate" value = "<tmpl_var name = 'vat_rate' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.amounts'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.vat_rate##</span></td>
+	<td> : <input type = "text" name = "vat_rate"
+		value = "##vat_rate##"
+		<!-- #BEGINZONE e.amounts -->
+		class = "input_error"
+		<!-- #ENDZONE e.amounts --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.vat_number" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "vat_number" value = "<tmpl_var name = 'vat_number' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.vat_number'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.vat_number##</span></td>
+	<td> : <input type = "text" name = "vat_number"
+		value = "##vat_number##"
+		<!-- #BEGINZONE e.vat_number -->
+		class = "input_error"
+		<!-- #ENDZONE e.vat_number --> />
 	</td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.reason" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "reason" value = "<tmpl_var name = 'reason' fmt = 'de_xss' />" /></td>
+	<td><span class = "lighter">##f.reason##</span></td>
+	<td> : <input type = "text" name = "reason" value = "##reason##" /></td>
 </tr>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.receipt_date" fmt = "de_xss" /></span></td>
-	<td> : <input type = "text" name = "receipt_date" value = "<tmpl_var name = 'receipt_date' fmt = 'de_xss' />"
-		class = "
-		<tmpl_if name = 'error.receipt_date'>
-			input_error
-		</tmpl_if>
-		" />
+	<td><span class = "lighter">##f.receipt_date##</span></td>
+	<td> : <input type = "text" name = "receipt_date"
+		value = "##receipt_date##"
+		<!-- #BEGINZONE e.receipt_date -->
+		class = "input_error"
+		<!-- #ENDZONE e.receipt_date --> />
 	</td>
 <tr>
-	<td><span class = "lighter"><tmpl_var name = "fields.payment_method" fmt = "de_xss" /></span></td>
-	<input type = "hidden" name = "payment_method" value = "<tmpl_var name = 'payment_method' fmt = 'de_xss' />" />
-	<td> : <tmpl_var name = "payment_method" fmt = "de_xss" />
+	<td><span class = "lighter">##f.payment_method##</span></td>
+	<input type = "hidden" name = "payment_method"
+		value = "##payment_method##" />
+	<td> : ##payment_method##</td>
 </tr>
 
 </tbody>
@@ -179,11 +168,11 @@
 
 <p />
 
-<input type = "hidden" name = "image_path" value = "<tmpl_var name = 'image_path' />" />
-<input type = "hidden" name = "image_name" value = "<tmpl_var name = 'image_name' />" />
-<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'image_id' />" />
-<input type = "hidden" name = "from" value = "<tmpl_var name = 'from' />" />
-<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
+<input type = "hidden" name = "image_path" value = "##image_path##" />
+<input type = "hidden" name = "image_name" value = "##image_name##" />
+<input type = "hidden" name = "image_id" value = "##image_id##" />
+<input type = "hidden" name = "from" value = "##from##" />
+<input type = "hidden" name = "csrf_token" value = "##csrf_token##" />
 <input type = "submit" value = "Submit" />
 </form>
 

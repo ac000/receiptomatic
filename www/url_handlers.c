@@ -32,7 +32,7 @@
 #include <glib.h>
 
 /* HTML template library */
-#include <ctemplate.h>
+#include <flate.h>
 
 #include "common.h"
 #include "utils.h"
@@ -52,7 +52,7 @@ static void login(void)
 {
 	int ret = 1;
 	unsigned long long sid;
-	TMPL_varlist *vl = NULL;
+	Flate *f = NULL;
 
 	if (qvars) {
 		ret = check_auth();
@@ -64,16 +64,17 @@ static void login(void)
 		}
 	}
 
+	lf_set_tmpl(&f, "templates/login.tmpl");
 	if (ret == -1)
-		vl = add_html_var(vl, "logged_in", "no");
+		lf_set_var(f, "auth_fail", "", NULL);
 	if (ret == -2)
-		vl = add_html_var(vl, "enabled", "no");
+		lf_set_var(f, "acc_disab", "", NULL);
 	if (ret == -3)
-		vl = add_html_var(vl, "ipacl", "denied");
-	vl = add_html_var(vl, "rip", env_vars.remote_addr);
+		lf_set_var(f, "ipacl_deny", "", NULL);
+	lf_set_var(f, "rip", env_vars.remote_addr, de_xss);
 
-	send_template("templates/login.tmpl", vl, NULL);
-	TMPL_free_varlist(vl);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -112,7 +113,7 @@ static void logout(void)
 	fcgx_p("Set-Cookie: session_id=deleted; "
 				"expires=Thu, 01 Jan 1970 00:00:01 GMT; "
 				"path=/; httponly\r\n");
-	send_template("templates/logout.tmpl", NULL, NULL);
+	send_page("templates/logout.tmpl");
 }
 
 /*
@@ -134,7 +135,7 @@ static void delete_image(void)
 	bool headers_sent = false;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
-	TMPL_varlist *vl = NULL;
+	Flate *f = NULL;
 
 	if (!qvars)
 		goto out2;
@@ -154,9 +155,10 @@ static void delete_image(void)
 	if (!realpath(path, image_path))
 		goto out1;
 
-	vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
-	vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
-	vl = add_html_var(vl, "image_id", get_var(qvars, "image_id"));
+	lf_set_tmpl(&f, "templates/delete_image.tmpl");
+	lf_set_var(f, "image_path", get_var(db_row, "path"), NULL);
+	lf_set_var(f, "image_name", get_var(db_row, "name"), NULL);
+	lf_set_var(f, "image_id", get_var(qvars, "image_id"), NULL);
 
 	memset(userdir, 0, sizeof(userdir));
 	snprintf(userdir, sizeof(userdir), "/%s%s%u/",
@@ -197,15 +199,15 @@ static void delete_image(void)
 		goto out1;
 	}
 
-	add_csrf_token(vl);
-	send_template("templates/delete_image.tmpl", vl, NULL);
+	add_csrf_token(f);
+	send_template(f);
 	headers_sent = true;
 
 out1:
 	mysql_free_result(res);
 	free(image_id);
 	free_vars(db_row);
-	TMPL_free_varlist(vl);
+	lf_free(f);
 out2:
 	if (!headers_sent)
 		fcgx_p("Location: /receipts/\r\n\r\n");
@@ -284,14 +286,15 @@ static void get_image(void)
  */
 static void admin(void)
 {
-	TMPL_varlist *vl = NULL;
+	Flate *f = NULL;
 
 	if (!IS_ADMIN())
 		return;
 
-	ADD_HDR(vl);
-	send_template("templates/admin.tmpl", vl, NULL);
-	TMPL_free_varlist(vl);
+	lf_set_tmpl(&f, "templates/admin.tmpl");
+	ADD_HDR(f);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -306,16 +309,15 @@ static void admin_list_users(void)
 	unsigned long nr_rows;
 	unsigned long i;
 	MYSQL_RES *res;
-	TMPL_varlist *ml = NULL;
-	TMPL_loop *loop = NULL;
-	TMPL_fmtlist *fmtlist;
+	Flate *f = NULL;
 	struct pagination pn = { .rows_per_page = 15, .requested_page = 1,
 				 .from = 0, .nr_pages = 0, .page_no = 1 };
 
 	if (!IS_ADMIN())
 		return;
 
-	ADD_HDR(ml);
+	lf_set_tmpl(&f, "templates/admin_list_users.tmpl");
+	ADD_HDR(f);
 
 	if (qvars) {
 		pn.requested_page = atoi(get_var(qvars, "page_no"));
@@ -330,16 +332,14 @@ static void admin_list_users(void)
 		char caps[33] = "\0";
 		unsigned char capabilities;
 		GHashTable *db_row = NULL;
-		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
 		pn.nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 			(float)pn.rows_per_page);
 
-		vl = do_zebra(vl, i);
-		vl = add_html_var(vl, "uid", get_var(db_row, "uid"));
-		vl = add_html_var(vl, "username", get_var(db_row, "username"));
-		vl = add_html_var(vl, "name", get_var(db_row, "name"));
+		lf_set_var(f, "uid", get_var(db_row, "uid"), NULL);
+		lf_set_var(f, "username", get_var(db_row, "username"), de_xss);
+		lf_set_var(f, "name", get_var(db_row, "name"), de_xss);
 
 		/* Pretty print the set of capabilities */
 		capabilities = atoi(get_var(db_row, "capabilities"));
@@ -353,33 +353,31 @@ static void admin_list_users(void)
 			strcat(caps, " Cheque");
 		if (capabilities & APPROVER_SELF)
 			strcat(caps, " Self");
-		vl = add_html_var(vl, "capabilities", caps);
+		lf_set_var(f, "capabilities", caps, NULL);
 
 		if (capabilities & ADMIN)
-			vl = add_html_var(vl, "admin", "yes");
+			lf_set_var(f, "admin", "", NULL);
 		else
-			vl = add_html_var(vl, "admin", "no");
+			lf_set_var(f, "not_admin", "", NULL);
 
 		if (atoi(get_var(db_row, "enabled")) == 1)
-			vl = add_html_var(vl, "enabled", "yes");
+			lf_set_var(f, "enabled", "", NULL);
 		else
-			vl = add_html_var(vl, "enabled", "no");
+			lf_set_var(f, "not_enabled", "no", NULL);
 
 		if (atoi(get_var(db_row, "activated")) == 1)
-			vl = add_html_var(vl, "activated", "yes");
+			lf_set_var(f, "activated", "", NULL);
 		else
-			vl = add_html_var(vl, "activated", "no");
+			lf_set_var(f, "not_activated", "", NULL);
 
-		loop = TMPL_add_varlist(loop, vl);
+		do_zebra(f, i, "listzebra");
+		lf_set_row(f, "table");
 		free_vars(db_row);
 	}
-	ml = TMPL_add_loop(ml, "table", loop);
-	do_pagination(ml, &pn);
+	do_pagination(f, &pn);
 
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/admin_list_users.tmpl", ml, fmtlist);
-	TMPL_free_varlist(ml);
-	TMPL_free_fmtlist(fmtlist);
+	send_template(f);
+	lf_free(f);
 	mysql_free_result(res);
 }
 
@@ -394,8 +392,7 @@ static void admin_add_user(void)
 {
 	unsigned char capabilities = 0;
 	bool form_err = false;
-	TMPL_varlist *vl = NULL;
-	TMPL_fmtlist *fmtlist;
+	Flate *f = NULL;
 
 	if (!IS_ADMIN())
 		return;
@@ -404,26 +401,27 @@ static void admin_add_user(void)
 	if (IS_POST() && !valid_csrf_token())
 		return;
 
-	ADD_HDR(vl);
+	lf_set_tmpl(&f, "templates/admin_add_user.tmpl");
+	ADD_HDR(f);
 
 	if (!qvars)
 		goto out;
 
 	if (!IS_SET(get_var(qvars, "name"))) {
 		form_err = true;
-		vl = add_html_var(vl, "name_error", "yes");
+		lf_set_var(f, "name_error", "", NULL);
 	}
-	vl = add_html_var(vl, "name", get_var(qvars, "name"));
+	lf_set_var(f, "name", get_var(qvars, "name"), de_xss);
 
 	if ((!IS_SET(get_var(qvars, "email1")) &&
 	     !IS_SET(get_var(qvars, "email2"))) ||
 	    (strcmp(get_var(qvars, "email1"),
 		    get_var(qvars, "email2")) != 0)) {
 		form_err = true;
-		vl = add_html_var(vl, "email_error", "yes");
+		lf_set_var(f, "email_error", "", NULL);
 	}
-	vl = add_html_var(vl, "email1", get_var(qvars, "email1"));
-	vl = add_html_var(vl, "email2", get_var(qvars, "email2"));
+	lf_set_var(f, "email1", get_var(qvars, "email1"), de_xss);
+	lf_set_var(f, "email2", get_var(qvars, "email2"), de_xss);
 
 	if (IS_SET(get_var(qvars, "ap_card")) ||
 	    IS_SET(get_var(qvars, "ap_cash")) ||
@@ -432,24 +430,24 @@ static void admin_add_user(void)
 		capabilities |= APPROVER;
 		if (IS_SET(get_var(qvars, "ap_card"))) {
 			capabilities |= APPROVER_CARD;
-			vl = add_html_var(vl, "ap_card", "yes");
+			lf_set_var(f, "ap_card", "checked", NULL);
 		}
 		if (IS_SET(get_var(qvars, "ap_cash"))) {
 			capabilities |= APPROVER_CASH;
-			vl = add_html_var(vl, "ap_cash", "yes");
+			lf_set_var(f, "ap_cash", "checked", NULL);
 		}
 		if (IS_SET(get_var(qvars, "ap_cheque"))) {
 			capabilities |= APPROVER_CHEQUE;
-			vl = add_html_var(vl, "ap_cheque", "yes");
+			lf_set_var(f, "ap_cheque", "checked", NULL);
 		}
 		if (IS_SET(get_var(qvars, "ap_self"))) {
 			capabilities |= APPROVER_SELF;
-			vl = add_html_var(vl, "ap_self", "yes");
+			lf_set_var(f, "ap_self", "checked", NULL);
 		}
 	}
 	if (IS_SET(get_var(qvars, "is_admin"))) {
 		capabilities |= ADMIN;
-		vl = add_html_var(vl, "is_admin", "yes");
+		lf_set_var(f, "is_admin", "checked", NULL);
 	}
 
 	if (!form_err) {
@@ -461,7 +459,7 @@ static void admin_add_user(void)
 			 * Tried to add an already existing user.
 			 * Tell the admin.
 			 */
-			vl = add_html_var(vl, "dup_user", "yes");
+			lf_set_var(f, "dup_user", "", NULL);
 		} else {
 			fcgx_p("Location: /admin/add_user/\r\n\r\n");
 			goto out2;
@@ -469,13 +467,10 @@ static void admin_add_user(void)
 	}
 
 out:
-	add_csrf_token(vl);
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/admin_add_user.tmpl", vl, fmtlist);
-	TMPL_free_fmtlist(fmtlist);
-
+	add_csrf_token(f);
+	send_template(f);
 out2:
-	TMPL_free_varlist(vl);
+	lf_free(f);
 }
 
 /*
@@ -489,8 +484,8 @@ static void admin_edit_user(void)
 {
 	unsigned int uid;
 	bool form_err = false;
-	TMPL_varlist *vl = NULL;
-	TMPL_fmtlist *fmtlist;
+	bool pass_err = false;
+	Flate *f = NULL;
 
 	if (!IS_ADMIN())
 		return;
@@ -499,6 +494,7 @@ static void admin_edit_user(void)
 		return;
 
 	uid = atoi(get_var(qvars, "uid"));
+	lf_set_tmpl(&f, "templates/admin_edit_user.tmpl");
 
 	/* If we got a POST, update user settings before showing them. */
 	if (IS_POST() && valid_csrf_token()) {
@@ -506,16 +502,16 @@ static void admin_edit_user(void)
 		     !IS_SET(get_var(qvars, "email2"))) ||
 		    (strcmp(get_var(qvars, "email1"),
 			    get_var(qvars, "email2")) != 0)) {
-			vl = add_html_var(vl, "email_error", "yes");
+			lf_set_var(f, "email_error", "", NULL);
 			form_err = true;
 		}
 		if (strlen(get_var(qvars, "pass1")) > 7 &&
 		    strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
-						get_var(qvars, "pass2")) != 0) {
-				vl = add_html_var(vl, "pass_error",
-						"mismatch");
+				   get_var(qvars, "pass2")) != 0) {
+				lf_set_var(f, "pass_err_mismatch", "", NULL);
 				form_err = true;
+				pass_err = true;
 			}
 		} else if (IS_SET(get_var(qvars, "pass1")) ||
 			   IS_SET(get_var(qvars, "pass2"))) {
@@ -523,9 +519,13 @@ static void admin_edit_user(void)
 			 * If the password fields are > 0 in length, then we
 			 * at least tried to update it.
 			 */
-			vl = add_html_var(vl, "pass_error", "length");
+			lf_set_var(f, "pass_err_length", "", NULL);
 			form_err = true;
+			pass_err =true;
 		}
+
+		if (pass_err)
+			lf_set_var(f, "pass_error", "", NULL);
 
 		if (!form_err) {
 			do_update_user();
@@ -533,9 +533,9 @@ static void admin_edit_user(void)
 					"\r\n\r\n", uid);
 		}
 	}
-	ADD_HDR(vl);
+	ADD_HDR(f);
 
-	vl = add_html_var(vl, "uid", get_var(qvars, "uid"));
+	lf_set_var(f, "uid", get_var(qvars, "uid"), NULL);
 
 	/*
 	 * If form_err is false, then either we got a GET and just want
@@ -560,63 +560,69 @@ static void admin_edit_user(void)
 		db_row = get_dbrow(res);
 
 		if (IS_SET(get_var(qvars, "updated")))
-			vl = add_html_var(vl, "updated", "yes");
+			lf_set_var(f, "updated", "", NULL);
 
-		vl = add_html_var(vl, "username", get_var(db_row, "username"));
-		vl = add_html_var(vl, "email1", get_var(db_row, "username"));
-		vl = add_html_var(vl, "email2", get_var(db_row, "username"));
-		vl = add_html_var(vl, "name", get_var(db_row, "name"));
+		lf_set_var(f, "username", get_var(db_row, "username"), de_xss);
+		lf_set_var(f, "email1", get_var(db_row, "username"), de_xss);
+		lf_set_var(f, "email2", get_var(db_row, "username"), de_xss);
+		lf_set_var(f, "name", get_var(db_row, "name"), de_xss);
 		if (atoi(get_var(db_row, "enabled")) == 1)
-			vl = add_html_var(vl, "is_enabled", "yes");
+			lf_set_var(f, "is_enabled", "checked", NULL);
+		else
+			lf_set_var(f, "not_enabled", "", NULL);
 		if (atoi(get_var(db_row, "activated")) == 1)
-			vl = add_html_var(vl, "is_activated", "yes");
-		vl = add_html_var(vl, "d_reason", get_var(db_row, "d_reason"));
+			lf_set_var(f, "is_activated", "", NULL);
+		else
+			lf_set_var(f, "not_activated", "", NULL);
+		lf_set_var(f, "d_reason", get_var(db_row, "d_reason"), de_xss);
 
 		capabilities = atoi(get_var(db_row, "capabilities"));
 		if (capabilities & APPROVER_CARD)
-			vl = add_html_var(vl, "ap_card", "yes");
+			lf_set_var(f, "ap_card", "checked", NULL);
 		if (capabilities & APPROVER_CASH)
-			vl = add_html_var(vl, "ap_cash", "yes");
+			lf_set_var(f, "ap_cash", "checked", NULL);
 		if (capabilities & APPROVER_CHEQUE)
-			vl = add_html_var(vl, "ap_cheque", "yes");
+			lf_set_var(f, "ap_cheque", "checked", NULL);
 		if (capabilities & APPROVER_SELF)
-			vl = add_html_var(vl, "ap_self", "yes");
+			lf_set_var(f, "ap_self", "checked", NULL);
 
 		if (capabilities & ADMIN)
-			vl = add_html_var(vl, "is_admin", "yes");
+			lf_set_var(f, "is_admin", "checked", NULL);
 
 		free_vars(db_row);
 mysql_cleanup:
 		mysql_free_result(res);
 	} else {
-		vl = add_html_var(vl, "username", get_var(qvars, "email1"));
-		vl = add_html_var(vl, "email1", get_var(qvars, "email1"));
-		vl = add_html_var(vl, "email2", get_var(qvars, "email2"));
-		vl = add_html_var(vl, "name", get_var(qvars, "name"));
+		lf_set_var(f, "username", get_var(qvars, "email1"), de_xss);
+		lf_set_var(f, "email1", get_var(qvars, "email1"), de_xss);
+		lf_set_var(f, "email2", get_var(qvars, "email2"), de_xss);
+		lf_set_var(f, "name", get_var(qvars, "name"), de_xss);
 
 		if (atoi(get_var(qvars, "enabled")) == 1)
-			vl = add_html_var(vl, "is_enabled", "yes");
+			lf_set_var(f, "is_enabled", "checked", NULL);
+		else
+			lf_set_var(f, "not_enabled", "", NULL);
 		if (atoi(get_var(qvars, "activated")) == 1)
-			vl = add_html_var(vl, "is_activated", "yes");
+			lf_set_var(f, "is_activated", "", NULL);
+		else
+			lf_set_var(f, "not_activated", "", NULL);
 
 		if (atoi(get_var(qvars, "ap_card")) == 1)
-			vl = add_html_var(vl, "ap_card", "yes");
+			lf_set_var(f, "ap_card", "checked", NULL);
 		if (atoi(get_var(qvars, "ap_cash")) == 1)
-			vl = add_html_var(vl, "ap_cash", "yes");
+			lf_set_var(f, "ap_cash", "checked", NULL);
 		if (atoi(get_var(qvars, "ap_cheque")) == 1)
-			vl = add_html_var(vl, "ap_cheque", "yes");
+			lf_set_var(f, "ap_cheque", "checked", NULL);
 		if (atoi(get_var(qvars, "ap_self")) == 1)
-			vl = add_html_var(vl, "ap_self", "yes");
+			lf_set_var(f, "ap_self", "checked", NULL);
 
 		if (atoi(get_var(qvars, "is_admin")) == 1)
-			vl = add_html_var(vl, "is_admin", "yes");
+			lf_set_var(f, "is_admin", "checked", NULL);
 	}
 
-	add_csrf_token(vl);
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/admin_edit_user.tmpl", vl, fmtlist);
-	TMPL_free_fmtlist(fmtlist);
-	TMPL_free_varlist(vl);
+	add_csrf_token(f);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -628,18 +634,19 @@ mysql_cleanup:
  */
 static void admin_stats(void)
 {
-	TMPL_varlist *vl = NULL;
+	Flate *f = NULL;
 
 	if (!IS_ADMIN())
 		return;
 
-	ADD_HDR(vl);
+	lf_set_tmpl(&f, "templates/admin_stats.tmpl");
+	ADD_HDR(f);
 
 	/* Gather stats covering _all_ users */
-	gather_receipt_stats_for_user(-1, vl);
+	gather_receipt_stats_for_user(-1, f);
 
-	send_template("templates/admin_stats.tmpl", vl, NULL);
-	TMPL_free_varlist(vl);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -654,13 +661,13 @@ static void admin_user_stats(void)
 	unsigned int uid;
 	GHashTable *db_row = NULL;
 	MYSQL_RES *res;
-	TMPL_varlist *vl = NULL;
-	TMPL_fmtlist *fmtlist;
+	Flate *f = NULL;
 
 	if (!IS_ADMIN() || !qvars)
 		return;
 
-	ADD_HDR(vl);
+	lf_set_tmpl(&f, "templates/admin_user_stats.tmpl");
+	ADD_HDR(f);
 
 	uid = atoi(get_var(qvars, "uid"));
 
@@ -668,18 +675,17 @@ static void admin_user_stats(void)
 	if (mysql_num_rows(res) == 0)
 		goto out;
 
-	gather_receipt_stats_for_user(uid, vl);
+	gather_receipt_stats_for_user(uid, f);
 	db_row = get_dbrow(res);
-	vl = add_html_var(vl, "uid", get_var(qvars, "uid"));
-	vl = add_html_var(vl, "name", get_var(db_row, "name"));
+	lf_set_var(f, "uid", get_var(qvars, "uid"), NULL);
+	lf_set_var(f, "name", get_var(db_row, "name"), de_xss);
 	free_vars(db_row);
 
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/admin_user_stats.tmpl", vl, fmtlist);
+	send_template(f);
 
 out:
 	mysql_free_result(res);
-	TMPL_free_varlist(vl);
+	lf_free(f);
 }
 
 /*
@@ -694,9 +700,7 @@ static void admin_pending_activations(void)
 	unsigned long nr_rows;
 	unsigned long i;
 	MYSQL_RES *res;
-	TMPL_varlist *ml = NULL;
-	TMPL_loop *loop = NULL;
-	TMPL_fmtlist *fmtlist;
+	Flate *f = NULL;
 	struct pagination pn = { .rows_per_page = 15, .requested_page = 1,
 				 .from = 0, .nr_pages = 0, .page_no = 1 };
 
@@ -706,7 +710,8 @@ static void admin_pending_activations(void)
 	if (IS_POST() && valid_csrf_token() && avars)
 		process_activation_changes();
 
-	ADD_HDR(ml);
+	lf_set_tmpl(&f, "templates/admin_pending_activations.tmpl");
+	ADD_HDR(f);
 
 	if (qvars) {
 		pn.requested_page = atoi(get_var(qvars, "page_no"));
@@ -726,7 +731,6 @@ static void admin_pending_activations(void)
 		char item[3];
 		time_t secs;
 		GHashTable *db_row = NULL;
-		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
 		/*
@@ -742,31 +746,28 @@ static void admin_pending_activations(void)
 		pn.nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 				(float)pn.rows_per_page);
 
-		vl = do_zebra(vl, i);
-		vl = add_html_var(vl, "name", get_var(db_row, "name"));
-		vl = add_html_var(vl, "username", get_var(db_row, "user"));
+		lf_set_var(f, "name", get_var(db_row, "name"), de_xss);
+		lf_set_var(f, "username", get_var(db_row, "user"), de_xss);
 		secs = atol(get_var(db_row, "expires"));
 		if (time(NULL) > secs)
-			vl = add_html_var(vl, "expired", "yes");
+			lf_set_var(f, "expired", "", NULL);
 		strftime(tbuf, sizeof(tbuf), "%F %H:%M:%S", localtime(&secs));
-		vl = add_html_var(vl, "expires", tbuf);
+		lf_set_var(f, "expires", tbuf, NULL);
 
-		vl = add_html_var(vl, "uid", get_var(db_row, "uid"));
-		vl = add_html_var(vl, "akey", get_var(db_row, "akey"));
+		lf_set_var(f, "uid", get_var(db_row, "uid"), NULL);
+		lf_set_var(f, "akey", get_var(db_row, "akey"), NULL);
 		snprintf(item, sizeof(item), "%lu", i);
-		vl = add_html_var(vl, "item", item);
+		lf_set_var(f, "item", item, NULL);
 
-		loop = TMPL_add_varlist(loop, vl);
+		do_zebra(f, i, "listzebra");
+		lf_set_row(f, "table");
 		free_vars(db_row);
 	}
-	ml = TMPL_add_loop(ml, "table", loop);
-	add_csrf_token(ml);
-	do_pagination(ml, &pn);
+	add_csrf_token(f);
+	do_pagination(f, &pn);
 
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/admin_pending_activations.tmpl", ml, fmtlist);
-	TMPL_free_varlist(ml);
-	TMPL_free_fmtlist(fmtlist);
+	send_template(f);
+	lf_free(f);
 	mysql_free_result(res);
 }
 
@@ -782,10 +783,12 @@ static void activate_user(void)
 	char *key;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
-	TMPL_varlist *vl = NULL;
+	bool activated = false;
+	Flate *f = NULL;
 
+	lf_set_tmpl(&f, "templates/activate_user.tmpl");
 	if (!qvars) {
-		vl = add_html_var(vl, "key_error", "yes");
+		lf_set_var(f, "key_error", "", NULL);
 		goto out2;
 	}
 
@@ -795,20 +798,20 @@ static void activate_user(void)
 			"activations.user) WHERE activations.akey = '%s'",
 			key);
 	if (mysql_num_rows(res) == 0) {
-		vl = add_html_var(vl, "key_error", "yes");
+		lf_set_var(f, "key_error", "", NULL);
 		goto out;
 	}
 
 	db_row = get_dbrow(res);
-	vl = add_html_var(vl, "name", get_var(db_row, "name"));
+	lf_set_var(f, "name", get_var(db_row, "name"), de_xss);
 
 	/* Check if the activation key has expired. */
 	if (time(NULL) > atol(get_var(db_row, "expires"))) {
-		vl = add_html_var(vl, "expired", "yes");
-		vl = add_html_var(vl, "email", get_var(db_row, "user"));
+		lf_set_var(f, "expired", "", NULL);
+		lf_set_var(f, "email", get_var(db_row, "user"), de_xss);
 		goto out;
 	}
-	vl = add_html_var(vl, "key", get_var(qvars, "key"));
+	lf_set_var(f, "key", get_var(qvars, "key"), de_xss);
 
 	/*
 	 * The user is trying to set a password, do some sanity
@@ -821,27 +824,29 @@ static void activate_user(void)
 		if (strlen(get_var(qvars, "pass1")) > 7 &&
 		    strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
-						get_var(qvars, "pass2")) == 0) {
+				   get_var(qvars, "pass2")) == 0) {
 				do_activate_user(get_var(db_row, "uid"), key,
 						get_var(qvars, "pass1"));
-				vl = add_html_var(vl, "activated", "yes");
+				lf_set_var(f, "activated", "", NULL);
+				activated = true;
 			} else {
-				vl = add_html_var(vl, "password_error",
-						"mismatch");
+				lf_set_var(f, "pass_err_mismatch", "", NULL);
 			}
 		} else {
-			vl = add_html_var(vl, "password_error", "length");
+			lf_set_var(f, "pass_err_length", "", NULL);
 		}
 	}
+
+	if (!activated)
+		lf_set_var(f, "not_activated", "", NULL);
 
 out:
 	mysql_free_result(res);
 	free_vars(db_row);
 	free(key);
-
 out2:
-	send_template("templates/activate_user.tmpl", vl, NULL);
-	TMPL_free_varlist(vl);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -857,7 +862,7 @@ static void generate_new_key(void)
 	char key[SHA256_LEN + 1];
 	time_t tm;
 	MYSQL_RES *res;
-	TMPL_varlist *vl = NULL;
+	Flate *f = NULL;
 
 	if (!qvars)
 		return;
@@ -875,12 +880,12 @@ static void generate_new_key(void)
 
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
 
-	vl = add_html_var(vl, "email", email_addr);
+	lf_set_tmpl(&f, "templates/generate_new_key.tmpl");
+	lf_set_var(f, "email", email_addr, de_xss);
+	send_template(f);
+	lf_free(f);
 
 out:
-	send_template("templates/generate_new_key.tmpl", vl, NULL);
-	TMPL_free_varlist(vl);
-
 	mysql_free_result(res);
 	free(email_addr);
 }
@@ -898,18 +903,22 @@ static void forgotten_password(void)
 	char key[SHA256_LEN + 1];
 	time_t tm;
 	MYSQL_RES *res;
-	TMPL_varlist *vl = NULL;
+	Flate *f = NULL;
 
-	if (!qvars)
+	lf_set_tmpl(&f, "templates/forgotten_password.tmpl");
+	if (!qvars) {
+		lf_set_var(f, "reset", "", NULL);
 		goto out;
+	}
 
-	vl = add_html_var(vl, "email", get_var(qvars, "email"));
+	lf_set_var(f, "email", get_var(qvars, "email"), de_xss);
 
 	email_addr = make_mysql_safe_string(get_var(qvars, "email"));
 	res = sql_query("SELECT username FROM passwd WHERE username = '%s'",
 			email_addr);
 	if (mysql_num_rows(res) == 0) {
-		vl = add_html_var(vl, "user_error", "yes");
+		lf_set_var(f, "reset", "", NULL);
+		lf_set_var(f, "user_error", "", NULL);
 		goto mysql_cleanup;
 	}
 
@@ -919,15 +928,14 @@ static void forgotten_password(void)
 			email_addr, key, tm + KEY_EXP);
 
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
-	vl = add_html_var(vl, "sent", "yes");
+	lf_set_var(f, "sent", "", NULL);
 
 mysql_cleanup:
 	mysql_free_result(res);
 	free(email_addr);
-
 out:
-	send_template("templates/forgotten_password.tmpl", vl, NULL);
-	TMPL_free_varlist(vl);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -937,11 +945,12 @@ out:
  */
 static void prefs(void)
 {
-	TMPL_varlist *vl = NULL;
+	Flate *f = NULL;
 
-	ADD_HDR(vl);
-	send_template("templates/prefs.tmpl", vl, NULL);
-	TMPL_free_varlist(vl);
+	lf_set_tmpl(&f, "templates/prefs.tmpl");
+	ADD_HDR(f);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -953,92 +962,105 @@ static void prefs(void)
  */
 static void prefs_fmap(void)
 {
-	TMPL_varlist *vl = NULL;
-	TMPL_fmtlist *fmtlist;
+	Flate *f = NULL;
+
+	lf_set_tmpl(&f, "templates/prefs_fmap.tmpl");
 
 	if (IS_POST() && valid_csrf_token()) {
 		update_fmap();
 		fcgx_p("Location: /prefs/fmap/?updated=yes\r\n\r\n");
 		return;
 	} else if (IS_GET() && IS_SET(get_var(qvars, "updated"))) {
-		vl = add_html_var(vl, "fields_updated", "yes");
+		lf_set_var(f, "fields_updated", "", NULL);
 	}
 
-	ADD_HDR(vl);
+	ADD_HDR(f);
 
 	set_custom_field_names();
-	vl = add_html_var(vl, "receipt_date", DFN_RECEIPT_DATE);
-	vl = add_html_var(vl, "alt_receipt_date", !strcmp(DFN_RECEIPT_DATE,
-			fields.receipt_date) ? "" : fields.receipt_date);
+	lf_set_var(f, "receipt_date", DFN_RECEIPT_DATE, NULL);
+	lf_set_var(f, "alt_receipt_date",
+			!strcmp( DFN_RECEIPT_DATE, fields.receipt_date) ? "" :
+			fields.receipt_date, de_xss);
 
-	vl = add_html_var(vl, "department", DFN_DEPARTMENT);
-	vl = add_html_var(vl, "alt_department", !strcmp(DFN_DEPARTMENT,
-			fields.department) ? "" : fields.department);
+	lf_set_var(f, "department", DFN_DEPARTMENT, NULL);
+	lf_set_var(f, "alt_department",
+			!strcmp(DFN_DEPARTMENT, fields.department) ? "" :
+			fields.department, de_xss);
 
-	vl = add_html_var(vl, "employee_number", DFN_EMPLOYEE_NUMBER);
-	vl = add_html_var(vl, "alt_employee_number",
+	lf_set_var(f, "employee_number", DFN_EMPLOYEE_NUMBER, NULL);
+	lf_set_var(f, "alt_employee_number",
 			!strcmp(DFN_EMPLOYEE_NUMBER, fields.employee_number) ?
-			"" : fields.employee_number);
+			"" : fields.employee_number, de_xss);
 
-	vl = add_html_var(vl, "reason", DFN_REASON);
-	vl = add_html_var(vl, "alt_reason", !strcmp(DFN_REASON,
-			fields.reason) ? "" : fields.reason);
+	lf_set_var(f, "reason", DFN_REASON, NULL);
+	lf_set_var(f, "alt_reason",
+			!strcmp(DFN_REASON, fields.reason) ? "" :
+			fields.reason, de_xss);
 
-	vl = add_html_var(vl, "po_num", DFN_PO_NUM);
-	vl = add_html_var(vl, "alt_po_num", !strcmp(DFN_PO_NUM,
-			fields.po_num) ? "" : fields.po_num);
+	lf_set_var(f, "po_num", DFN_PO_NUM, NULL);
+	lf_set_var(f, "alt_po_num",
+			!strcmp(DFN_PO_NUM, fields.po_num) ? "" :
+			fields.po_num, de_xss);
 
-	vl = add_html_var(vl, "cost_codes", DFN_COST_CODES);
-	vl = add_html_var(vl, "alt_cost_codes", !strcmp(DFN_COST_CODES,
-			fields.cost_codes) ? "" : fields.cost_codes);
+	lf_set_var(f, "cost_codes", DFN_COST_CODES, NULL);
+	lf_set_var(f, "alt_cost_codes",
+			!strcmp(DFN_COST_CODES, fields.cost_codes) ? "" :
+			fields.cost_codes, de_xss);
 
-	vl = add_html_var(vl, "account_codes", DFN_ACCOUNT_CODES);
-	vl = add_html_var(vl, "alt_account_codes", !strcmp(DFN_ACCOUNT_CODES,
-			fields.account_codes) ? "" : fields.account_codes);
+	lf_set_var(f, "account_codes", DFN_ACCOUNT_CODES, NULL);
+	lf_set_var(f, "alt_account_codes",
+			!strcmp(DFN_ACCOUNT_CODES, fields.account_codes) ? "" :
+			fields.account_codes, de_xss);
 
-	vl = add_html_var(vl, "supplier_name", DFN_SUPPLIER_NAME);
-	vl = add_html_var(vl, "alt_supplier_name", !strcmp(DFN_SUPPLIER_NAME,
-			fields.supplier_name) ? "" : fields.supplier_name);
+	lf_set_var(f, "supplier_name", DFN_SUPPLIER_NAME, NULL);
+	lf_set_var(f, "alt_supplier_name",
+			!strcmp(DFN_SUPPLIER_NAME, fields.supplier_name) ? "" :
+			fields.supplier_name, de_xss);
 
-	vl = add_html_var(vl, "supplier_town", DFN_SUPPLIER_TOWN);
-	vl = add_html_var(vl, "alt_supplier_town", !strcmp(DFN_SUPPLIER_TOWN,
-			fields.supplier_town) ? "" : fields.supplier_town);
+	lf_set_var(f, "supplier_town", DFN_SUPPLIER_TOWN, NULL);
+	lf_set_var(f, "alt_supplier_town",
+			!strcmp(DFN_SUPPLIER_TOWN, fields.supplier_town) ? "" :
+			fields.supplier_town, de_xss);
 
-	vl = add_html_var(vl, "vat_number", DFN_VAT_NUMBER);
-	vl = add_html_var(vl, "alt_vat_number", !strcmp(DFN_VAT_NUMBER,
-			fields.vat_number) ? "" : fields.vat_number);
+	lf_set_var(f, "vat_number", DFN_VAT_NUMBER, NULL);
+	lf_set_var(f, "alt_vat_number",
+			!strcmp(DFN_VAT_NUMBER, fields.vat_number) ? "" :
+			fields.vat_number, de_xss);
 
-	vl = add_html_var(vl, "gross_amount", DFN_GROSS_AMOUNT);
-	vl = add_html_var(vl, "alt_gross_amount", !strcmp(DFN_GROSS_AMOUNT,
-			fields.gross_amount) ? "" : fields.gross_amount);
+	lf_set_var(f, "gross_amount", DFN_GROSS_AMOUNT, NULL);
+	lf_set_var(f, "alt_gross_amount",
+			!strcmp(DFN_GROSS_AMOUNT, fields.gross_amount) ? "" :
+			fields.gross_amount, de_xss);
 
-	vl = add_html_var(vl, "net_amount", DFN_NET_AMOUNT);
-	vl = add_html_var(vl, "alt_net_amount", !strcmp(DFN_NET_AMOUNT,
-			fields.net_amount) ? "" : fields.net_amount);
+	lf_set_var(f, "net_amount", DFN_NET_AMOUNT, NULL);
+	lf_set_var(f, "alt_net_amount",
+			!strcmp(DFN_NET_AMOUNT, fields.net_amount) ? "" :
+			fields.net_amount, de_xss);
 
-	vl = add_html_var(vl, "vat_amount", DFN_VAT_AMOUNT);
-	vl = add_html_var(vl, "alt_vat_amount", !strcmp(DFN_VAT_AMOUNT,
-			fields.vat_amount) ? "" : fields.vat_amount);
+	lf_set_var(f, "vat_amount", DFN_VAT_AMOUNT, NULL);
+	lf_set_var(f, "alt_vat_amount",
+			!strcmp(DFN_VAT_AMOUNT, fields.vat_amount) ? "" :
+			fields.vat_amount, de_xss);
 
-	vl = add_html_var(vl, "vat_rate", DFN_VAT_RATE);
-	vl = add_html_var(vl, "alt_vat_rate", !strcmp(DFN_VAT_RATE,
-			fields.vat_rate) ? "" : fields.vat_rate);
+	lf_set_var(f, "vat_rate", DFN_VAT_RATE, NULL);
+	lf_set_var(f, "alt_vat_rate",
+			!strcmp(DFN_VAT_RATE, fields.vat_rate) ? "" :
+			fields.vat_rate, de_xss);
 
-	vl = add_html_var(vl, "currency", DFN_CURRENCY);
-	vl = add_html_var(vl, "alt_currency", !strcmp(DFN_CURRENCY,
-			fields.currency) ? "" : fields.currency);
+	lf_set_var(f, "currency", DFN_CURRENCY, NULL);
+	lf_set_var(f, "alt_currency",
+			!strcmp(DFN_CURRENCY, fields.currency) ? "" :
+			fields.currency, de_xss);
 
-	vl = add_html_var(vl, "payment_method", DFN_PAYMENT_METHOD);
-	vl = add_html_var(vl, "alt_payment_method",
+	lf_set_var(f, "payment_method", DFN_PAYMENT_METHOD, NULL);
+	lf_set_var(f, "alt_payment_method",
 			!strcmp(DFN_PAYMENT_METHOD, fields.payment_method) ?
-			"" : fields.payment_method);
+			"" : fields.payment_method, de_xss);
 	free_fields();
 
-	add_csrf_token(vl);
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/prefs_fmap.tmpl", vl, fmtlist);
-	TMPL_free_varlist(vl);
-	TMPL_free_fmtlist(fmtlist);
+	add_csrf_token(f);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -1051,9 +1073,10 @@ static void prefs_fmap(void)
 static void prefs_edit_user(void)
 {
 	bool form_err = false;
-	TMPL_varlist *vl = NULL;
-	TMPL_fmtlist *fmtlist;
+	bool pass_err = false;
+	Flate *f = NULL;
 
+	lf_set_tmpl(&f, "templates/prefs_edit_user.tmpl");
 	/*
 	 * If we got POST data, update the users settings before
 	 * showing them.
@@ -1063,22 +1086,22 @@ static void prefs_edit_user(void)
 		     !IS_SET(get_var(qvars, "email2"))) ||
 		    (strcmp(get_var(qvars, "email1"),
 			    get_var(qvars, "email2")) != 0)) {
-			vl = add_html_var(vl, "email_error", "yes");
+			lf_set_var(f, "email_error", "", NULL);
 			form_err = true;
 		} else if (strcmp(user_session.username,
-					get_var(qvars, "email1")) != 0) {
+				  get_var(qvars, "email1")) != 0) {
 			if (user_already_exists(get_var(qvars, "email1"))) {
-				vl = add_html_var(vl, "user_exists", "yes");
+				lf_set_var(f, "user_exists", "", NULL);
 				form_err = true;
 			}
 		}
 		if (strlen(get_var(qvars, "pass1")) > 7 &&
 		    strlen(get_var(qvars, "pass2")) > 7) {
 			if (strcmp(get_var(qvars, "pass1"),
-						get_var(qvars, "pass2")) != 0) {
-				vl = add_html_var(vl, "pass_error",
-						"mismatch");
+				   get_var(qvars, "pass2")) != 0) {
+				lf_set_var(f, "pass_err_mismatch", "", NULL);
 				form_err = true;
+				pass_err = true;
 			}
 		/*
 		 * If the password fields are > 0 in length, then we tried
@@ -1086,9 +1109,13 @@ static void prefs_edit_user(void)
 		 */
 		} else if (IS_SET(get_var(qvars, "pass1")) ||
 			   IS_SET(get_var(qvars, "pass2"))) {
-			vl = add_html_var(vl, "pass_error", "length");
+			lf_set_var(f, "pass_err_length", "", NULL);
 			form_err = true;
+			pass_err = true;
 		}
+
+		if (pass_err)
+			lf_set_var(f, "pass_error", "", NULL);
 
 		if (!form_err) {
 			do_edit_user();
@@ -1099,7 +1126,7 @@ static void prefs_edit_user(void)
 		}
 	} else {
 		if (IS_SET(get_var(qvars, "updated")))
-			vl = add_html_var(vl, "updated", "yes");
+			lf_set_var(f, "updated", "", NULL);
 	}
 
 	/*
@@ -1119,27 +1146,25 @@ static void prefs_edit_user(void)
 				"uid = %u", user_session.uid);
 		db_row = get_dbrow(res);
 
-		vl = add_html_var(vl, "username", get_var(db_row, "username"));
-		vl = add_html_var(vl, "email1", get_var(db_row, "username"));
-		vl = add_html_var(vl, "email2", get_var(db_row, "username"));
-		vl = add_html_var(vl, "name", get_var(db_row, "name"));
+		lf_set_var(f, "username", get_var(db_row, "username"), de_xss);
+		lf_set_var(f, "email1", get_var(db_row, "username"), de_xss);
+		lf_set_var(f, "email2", get_var(db_row, "username"), de_xss);
+		lf_set_var(f, "name", get_var(db_row, "name"), de_xss);
 
 		free_vars(db_row);
 		mysql_free_result(res);
 	} else {
-		vl = add_html_var(vl, "username", get_var(qvars, "email1"));
-		vl = add_html_var(vl, "email1", get_var(qvars, "email1"));
-		vl = add_html_var(vl, "email2", get_var(qvars, "email2"));
-		vl = add_html_var(vl, "name", get_var(qvars, "name"));
+		lf_set_var(f, "username", get_var(qvars, "email1"), de_xss);
+		lf_set_var(f, "email1", get_var(qvars, "email1"), de_xss);
+		lf_set_var(f, "email2", get_var(qvars, "email2"), de_xss);
+		lf_set_var(f, "name", get_var(qvars, "name"), de_xss);
 	}
 
-	ADD_HDR(vl);
+	ADD_HDR(f);
 
-	add_csrf_token(vl);
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/prefs_edit_user.tmpl", vl, fmtlist);
-	TMPL_free_varlist(vl);
-	TMPL_free_fmtlist(fmtlist);
+	add_csrf_token(f);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -1173,15 +1198,16 @@ static void do_extract_data(void)
  */
 static void extract_data(void)
 {
-	TMPL_varlist *vl = NULL;
+	Flate *f = NULL;
 
 	if (!IS_APPROVER())
 		return;
 
-	ADD_HDR(vl);
+	lf_set_tmpl(&f, "templates/extract_data.tmpl");
+	ADD_HDR(f);
 
-	send_template("templates/extract_data.tmpl", vl, NULL);
-	TMPL_free_varlist(vl);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -1317,11 +1343,9 @@ static void approve_receipts(void)
 	static const char *cheque = "'cheque'";
 	const char *join;
 	MYSQL_RES *res;
+	Flate *f = NULL;
 	unsigned long i;
 	unsigned long nr_rows;
-	TMPL_varlist *ml = NULL;
-	TMPL_loop *loop = NULL;
-	TMPL_fmtlist *fmtlist;
 	struct pagination pn = { .rows_per_page = APPROVER_ROWS,
 				 .requested_page = 1, .from = 0, .nr_pages = 0,
 				 .page_no = 1 };
@@ -1329,7 +1353,8 @@ static void approve_receipts(void)
 	if (!IS_APPROVER())
 		return;
 
-	ADD_HDR(ml);
+	lf_set_tmpl(&f, "templates/approve_receipts.tmpl");
+	ADD_HDR(f);
 
 	memset(pmsql, 0, sizeof(pmsql));
 	/*
@@ -1403,10 +1428,11 @@ static void approve_receipts(void)
 			"WHERE images.approved = 1 AND (%s) %s LIMIT %d, %d",
 			pmsql, assql, pmsql, assql, pn.from, APPROVER_ROWS);
 	nr_rows = mysql_num_rows(res);
-	if (nr_rows == 0) {
-		ml = add_html_var(ml, "receipts", "no");
+	if (nr_rows == 0)
 		goto out;
-	}
+
+	lf_set_var(f, "receipts", "", NULL);
+	add_csrf_token(f);
 
 	set_custom_field_names();
 	for (i = 0; i < nr_rows; i++) {
@@ -1420,65 +1446,60 @@ static void approve_receipts(void)
 		double vr;
 		int ret;
 		GHashTable *db_row = NULL;
-		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
 
 		pn.nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 				(float)pn.rows_per_page);
 
-		vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
-		vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
+		lf_set_var(f, "image_path", get_var(db_row, "path"), NULL);
+		lf_set_var(f, "image_name", get_var(db_row, "name"), NULL);
 
 		name = username_to_name(get_var(db_row, "username"));
-		vl = add_html_var(vl, "name", name);
+		lf_set_var(f, "name", name, de_xss);
 		free(name);
 
 		secs = atol(get_var(db_row, "its"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = add_html_var(vl, "images_timestamp", tbuf);
+		lf_set_var(f, "images_timestamp", tbuf, NULL);
 
 		secs = atol(get_var(db_row, "tts"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = add_html_var(vl, "tags_timestamp", tbuf);
-		vl = add_html_var(vl, "fields.department", fields.department);
-		vl = add_html_var(vl, "department",
-					get_var(db_row, "department"));
-		vl = add_html_var(vl, "fields.employee_number",
-					fields.employee_number);
-		vl = add_html_var(vl, "employee_number",
-					get_var(db_row, "employee_number"));
-		vl = add_html_var(vl, "fields.cost_codes", fields.cost_codes);
-		vl = add_html_var(vl, "cost_codes",
-					get_var(db_row, "cost_codes"));
-		vl = add_html_var(vl, "fields.account_codes",
-					fields.account_codes);
-		vl = add_html_var(vl, "account_codes",
-					get_var(db_row, "account_codes"));
-		vl = add_html_var(vl, "fields.po_num", fields.po_num);
-		vl = add_html_var(vl, "po_num", get_var(db_row, "po_num"));
-		vl = add_html_var(vl, "fields.supplier_name",
-					fields.supplier_name);
-		vl = add_html_var(vl, "supplier_name",
-					get_var(db_row, "supplier_name"));
-		vl = add_html_var(vl, "fields.supplier_town",
-					fields.supplier_town);
-		vl = add_html_var(vl, "supplier_town",
-					get_var(db_row, "supplier_town"));
-		vl = add_html_var(vl, "fields.currency", fields.currency);
-		vl = add_html_var(vl, "currency", get_var(db_row, "currency"));
-		vl = add_html_var(vl, "fields.gross_amount",
-					fields.gross_amount);
-		vl = add_html_var(vl, "gross_amount",
-					get_var(db_row, "gross_amount"));
-		vl = add_html_var(vl, "fields.vat_amount", fields.vat_amount);
-		vl = add_html_var(vl, "vat_amount",
-					get_var(db_row, "vat_amount"));
-		vl = add_html_var(vl, "fields.net_amount", fields.net_amount);
-		vl = add_html_var(vl, "net_amount",
-					get_var(db_row, "net_amount"));
-		vl = add_html_var(vl, "fields.vat_rate", fields.vat_rate);
-		vl = add_html_var(vl, "vat_rate", get_var(db_row, "vat_rate"));
+		lf_set_var(f, "tags_timestamp", tbuf, NULL);
+		lf_set_var(f, "f.department", fields.department, de_xss);
+		lf_set_var(f, "department", get_var(db_row, "department"),
+				de_xss);
+		lf_set_var(f, "f.employee_number", fields.employee_number,
+				de_xss);
+		lf_set_var(f, "employee_number",
+				get_var(db_row, "employee_number"), de_xss);
+		lf_set_var(f, "f.cost_codes", fields.cost_codes, de_xss);
+		lf_set_var(f, "cost_codes",
+				get_var(db_row, "cost_codes"), de_xss);
+		lf_set_var(f, "f.account_codes", fields.account_codes, de_xss);
+		lf_set_var(f, "account_codes",
+				get_var(db_row, "account_codes"), de_xss);
+		lf_set_var(f, "f.po_num", fields.po_num, de_xss);
+		lf_set_var(f, "po_num", get_var(db_row, "po_num"), de_xss);
+		lf_set_var(f, "f.supplier_name", fields.supplier_name, de_xss);
+		lf_set_var(f, "supplier_name",
+				get_var(db_row, "supplier_name"), de_xss);
+		lf_set_var(f, "f.supplier_town", fields.supplier_town, de_xss);
+		lf_set_var(f, "supplier_town",
+				get_var(db_row, "supplier_town"), de_xss);
+		lf_set_var(f, "f.currency", fields.currency, de_xss);
+		lf_set_var(f, "currency", get_var(db_row, "currency"), de_xss);
+		lf_set_var(f, "f.gross_amount", fields.gross_amount, de_xss);
+		lf_set_var(f, "gross_amount", get_var(db_row, "gross_amount"),
+				NULL);
+		lf_set_var(f, "f.vat_amount", fields.vat_amount, de_xss);
+		lf_set_var(f, "vat_amount", get_var(db_row, "vat_amount"),
+				NULL);
+		lf_set_var(f, "f.net_amount", fields.net_amount, de_xss);
+		lf_set_var(f, "net_amount", get_var(db_row, "net_amount"),
+				NULL);
+		lf_set_var(f, "f.vat_rate", fields.vat_rate, de_xss);
+		lf_set_var(f, "vat_rate", get_var(db_row, "vat_rate"), NULL);
 
 		/* Sanity check the amounts */
 		gross = strtod(get_var(db_row, "gross_amount"), NULL);
@@ -1487,44 +1508,38 @@ static void approve_receipts(void)
 		vr = strtod(get_var(db_row, "vat_rate"), NULL);
 		ret = check_amounts(gross, net, vat, vr);
 		if (ret < 0)
-			vl = add_html_var(vl, "amnt_err", "yes");
+			lf_set_var(f, "amnt_err", "", NULL);
 		else
-			vl = add_html_var(vl, "amnt_err", "no");
+			lf_set_var(f, "amnt_ok", "", NULL);
 
-		vl = add_html_var(vl, "fields.vat_number", fields.vat_number);
-		vl = add_html_var(vl, "vat_number",
-					get_var(db_row, "vat_number"));
-		vl = add_html_var(vl, "fields.receipt_date",
-					fields.receipt_date);
+		lf_set_var(f, "f.vat_number", fields.vat_number, de_xss);
+		lf_set_var(f, "vat_number", get_var(db_row, "vat_number"),
+				de_xss);
+		lf_set_var(f, "f.receipt_date", fields.receipt_date, de_xss);
 
 		secs = atol(get_var(db_row, "receipt_date"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = add_html_var(vl, "receipt_date", tbuf);
-		vl = add_html_var(vl, "fields.payment_method",
-					fields.payment_method);
-		vl = add_html_var(vl, "payment_method",
-					get_var(db_row, "payment_method"));
-		vl = add_html_var(vl, "fields.reason", fields.reason);
-		vl = add_html_var(vl, "reason", get_var(db_row, "reason"));
-		vl = add_html_var(vl, "id", get_var(db_row, "id"));
+		lf_set_var(f, "receipt_date", tbuf, NULL);
+		lf_set_var(f, "f.payment_method", fields.payment_method,
+				de_xss);
+		lf_set_var(f, "payment_method",
+				get_var(db_row, "payment_method"), NULL);
+		lf_set_var(f, "f.reason", fields.reason, de_xss);
+		lf_set_var(f, "reason", get_var(db_row, "reason"), de_xss);
+		lf_set_var(f, "id", get_var(db_row, "id"), NULL);
 
 		snprintf(item, sizeof(item), "%lu", i);
-		vl = add_html_var(vl, "item", item);
+		lf_set_var(f, "item", item, NULL);
 
-		loop = TMPL_add_varlist(loop, vl);
+		lf_set_row(f, "table");
 		free_vars(db_row);
 	}
 	free_fields();
-	ml = TMPL_add_loop(ml, "table", loop);
-	do_pagination(ml, &pn);
-	/* Only use csrf if there is receipts to process */
-	add_csrf_token(ml);
+	do_pagination(f, &pn);
 
 out:
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/approve_receipts.tmpl", ml, fmtlist);
-	TMPL_free_varlist(ml);
-	TMPL_free_fmtlist(fmtlist);
+	send_template(f);
+	lf_free(f);
 	mysql_free_result(res);
 }
 
@@ -1541,9 +1556,7 @@ static void reviewed_receipts(void)
 	unsigned long i;
 	int c = 1;		/* column number */
 	MYSQL_RES *res;
-	TMPL_varlist *ml = NULL;
-	TMPL_loop *loop = NULL;
-	TMPL_fmtlist *fmtlist;
+	Flate *f = NULL;
 	struct pagination pn = { .rows_per_page = GRID_SIZE,
 				 .requested_page = 1, .from = 0, .nr_pages = 0,
 				 .page_no = 1 };
@@ -1551,7 +1564,8 @@ static void reviewed_receipts(void)
 	if (!IS_APPROVER())
 		return;
 
-	ADD_HDR(ml);
+	lf_set_tmpl(&f, "templates/reviewed_receipts.tmpl");
+	ADD_HDR(f);
 
 	if (qvars) {
 		pn.requested_page = atoi(get_var(qvars, "page_no"));
@@ -1569,66 +1583,63 @@ static void reviewed_receipts(void)
 			"reviewed.timestamp DESC LIMIT %d, %d",
 			pn.from, GRID_SIZE);
 	nr_rows = mysql_num_rows(res);
-	if (nr_rows == 0) {
-		ml = add_html_var(ml, "receipts", "no");
+	if (nr_rows == 0)
 		goto out;
-	}
 
 	set_custom_field_names();
-	ml = add_html_var(ml, "receipts", "yes");
+	lf_set_var(f, "receipts", "", NULL);
+
 	/* Draw gallery grid */
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
 		time_t secs;
 		GHashTable *db_row = NULL;
-		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
 
 		pn.nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 				(float)pn.rows_per_page);
+		d_fprintf(debug_log, "pn.nr_pages : %d\n", pn.nr_pages);
 
-		vl = add_html_var(vl, "id", get_var(db_row, "id"));
-		vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
-		vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
-		vl = add_html_var(vl, "user", get_var(db_row, "user"));
-		vl = add_html_var(vl, "uid", get_var(db_row, "uid"));
+		lf_set_var(f, "id", get_var(db_row, "id"), NULL);
+		lf_set_var(f, "image_path", get_var(db_row, "path"), de_xss);
+		lf_set_var(f, "image_name", get_var(db_row, "name"), de_xss);
+		lf_set_var(f, "user", get_var(db_row, "user"), de_xss);
+		lf_set_var(f, "uid", get_var(db_row, "uid"), NULL);
 
 		secs = atol(get_var(db_row, "ats"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = add_html_var(vl, "review_date", "Review Date");
-		vl = add_html_var(vl, "apdate", tbuf);
+		lf_set_var(f, "review_date", "Review Date", NULL);
+		lf_set_var(f, "apdate", tbuf, NULL);
 
 		secs = atol(get_var(db_row, "its"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = add_html_var(vl, "receipt_date", fields.receipt_date);
-		vl = add_html_var(vl, "rdate", tbuf);
+		lf_set_var(f, "f.receipt_date", fields.receipt_date, de_xss);
+		lf_set_var(f, "rdate", tbuf, NULL);
 
 		if (atoi(get_var(db_row, "status")) == REJECTED)
-			vl = add_html_var(vl, "status", "rejected");
+			lf_set_var(f, "rejected", "", NULL);
 		else
-			vl = add_html_var(vl, "status", "approved");
+			lf_set_var(f, "approved", "", NULL);
 
-		if (c == COL_SIZE && i < nr_rows) { /* Start a new row */
-			vl = add_html_var(vl, "new_row", "yes");
+		if (c == COL_SIZE)
+			lf_set_var(f, "close_row", "", NULL);
+
+		if (c == COL_SIZE && i < nr_rows) {
+			lf_set_var(f, "new_row", "", NULL);
 			c = 0;
-		} else {
-			vl = add_html_var(vl, "new_row", "no");
 		}
 		c++;
 
-		loop = TMPL_add_varlist(loop, vl);
+		lf_set_row(f, "table");
 		free_vars(db_row);
 	}
-	ml = TMPL_add_loop(ml, "table", loop);
 	free_fields();
-	do_pagination(ml, &pn);
+	do_pagination(f, &pn);
 
 out:
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/reviewed_receipts.tmpl", ml, fmtlist);
-	TMPL_free_varlist(ml);
-	TMPL_free_fmtlist(fmtlist);
+	send_template(f);
+	lf_free(f);
 	mysql_free_result(res);
 }
 
@@ -1646,15 +1657,13 @@ static void receipt_info(void)
 	time_t secs;
 	MYSQL_RES *res;
 	GHashTable *db_row = NULL;
-	TMPL_varlist *vl = NULL;
-	TMPL_fmtlist *fmtlist;
+	Flate *f = NULL;
 
-	ADD_HDR(vl);
+	lf_set_tmpl(&f, "templates/receipt_info.tmpl");
+	ADD_HDR(f);
 
-	if (!tag_info_allowed(get_var(qvars, "image_id"))) {
-		vl = add_html_var(vl, "show_info", "no");
+	if (!tag_info_allowed(get_var(qvars, "image_id")))
 		goto out2;
-	}
 
 	image_id = make_mysql_safe_string(get_var(qvars, "image_id"));
 	res = sql_query("SELECT (SELECT passwd.name FROM passwd INNER JOIN "
@@ -1675,98 +1684,115 @@ static void receipt_info(void)
 			"reviewed ON (reviewed.id = tags.id) INNER JOIN "
 			"passwd ON (images.uid = passwd.uid) WHERE "
 			"images.id = '%s' LIMIT 1", image_id, image_id);
-	if (mysql_num_rows(res) == 0) {
-		vl = add_html_var(vl, "show_info", "no");
+	if (mysql_num_rows(res) == 0)
 		goto out1;
-	}
+
 	db_row = get_dbrow(res);
 	set_custom_field_names();
+	lf_set_var(f, "show_info", "", NULL);
 
 	/* image url */
-	vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
-	vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
+	lf_set_var(f, "image_path", get_var(db_row, "path"), NULL);
+	lf_set_var(f, "image_name", get_var(db_row, "name"), NULL);
 
-	vl = add_html_var(vl, "r_user", get_var(db_row, "user"));
-	vl = add_html_var(vl, "r_uid", get_var(db_row, "uid"));
-	vl = add_html_var(vl, "id", image_id);
+	lf_set_var(f, "r_user", get_var(db_row, "user"), de_xss);
+	lf_set_var(f, "r_uid", get_var(db_row, "uid"), NULL);
+	lf_set_var(f, "id", image_id, NULL);
 
 	/* image upload timestamp */
 	secs = atol(get_var(db_row, "images_timestamp"));
 	strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z", localtime(&secs));
-	vl = add_html_var(vl, "images_timestamp", tbuf);
+	lf_set_var(f, "images_timestamp", tbuf, NULL);
 
 	/* image tag timestamp */
 	secs = atol(get_var(db_row, "tags_timestamp"));
 	strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z", localtime(&secs));
-	vl = add_html_var(vl, "tags_timestamp", tbuf);
+	lf_set_var(f, "tags_timestamp", tbuf, NULL);
 
-	vl = add_html_var(vl, "fields.department", fields.department);
-	vl = add_html_var(vl, "department", get_var(db_row, "department"));
-	vl = add_html_var(vl, "fields.employee_number",
-					fields.employee_number);
-	vl = add_html_var(vl, "employee_number",
-					get_var(db_row, "employee_number"));
-	vl = add_html_var(vl, "fields.cost_codes", fields.cost_codes);
-	vl = add_html_var(vl, "cost_codes", get_var(db_row, "cost_codes"));
-	vl = add_html_var(vl, "fields.account_codes", fields.account_codes);
-	vl = add_html_var(vl, "account_codes",
-					get_var(db_row, "account_codes"));
-	vl = add_html_var(vl, "fields.po_num", fields.po_num);
-	vl = add_html_var(vl, "po_num", get_var(db_row, "po_num"));
-	vl = add_html_var(vl, "fields.supplier_name", fields.supplier_name);
-	vl = add_html_var(vl, "supplier_name",
-					get_var(db_row, "supplier_name"));
-	vl = add_html_var(vl, "fields.supplier_town", fields.supplier_town);
-	vl = add_html_var(vl, "supplier_town",
-					get_var(db_row, "supplier_town"));
-	vl = add_html_var(vl, "fields.currency", fields.currency);
-	vl = add_html_var(vl, "currency", get_var(db_row, "currency"));
-	vl = add_html_var(vl, "fields.gross_amount", fields.gross_amount);
-	vl = add_html_var(vl, "gross_amount",
-					get_var(db_row, "gross_amount"));
-	vl = add_html_var(vl, "fields.vat_amount", fields.vat_amount);
-	vl = add_html_var(vl, "vat_amount",
-					get_var(db_row, "vat_amount"));
-	vl = add_html_var(vl, "fields.net_amount", fields.net_amount);
-	vl = add_html_var(vl, "net_amount", get_var(db_row, "net_amount"));
-	vl = add_html_var(vl, "fields.vat_rate", fields.vat_rate);
-	vl = add_html_var(vl, "vat_rate", get_var(db_row, "vat_rate"));
-	vl = add_html_var(vl, "fields.vat_number", fields.vat_number);
-	vl = add_html_var(vl, "vat_number", get_var(db_row, "vat_number"));
-	vl = add_html_var(vl, "fields.reason", fields.reason);
-	vl = add_html_var(vl, "reason", get_var(db_row, "reason"));
-	vl = add_html_var(vl, "fields.receipt_date", fields.receipt_date);
+	lf_set_var(f, "f.department", fields.department, de_xss);
+	lf_set_var(f, "department", get_var(db_row, "department"), de_xss);
+	lf_set_var(f, "f.employee_number", fields.employee_number, de_xss);
+	lf_set_var(f, "employee_number", get_var(db_row, "employee_number"),
+			de_xss);
+	lf_set_var(f, "f.cost_codes", fields.cost_codes, de_xss);
+	lf_set_var(f, "cost_codes", get_var(db_row, "cost_codes"), de_xss);
+	lf_set_var(f, "f.account_codes", fields.account_codes, de_xss);
+	lf_set_var(f, "account_codes", get_var(db_row, "account_codes"),
+			de_xss);
+	lf_set_var(f, "f.po_num", fields.po_num, de_xss);
+	lf_set_var(f, "po_num", get_var(db_row, "po_num"), de_xss);
+	lf_set_var(f, "f.supplier_name", fields.supplier_name, de_xss);
+	lf_set_var(f, "supplier_name", get_var(db_row, "supplier_name"),
+			de_xss);
+	lf_set_var(f, "f.supplier_town", fields.supplier_town, de_xss);
+	lf_set_var(f, "supplier_town", get_var(db_row, "supplier_town"),
+			de_xss);
+	lf_set_var(f, "f.currency", fields.currency, de_xss);
+	lf_set_var(f, "currency", get_var(db_row, "currency"), de_xss);
+	/*
+	 * To get the right currency 'selected' in the drop down, yeah
+	 * there must be a better way...
+	 */
+	if (strcmp(get_var(db_row, "currency"), "GBP") == 0)
+		lf_set_var(f, "GBP", "", NULL);
+	else if (strcmp(get_var(db_row, "currency"), "USD") == 0)
+		lf_set_var(f, "USD", "", NULL);
+	else if (strcmp(get_var(db_row, "currency"), "EUR") == 0)
+		lf_set_var(f, "EUR", "", NULL);
+	lf_set_var(f, "f.gross_amount", fields.gross_amount, de_xss);
+	lf_set_var(f, "gross_amount", get_var(db_row, "gross_amount"), NULL);
+	lf_set_var(f, "f.vat_amount", fields.vat_amount, de_xss);
+	lf_set_var(f, "vat_amount", get_var(db_row, "vat_amount"), NULL);
+	lf_set_var(f, "f.net_amount", fields.net_amount, de_xss);
+	lf_set_var(f, "net_amount", get_var(db_row, "net_amount"), NULL);
+	lf_set_var(f, "f.vat_rate", fields.vat_rate, de_xss);
+	lf_set_var(f, "vat_rate", get_var(db_row, "vat_rate"), NULL);
+	lf_set_var(f, "f.vat_number", fields.vat_number, de_xss);
+	lf_set_var(f, "vat_number", get_var(db_row, "vat_number"), de_xss);
+	lf_set_var(f, "f.reason", fields.reason, de_xss);
+	lf_set_var(f, "reason", get_var(db_row, "reason"), de_xss);
+	lf_set_var(f, "f.receipt_date", fields.receipt_date, de_xss);
 
 	secs = atol(get_var(db_row, "receipt_date"));
 	strftime(tbuf, sizeof(tbuf), "%a %b %d, %Y", localtime(&secs));
-	vl = add_html_var(vl, "receipt_date", tbuf);
+	lf_set_var(f, "receipt_date", tbuf, NULL);
 
-	vl = add_html_var(vl, "fields.payment_method", fields.payment_method);
-	vl = add_html_var(vl, "payment_method",
-					get_var(db_row, "payment_method"));
+	lf_set_var(f, "f.payment_method", fields.payment_method, de_xss);
+	lf_set_var(f, "payment_method", get_var(db_row, "payment_method"),
+			NULL);
+	/*
+	 * To get the right payment method 'selected' in the drop down,
+	 * yeah there must be a better way...
+	 */
+	if (strcmp(get_var(db_row, "payment_method"), "Card") == 0)
+		lf_set_var(f, "card", "", NULL);
+	else if (strcmp(get_var(db_row, "payment_method"), "Cash") == 0)
+		lf_set_var(f, "cash", "", NULL);
+	else if (strcmp(get_var(db_row, "payment_method"), "Cheque") == 0)
+		lf_set_var(f, "cheque", "", NULL);
 
 	if (atoi(get_var(db_row, "approved")) == REJECTED)
-		vl = add_html_var(vl, "approved", "rejected");
+		lf_set_var(f, "rejected", "", NULL);
 	else if (atoi(get_var(db_row, "approved")) == PENDING)
-		vl = add_html_var(vl, "approved", "pending");
+		lf_set_var(f, "pending", "", NULL);
 	else
-		vl = add_html_var(vl, "approved", "yes");
+		lf_set_var(f, "approved", "", NULL);
 
 	/* Only PENDING receipts of the user are editable */
 	if (atoi(get_var(db_row, "approved")) == PENDING &&
 	    atoi(get_var(db_row, "uid")) == user_session.uid) {
-		vl = add_html_var(vl, "showedit", "true");
 		if (strcmp(get_var(qvars, "edit"), "true") == 0) {
-			/* Don't show the Edit button when editing */
-			vl = add_html_var(vl, "showedit", "false");
-			vl = add_html_var(vl, "edit", "true");
+			lf_set_var(f, "edit", "", NULL);
 			/*
 			 * Put the date into the same format that it should be
 			 * entered by the user (YYYY-MM-DD).
 			 */
 			strftime(tbuf, sizeof(tbuf), "%Y-%m-%d",
 							localtime(&secs));
-			vl = add_html_var(vl, "receipt_date", tbuf);
+			lf_set_var(f, "receipt_date", tbuf, NULL);
+		} else {
+			lf_set_var(f, "showedit", "", NULL);
+			lf_set_var(f, "noedit", "", NULL);
 		}
 	} else if (atoi(get_var(db_row, "approved")) == APPROVED ||
 		   atoi(get_var(db_row, "approved")) == REJECTED) {
@@ -1778,19 +1804,22 @@ static void receipt_info(void)
 		secs = atol(get_var(db_row, "a_time"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z",
 							localtime(&secs));
-		vl = add_html_var(vl, "a_time", tbuf);
-		vl = add_html_var(vl, "reject_reason",
-					get_var(db_row, "r_reason"));
+		lf_set_var(f, "a_time", tbuf, NULL);
+		lf_set_var(f, "reject_reason", get_var(db_row, "r_reason"),
+				de_xss);
 		/* Only approvers can see who approved/rejected receipts */
 		if (IS_APPROVER()) {
-			vl = add_html_var(vl, "reviewed_by_n",
-					get_var(db_row, "reviewed_by_n"));
-			vl = add_html_var(vl, "reviewed_by_u",
-					get_var(db_row, "reviewed_by_u"));
+			lf_set_var(f, "reviewed_by_n",
+					get_var(db_row, "reviewed_by_n"),
+					de_xss);
+			lf_set_var(f, "reviewed_by_u",
+					get_var(db_row, "reviewed_by_u"),
+					de_xss);
 		}
+
+		lf_set_var(f, "noedit", "", NULL);
 	}
-	/* Only need to add the token if the receipt info is editable */
-	add_csrf_token(vl);
+	add_csrf_token(f);
 
 	free_vars(db_row);
 	free_fields();
@@ -1798,12 +1827,9 @@ static void receipt_info(void)
 out1:
 	mysql_free_result(res);
 	free(image_id);
-
 out2:
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/receipt_info.tmpl", vl, fmtlist);
-	TMPL_free_varlist(vl);
-	TMPL_free_fmtlist(fmtlist);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -1817,14 +1843,13 @@ static void tagged_receipts(void)
 	unsigned long i;
 	int c = 1;		/* column number */
 	MYSQL_RES *res;
-	TMPL_varlist *ml = NULL;
-	TMPL_loop *loop = NULL;
-	TMPL_fmtlist *fmtlist;
+	Flate *f = NULL;
 	struct pagination pn = { .rows_per_page = GRID_SIZE,
 				 .requested_page = 1, .from = 0, .nr_pages = 0,
 				 .page_no = 1 };
 
-	ADD_HDR(ml);
+	lf_set_tmpl(&f, "templates/tagged_receipts.tmpl");
+	ADD_HDR(f);
 
 	if (qvars) {
 		pn.requested_page = atoi(get_var(qvars, "page_no"));
@@ -1843,74 +1868,65 @@ static void tagged_receipts(void)
 			user_session.uid, user_session.uid, pn.from,
 			GRID_SIZE);
 	nr_rows = mysql_num_rows(res);
-	if (nr_rows == 0) {
-		ml = add_html_var(ml, "receipts", "no");
+	if (nr_rows == 0)
 		goto out;
-	}
 
 	set_custom_field_names();
-	ml = add_html_var(ml, "receipts", "yes");
+	lf_set_var(f, "receipts", "", NULL);
+
 	/* Draw gallery grid */
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
 		time_t secs;
 		GHashTable *db_row = NULL;
-		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
 
 		pn.nr_pages = ceilf((float)atoi(get_var(db_row, "nrows")) /
 				(float)pn.rows_per_page);
 
-		vl = add_html_var(vl, "id", get_var(db_row, "id"));
-		vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
-		vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
+		lf_set_var(f, "id", get_var(db_row, "id"), NULL);
+		lf_set_var(f, "image_path", get_var(db_row, "path"), NULL);
+		lf_set_var(f, "image_name", get_var(db_row, "name"), NULL);
+
 		secs = atol(get_var(db_row, "receipt_date"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
-		vl = add_html_var(vl, "fields.receipt_date",
-							fields.receipt_date);
-		vl = add_html_var(vl, "receipt_date", tbuf);
+		lf_set_var(f, "f.receipt_date", fields.receipt_date, de_xss);
+		lf_set_var(f, "receipt_date", tbuf, NULL);
 		/* If the receipt been reviewed, display its reviewed date */
 		if (IS_SET(get_var(db_row, "timestamp"))) {
 			secs = atol(get_var(db_row, "timestamp"));
 			strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y",
 							localtime(&secs));
-			vl = add_html_var(vl, "reviewed_date", tbuf);
+			lf_set_var(f, "reviewed_date", tbuf, NULL);
 		}
 
 		if (atoi(get_var(db_row, "approved")) == REJECTED)
-			vl = add_html_var(vl, "approved", "rejected");
+			lf_set_var(f, "rejected", "", NULL);
 		else if (atoi(get_var(db_row, "approved")) == PENDING)
-			vl = add_html_var(vl, "approved", "pending");
+			lf_set_var(f, "pending", "", NULL);
 		else
-			vl = add_html_var(vl, "approved", "yes");
+			lf_set_var(f, "approved", "", NULL);
 
 		/* We want a 3 x 3 grid */
 		if (c == COL_SIZE) /* Close off row */
-			vl = add_html_var(vl, "close_row", "yes");
-		else
-			vl = add_html_var(vl, "close_row", "no");
+			lf_set_var(f, "close_row", "", NULL);
 
 		if (c == COL_SIZE && i < nr_rows) { /* Start a new row */
-			vl = add_html_var(vl, "new_row", "yes");
+			lf_set_var(f, "new_row", "", NULL);
 			c = 0;
-		} else {
-			vl = add_html_var(vl, "new_row", "no");
 		}
 		c++;
 
-		loop = TMPL_add_varlist(loop, vl);
+		lf_set_row(f, "table");
 		free_vars(db_row);
 	}
-	ml = TMPL_add_loop(ml, "table", loop);
 	free_fields();
-	do_pagination(ml, &pn);
+	do_pagination(f, &pn);
 
 out:
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/tagged_receipts.tmpl", ml, fmtlist);
-	TMPL_free_varlist(ml);
-	TMPL_free_fmtlist(fmtlist);
+	send_template(f);
+	lf_free(f);
 	mysql_free_result(res);
 }
 
@@ -1936,8 +1952,7 @@ static void process_receipt(void)
 	double net;
 	double vat;
 	double vr;
-	TMPL_varlist *vl = NULL;
-	TMPL_fmtlist *fmtlist;
+	Flate *f = NULL;
 	MYSQL_RES *res;
 
 	if (!qvars)
@@ -1958,67 +1973,65 @@ static void process_receipt(void)
 	if (mysql_num_rows(res) == 0)
 		goto out;
 
-	vl = add_html_var(vl, "image_id", get_var(qvars, "image_id"));
-	vl = add_html_var(vl, "image_path", get_var(qvars, "image_path"));
-	vl = add_html_var(vl, "image_name", get_var(qvars, "image_name"));
+	lf_set_tmpl(&f, "templates/process_receipt.tmpl");
+
+	lf_set_var(f, "image_id", get_var(qvars, "image_id"), de_xss);
+	lf_set_var(f, "image_path", get_var(qvars, "image_path"), de_xss);
+	lf_set_var(f, "image_name", get_var(qvars, "image_name"), de_xss);
 	set_custom_field_names();
 
 	if (!IS_SET(get_var(qvars, "department"))) {
 		tag_error = true;
-		vl = add_html_var(vl, "error.department", "1");
+		lf_set_var(f, "e.department", "", NULL);
 	}
-	vl = add_html_var(vl, "fields.department", fields.department);
-	vl = add_html_var(vl, "department", get_var(qvars, "department"));
+	lf_set_var(f, "f.department", fields.department, de_xss);
+	lf_set_var(f, "department", get_var(qvars, "department"), de_xss);
 
 	if (!IS_SET(get_var(qvars, "employee_number"))) {
 		tag_error = true;
-		vl = add_html_var(vl, "error.employee_number", "1");
+		lf_set_var(f, "e.employee_number", "", NULL);
 	}
-	vl = add_html_var(vl, "fields.employee_number",
-					fields.employee_number);
-	vl = add_html_var(vl, "employee_number",
-					get_var(qvars, "employee_number"));
+	lf_set_var(f, "f.employee_number", fields.employee_number, de_xss);
+	lf_set_var(f, "employee_number", get_var(qvars, "employee_number"),
+			de_xss);
 
 	if (!IS_SET(get_var(qvars, "cost_codes"))) {
 		tag_error = true;
-		vl = add_html_var(vl, "error.cost_codes", "1");
+		lf_set_var(f, "e.cost_codes", "", NULL);
 	}
-	vl = add_html_var(vl, "fields.cost_codes", fields.cost_codes);
-	vl = add_html_var(vl, "cost_codes", get_var(qvars, "cost_codes"));
+	lf_set_var(f, "f.cost_codes", fields.cost_codes, de_xss);
+	lf_set_var(f, "cost_codes", get_var(qvars, "cost_codes"), de_xss);
 
 	if (!IS_SET(get_var(qvars, "account_codes"))) {
 		tag_error = true;
-		vl = add_html_var(vl, "error.account_codes", "1");
+		lf_set_var(f, "e.account_codes", "", NULL);
 	}
-	vl = add_html_var(vl, "fields.account_codes", fields.account_codes);
-	vl = add_html_var(vl, "account_codes",
-					get_var(qvars, "account_codes"));
+	lf_set_var(f, "f.account_codes", fields.account_codes, de_xss);
+	lf_set_var(f, "account_codes", get_var(qvars, "account_codes"), de_xss);
 
 	if (!IS_SET(get_var(qvars, "po_num"))) {
 		tag_error = true;
-		vl = add_html_var(vl, "error.po_num", "1");
+		lf_set_var(f, "e.po_num", "", NULL);
 	}
-	vl = add_html_var(vl, "fields.po_num", fields.po_num);
-	vl = add_html_var(vl, "po_num", get_var(qvars, "po_num"));
+	lf_set_var(f, "f.po_num", fields.po_num, de_xss);
+	lf_set_var(f, "po_num", get_var(qvars, "po_num"), de_xss);
 
 	if (!IS_SET(get_var(qvars, "supplier_name"))) {
 		tag_error = true;
-		vl = add_html_var(vl, "error.supplier_name", "1");
+		lf_set_var(f, "e.supplier_name", "", NULL);
 	}
-	vl = add_html_var(vl, "fields.supplier_name", fields.supplier_name);
-	vl = add_html_var(vl, "supplier_name",
-					get_var(qvars, "supplier_name"));
+	lf_set_var(f, "f.supplier_name", fields.supplier_name, de_xss);
+	lf_set_var(f, "supplier_name", get_var(qvars, "supplier_name"), de_xss);
 
 	if (!IS_SET(get_var(qvars, "supplier_town"))) {
 		tag_error = true;
-		vl = add_html_var(vl, "error.supplier_town", "1");
+		lf_set_var(f, "e.supplier_town", "", NULL);
 	}
-	vl = add_html_var(vl, "fields.supplier_town", fields.supplier_town);
-	vl = add_html_var(vl, "supplier_town",
-					get_var(qvars, "supplier_town"));
+	lf_set_var(f, "f.supplier_town", fields.supplier_town, de_xss);
+	lf_set_var(f, "supplier_town", get_var(qvars, "supplier_town"), de_xss);
 
-	vl = add_html_var(vl, "fields.currency", fields.currency);
-	vl = add_html_var(vl, "currency", get_var(qvars, "currency"));
+	lf_set_var(f, "f.currency", fields.currency, de_xss);
+	lf_set_var(f, "currency", get_var(qvars, "currency"), de_xss);
 
 	gross = strtod(get_var(qvars, "gross_amount"), NULL);
 	net = strtod(get_var(qvars, "net_amount"), NULL);
@@ -2027,26 +2040,26 @@ static void process_receipt(void)
 	ret = check_amounts(gross, net, vat, vr);
 	if (ret < 0) {
 		tag_error = true;
-		vl = add_html_var(vl, "error.amounts", "1");
+		lf_set_var(f, "e.amounts", "", NULL);
 	}
-	vl = add_html_var(vl, "fields.gross_amount", fields.gross_amount);
-	vl = add_html_var(vl, "gross_amount", get_var(qvars, "gross_amount"));
-	vl = add_html_var(vl, "fields.net_amount", fields.net_amount);
-	vl = add_html_var(vl, "net_amount", get_var(qvars, "net_amount"));
-	vl = add_html_var(vl, "fields.vat_amount", fields.vat_amount);
-	vl = add_html_var(vl, "vat_amount", get_var(qvars, "vat_amount"));
-	vl = add_html_var(vl, "fields.vat_rate", fields.vat_rate);
-	vl = add_html_var(vl, "vat_rate", get_var(qvars, "vat_rate"));
+	lf_set_var(f, "f.gross_amount", fields.gross_amount, de_xss);
+	lf_set_var(f, "gross_amount", get_var(qvars, "gross_amount"), de_xss);
+	lf_set_var(f, "f.net_amount", fields.net_amount, de_xss);
+	lf_set_var(f, "net_amount", get_var(qvars, "net_amount"), de_xss);
+	lf_set_var(f, "f.vat_amount", fields.vat_amount, de_xss);
+	lf_set_var(f, "vat_amount", get_var(qvars, "vat_amount"), de_xss);
+	lf_set_var(f, "f.vat_rate", fields.vat_rate, de_xss);
+	lf_set_var(f, "vat_rate", get_var(qvars, "vat_rate"), de_xss);
 
 	if (!IS_SET(get_var(qvars, "vat_number"))) {
 		tag_error = true;
-		vl = add_html_var(vl, "error.vat_number", "1");
+		lf_set_var(f, "e.vat_number", "", NULL);
 	}
-	vl = add_html_var(vl, "fields.vat_number", fields.vat_number);
-	vl = add_html_var(vl, "vat_number", get_var(qvars, "vat_number"));
+	lf_set_var(f, "f.vat_number", fields.vat_number, de_xss);
+	lf_set_var(f, "vat_number", get_var(qvars, "vat_number"), de_xss);
 
-	vl = add_html_var(vl, "fields.reason", fields.reason);
-	vl = add_html_var(vl, "reason", get_var(qvars, "reason"));
+	lf_set_var(f, "f.reason", fields.reason, de_xss);
+	lf_set_var(f, "reason", get_var(qvars, "reason"), de_xss);
 
 	memset(&tm, 0, sizeof(tm));
 	strptime(get_var(qvars, "receipt_date"), "%Y-%m-%d", &tm);
@@ -2054,14 +2067,14 @@ static void process_receipt(void)
 	if (strtol(secs, NULL, 10) < time(NULL) - MAX_RECEIPT_AGE ||
 	    strtol(secs, NULL, 10) > time(NULL)) {
 		tag_error = true;
-		vl = add_html_var(vl, "error.receipt_date", "1");
+		lf_set_var(f, "e.receipt_date", "", NULL);
 	}
-	vl = add_html_var(vl, "fields.receipt_date", fields.receipt_date);
-	vl = add_html_var(vl, "receipt_date", get_var(qvars, "receipt_date"));
+	lf_set_var(f, "f.receipt_date", fields.receipt_date, de_xss);
+	lf_set_var(f, "receipt_date", get_var(qvars, "receipt_date"), de_xss);
 
-	vl = add_html_var(vl, "fields.payment_method", fields.payment_method);
-	vl = add_html_var(vl, "payment_method",
-					get_var(qvars, "payment_method"));
+	lf_set_var(f, "f.payment_method", fields.payment_method, de_xss);
+	lf_set_var(f, "payment_method", get_var(qvars, "payment_method"),
+			de_xss);
 
 	if (!tag_error) {
 		tag_image();
@@ -2072,13 +2085,11 @@ static void process_receipt(void)
 			fcgx_p("Location: /receipts/\r\n\r\n");
 	} else {
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
-			vl = add_html_var(vl, "from", "receipt_info");
-		add_csrf_token(vl);
-		fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-		send_template("templates/process_receipt.tmpl", vl, fmtlist);
-		TMPL_free_fmtlist(fmtlist);
+			lf_set_var(f, "from", "receipt_info", NULL);
+		add_csrf_token(f);
+		send_template(f);
 	}
-	TMPL_free_varlist(vl);
+	lf_free(f);
 	free_fields();
 
 out:
@@ -2095,14 +2106,15 @@ out:
  */
 static void stats(void)
 {
-	TMPL_varlist *vl = NULL;
+	Flate *f = NULL;
 
-	ADD_HDR(vl);
+	lf_set_tmpl(&f, "templates/stats.tmpl");
+	ADD_HDR(f);
 
-	gather_receipt_stats_for_user(user_session.uid, vl);
+	gather_receipt_stats_for_user(user_session.uid, f);
 
-	send_template("templates/stats.tmpl", vl, NULL);
-	TMPL_free_varlist(vl);
+	send_template(f);
+	lf_free(f);
 }
 
 /*
@@ -2118,79 +2130,68 @@ static void receipts(void)
 	unsigned long i;
 	unsigned long nr_rows;
 	MYSQL_RES *res;
-	TMPL_varlist *ml = NULL;
-	TMPL_loop *loop = NULL;
-	TMPL_fmtlist *fmtlist;
+	Flate *f = NULL;
 
-	ADD_HDR(ml);
+	lf_set_tmpl(&f, "templates/receipts.tmpl");
+	ADD_HDR(f);
 	/*
 	 * Display the users last login time and location, we only show
 	 * this on the /receipts/ page.
 	 */
-	display_last_login(ml);
+	display_last_login(f);
 
 	res = sql_query("SELECT id, timestamp, path, name FROM images WHERE "
 			"tagged = 0 AND uid = %u", user_session.uid);
 	nr_rows = mysql_num_rows(res);
-	if (nr_rows == 0) {
-		ml = add_html_var(ml, "receipts", "no");
+	if (nr_rows == 0)
 		goto out;
-	}
+
+	lf_set_var(f, "receipts", "", NULL);
+	add_csrf_token(f);
 
 	set_custom_field_names();
 	for (i = 0; i < nr_rows; i++) {
 		char tbuf[64];
 		time_t secs;
 		GHashTable *db_row = NULL;
-		TMPL_varlist *vl = NULL;
 
 		db_row = get_dbrow(res);
 
-		vl = add_html_var(vl, "image_path", get_var(db_row, "path"));
-		vl = add_html_var(vl, "image_name", get_var(db_row, "name"));
+		lf_set_var(f, "image_path", get_var(db_row, "path"), NULL);
+		lf_set_var(f, "image_name", get_var(db_row, "name"), NULL);
 		secs = atol(get_var(db_row, "timestamp"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z",
 						localtime(&secs));
-		vl = add_html_var(vl, "timestamp", tbuf);
-		vl = add_html_var(vl, "fields.department", fields.department);
-		vl = add_html_var(vl, "fields.employee_number",
-						fields.employee_number);
-		vl = add_html_var(vl, "fields.cost_codes", fields.cost_codes);
-		vl = add_html_var(vl, "fields.account_codes",
-						fields.account_codes);
-		vl = add_html_var(vl, "fields.po_num", fields.po_num);
-		vl = add_html_var(vl, "fields.supplier_name",
-						fields.supplier_name);
-		vl = add_html_var(vl, "fields.supplier_town",
-						fields.supplier_town);
-		vl = add_html_var(vl, "fields.currency", fields.currency);
-		vl = add_html_var(vl, "fields.gross_amount",
-						fields.gross_amount);
-		vl = add_html_var(vl, "fields.vat_amount", fields.vat_amount);
-		vl = add_html_var(vl, "fields.net_amount", fields.net_amount);
-		vl = add_html_var(vl, "fields.vat_rate", fields.vat_rate);
-		vl = add_html_var(vl, "fields.vat_number", fields.vat_number);
-		vl = add_html_var(vl, "fields.reason", fields.reason);
-		vl = add_html_var(vl, "fields.receipt_date",
-						fields.receipt_date);
-		vl = add_html_var(vl, "fields.payment_method",
-						fields.payment_method);
+		lf_set_var(f, "timestamp", tbuf, NULL);
+		lf_set_var(f, "f.department", fields.department, de_xss);
+		lf_set_var(f, "f.employee_number", fields.employee_number,
+				de_xss);
+		lf_set_var(f, "f.cost_codes", fields.cost_codes, de_xss);
+		lf_set_var(f, "f.account_codes", fields.account_codes, de_xss);
+		lf_set_var(f, "f.po_num", fields.po_num, de_xss);
+		lf_set_var(f, "f.supplier_name", fields.supplier_name, de_xss);
+		lf_set_var(f, "f.supplier_town", fields.supplier_town, de_xss);
+		lf_set_var(f, "f.currency", fields.currency, de_xss);
+		lf_set_var(f, "f.gross_amount", fields.gross_amount, de_xss);
+		lf_set_var(f, "f.vat_amount", fields.vat_amount, de_xss);
+		lf_set_var(f, "f.net_amount", fields.net_amount, de_xss);
+		lf_set_var(f, "f.vat_rate", fields.vat_rate, de_xss);
+		lf_set_var(f, "f.vat_number", fields.vat_number, de_xss);
+		lf_set_var(f, "f.reason", fields.reason, de_xss);
+		lf_set_var(f, "f.receipt_date", fields.receipt_date, de_xss);
+		lf_set_var(f, "f.payment_method", fields.payment_method,
+				de_xss);
 		/* image_id for hidden input field */
-		vl = add_html_var(vl, "id", get_var(db_row, "id"));
+		lf_set_var(f, "id", get_var(db_row, "id"), NULL);
 
-		loop = TMPL_add_varlist(loop, vl);
+		lf_set_row(f, "table");
 		free_vars(db_row);
 	}
-	ml = TMPL_add_loop(ml, "table", loop);
 	free_fields();
-	/* Only use csrf if there are receipts to process */
-	add_csrf_token(ml);
 
 out:
-	fmtlist = TMPL_add_fmt(NULL, "de_xss", de_xss);
-	send_template("templates/receipts.tmpl", ml, fmtlist);
-	TMPL_free_varlist(ml);
-	TMPL_free_fmtlist(fmtlist);
+	send_template(f);
+	lf_free(f);
 	mysql_free_result(res);
 }
 

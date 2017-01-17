@@ -13,11 +13,15 @@
 #ifndef _URL_HELPERS_H_
 #define _URL_HELPERS_H_
 
+#include <stdbool.h>
+
+#include <flate.h>
+
 char *username_to_name(const char *username);
 bool is_users_receipt(const char *id);
 bool tag_info_allowed(const char *image_id);
 bool image_access_allowed(const char *path);
-void add_csrf_token(TMPL_varlist *varlist);
+void add_csrf_token(Flate *f);
 bool valid_csrf_token(void);
 int check_amounts(double gross, double net, double vat, double vr);
 void set_default_field_names(void);
@@ -29,8 +33,8 @@ int do_add_user(unsigned char capabilities);
 void do_update_user(void);
 void do_edit_user(void);
 void do_activate_user(const char *uid, const char *key, const char *password);
-void gather_receipt_stats_for_user(long long uid, TMPL_varlist *varlist);
-void send_template(const char *template, TMPL_varlist *varlist,
-		   TMPL_fmtlist *fmtlist);
+void gather_receipt_stats_for_user(long long uid, Flate *f);
+void send_template(Flate *f);
+void send_page(char *file);
 
 #endif /* _URL_HELPERS_H_ */

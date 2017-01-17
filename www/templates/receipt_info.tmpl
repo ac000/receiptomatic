@@ -5,266 +5,297 @@
 </head>
 <body>
 	| <a href = "/logout/">logout</a> | <a href = "/receipts/">receipts</a> | <a href = "/tagged_receipts/">tagged receipts</a> | receipt info | <a href = "/prefs/">preferences</a> |
-	<tmpl_if name = "approver">
+	<!-- #BEGINZONE approver -->
 	&nbsp;<span class = t_red>|</span> <a href = "/approve_receipts/">approve receipts</a> | <a href = "/reviewed_receipts/">reviewed receipts</a> | <a href = "/extract_data/">extract data</a> <span class = t_red>|</span>
-	</tmpl_if>
-	<tmpl_if name = "admin">
+	<!-- #ENDZONE approver -->
+	<!-- #BEGINZONE admin -->
 	&nbsp;<span class = t_blue>|</span> <a href = "/admin/">admin</a> <span class = t_blue>|</span>
-	</tmpl_if>
+	<!-- #ENDZONE admin -->
 	<p />
-	<tmpl_var name = "user_hdr" />
+	##user_hdr##
 	<big><big>| Receipt Info</big></big>
 	<hr />
 
-<tmpl_if name = "show_info" value = "no">
-</body>
-</html>
-<tmpl_else>
+<!-- #BEGINZONE show_info -->
 	<center>
-		<tmpl_var name = "r_user" fmt = "de_xss" /> <small><span class = "lighter">(<tmpl_var name = "r_uid" />)</span></small><p />
-		<span class = "lighter">id </span>: <tmpl_var name = "id" />
+		##r_user## <small><span class = "lighter">(##r_uid##)</span></small><p />
+		<span class = "lighter">id </span>: ##id##
 	</center>
 	<p />
 
-	<tmpl_if name = "edit" value = "true">
+	<!-- #BEGINZONE edit -->
 		<form action = "/process_receipt/" method = "POST">
-	</tmpl_if>
+	<!-- #ENDZONE edit -->
 
 	<table>
 	<tbody>
 
 	<tr>
 		<td rowspan = "21" width = "45%">
-		<a href = "/get_image/<tmpl_var name = 'image_path' />/<tmpl_var name = 'image_name' />"><img src = "/get_image/<tmpl_var name = 'image_path' />/medium/<tmpl_var name = 'image_name' />" width = "300" height = "300" /></a>
+		<a href = "/get_image/##image_path##/##image_name##">
+		<img src = "/get_image/##image_path##/medium/##image_name##"
+			width = "300" height = "300" /></a>
 		</td>
 
 		<td><big><span class = "lighter">Uploaded at </span></big></td>
-		<td> : <tmpl_var name = "images_timestamp" /></td>
+		<td> : ##images_timestamp##</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter">Tagged at </span></big></td>
-		<td> : <tmpl_var name = "tags_timestamp" /></td>
+		<td> : ##tags_timestamp##</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.department" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.department##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "department" value = "<tmpl_var name = 'department' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "department" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "department"
+				value = "##department##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##department##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.employee_number" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.employee_number##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "employee_number" value = "<tmpl_var name = 'employee_number' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "employee_number" fmt = 'de_xss' />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "employee_number"
+				value = "##employee_number##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##employee_number##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.cost_codes" fmt = "de_xss" /> </span></big></td>
+		<td><big><span class = "lighter">##f.cost_codes## </span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "cost_codes" value = "<tmpl_var name = 'cost_codes' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "cost_codes" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "cost_codes"
+				value = "##cost_codes##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##cost_codes##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.account_codes" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.account_codes##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "account_codes" value = "<tmpl_var name = 'account_codes' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "account_codes" fmt = 'de_xss' />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "account_codes"
+				value = "##account_codes##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##account_codes##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.po_num" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.po_num##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "po_num" value = "<tmpl_var name = 'po_num' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "po_num" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "po_num"
+				value = "##po_num##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##po_num##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.supplier_name" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.supplier_name##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "supplier_name" value = "<tmpl_var name = 'supplier_name' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "supplier_name" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "supplier_name"
+				value = "##supplier_name##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##supplier_name##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.supplier_town" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.supplier_town##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "supplier_town" value = "<tmpl_var name = 'supplier_town' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "supplier_town" fmt = "de_xss"/>
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "supplier_town"
+				value = "##supplier_town##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##supplier_town##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.currency" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.currency##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
+		<!-- #BEGINZONE edit -->
 			<select name = "currency">
-			<option value = "GBP" <tmpl_if name = "currency" value = "GBP">selected</tmpl_if>>GBP&nbsp;</option>
-			<option value = "USD" <tmpl_if name = "currency" value = "USD">selected</tmpl_if>>USD&nbsp;</option>
-			<option value = "EUR" <tmpl_if name = "currency" value = "EUR">selected</tmpl_if>>EUR&nbsp;</option>
+			<option value = "GBP" <!-- #BEGINZONE GBP -->selected<!-- #ENDZONE GBP -->>GBP&nbsp;</option>
+			<option value = "USD" <!-- #BEGINZONE USD -->selected<!-- #ENDZONE USD -->>USD&nbsp;</option>
+			<option value = "EUR" <!-- #BEGINZONE EUR -->selected<!-- #ENDZONE EUR -->>EUR&nbsp;</option>
 			</select>
-		<tmpl_else>
-			<tmpl_var name = "currency" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##currency##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.gross_amount" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.gross_amount##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "gross_amount" value = "<tmpl_var name = 'gross_amount' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "gross_amount" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "gross_amount"
+				value = "##gross_amount##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##gross_amount##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_amount" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.vat_amount##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "vat_amount" value = "<tmpl_var name = 'vat_amount' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "vat_amount" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "vat_amount"
+				value = "##vat_amount##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##vat_amount##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.net_amount" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.net_amount##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "net_amount" value = "<tmpl_var name = 'net_amount' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "net_amount" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "net_amount"
+				value = "##net_amount##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##net_amount##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_rate" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.vat_rate##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "vat_rate" value = "<tmpl_var name = 'vat_rate' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "vat_rate" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "vat_rate"
+				value = "##vat_rate##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##vat_rate##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.vat_number" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.vat_number##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "vat_number" value = "<tmpl_var name = 'vat_number' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "vat_number" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "vat_number"
+				value = "##vat_number##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##vat_number##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.reason" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.reason##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "reason" value = "<tmpl_var name = 'reason' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "reason" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "reason"
+				value = "##reason##">
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##reason##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.receipt_date" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.receipt_date##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
-			<input type = "text" name = "receipt_date" value = "<tmpl_var name = 'receipt_date' fmt = 'de_xss' />">
-		<tmpl_else>
-			<tmpl_var name = "receipt_date" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #BEGINZONE edit -->
+			<input type = "text" name = "receipt_date"
+				value = "##receipt_date##">
+		<!-- #ENDZONE edit -->
+                <!-- #BEGINZONE noedit -->
+			##receipt_date##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
-		<td><big><span class = "lighter"><tmpl_var name = "fields.payment_method" fmt = "de_xss" /></span></big></td>
+		<td><big><span class = "lighter">##f.payment_method##</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "edit" value = "true">
+		<!-- #BEGINZONE edit -->
 			<select name = "payment_method">
-			<option value = "Card" <tmpl_if name = "payment_method" value = "Card">selected</tmpl_if>>Card</option>
-			<option value = "Cash" <tmpl_if name = "payment_method" value = "Cash">selected</tmpl_if>>Cash</option>
-			<option value = "Cheque" <tmpl_if name = "payment_method" value = "Cheque">selected</tmpl_if>>Cheque</option>
+			<option value = "Card" <!-- #BEGINZONE card -->selected<!-- #ENDZONE card -->>Card</option>
+			<option value = "Cash" <!-- #BEGINZONE cash -->selected<!-- #ENDZONE cash -->>Cash</option>
+			<option value = "Cheque" <!-- #BEGINZONE cheque -->selected<!-- #ENDZONE cheque -->>Cheque</option>
 			</select>
-		<tmpl_else>
-			<tmpl_var name = "payment_method" fmt = "de_xss" />
-		</tmpl_if>
+		<!-- #ENDZONE edit -->
+		<!-- #BEGINZONE noedit -->
+			##payment_method##
+		<!-- #ENDZONE noedit -->
 		</td>
 	</tr>
 	<tr>
 		<td><big><span class = "lighter">Approval Status</span></big></td>
 		<td> :&nbsp;
-		<tmpl_if name = "approved" value = "rejected">
+		<!-- #BEGINZONE rejected -->
 			<span class = "t_red">Rejected</span>
-			<span class = "lighter"> (<tmpl_var name = "a_time" />)</span>
-		<tmpl_elsif name = "approved" value = "pending">
+			<span class = "lighter"> (##a_time##)</span>
+		<!-- #ENDZONE rejected -->
+		<!-- #BEGINZONE pending -->
 			<span class = "t_yellow">Pending</span>
-		<tmpl_else>
+		<!-- #ENDZONE pending -->
+		<!-- #BEGINZONE approved -->
 			<span class = "t_green">Approved</span>
-			<span class = "lighter"> (<tmpl_var name = "a_time" />)</span>
-		</tmpl_if>
+			<span class = "lighter"> (##a_time##)</span>
+		<!-- #ENDZONE approved -->
 		</td>
 	</tr>
-	<tmpl_if name = "reviewed_by_n">
-		<tr>
-			<td></td>
-			<td> :&nbsp;
-			<span class = "lighter"><tmpl_var name = "reviewed_by_n" fmt = "de_xss" /> <small>(<tmpl_var name = "reviewed_by_u">)</small></span>
-			</td>
-		</tr>
-	</tmpl_if>
+	<!-- #BEGINZONE reviewed_by_n -->
 	<tr>
-		<tmpl_if name = "reject_reason">
-			<td><big><span class = "lighter">Reject Reason</span></big></td>
-			<td> :&nbsp;
-			<tmpl_var name = "reject_reason" fmt = "de_xss" />
-			</td>
-		</tmpl_if>
+		<td></td>
+		<td> :&nbsp;
+		<span class = "lighter">##reviewed_by_n## <small>(##reviewed_by_u##)</small></span>
+		</td>
+	</tr>
+	<!-- #ENDZONE reviewed_by_n -->
+	<tr>
+	<!-- #BEGINZONE reject_reason -->
+		<td><big><span class = "lighter">Reject Reason</span></big></td>
+		<td> :&nbsp;
+		##reject_reason##
+		</td>
+	<!-- #ENDZONE reject_reason -->
 	</tr>
 
 	</tbody>
 	</table>
 
-	<tmpl_if name = "showedit" value = "true">
+	<!-- #BEGINZONE showedit -->
 		<form action = "/receipt_info/" method = "GET">
-			<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'id' />" />
-			<input type = "hidden" name = "edit" value = "true" />
-			<input type = "submit" value = "Edit" />
+		<input type = "hidden" name = "image_id" value = "##id##" />
+		<input type = "hidden" name = "edit" value = "true" />
+		<input type = "submit" value = "Edit" />
 		</form>
-	</tmpl_if>
+	<!-- #ENDZONE showedit -->
 
-	<tmpl_if name = "edit" value = "true">
-		<input type = "hidden" name = "image_path" value = "<tmpl_var name = 'image_path' />" />
-		<input type = "hidden" name = "image_name" value = "<tmpl_var name = 'image_name' />" />
-		<input type = "hidden" name = "image_id" value = "<tmpl_var name = 'id' />" />
+	<!-- #BEGINZONE edit -->
+		<input type = "hidden" name = "image_path" value = "##image_path##" />
+		<input type = "hidden" name = "image_name" value = "##image_name##" />
+		<input type = "hidden" name = "image_id" value = "##id##" />
 		<input type = "hidden" name = "from" value = "receipt_info" />
-		<input type = "hidden" name = "csrf_token" value = "<tmpl_var name = 'csrf_token' />" />
+		<input type = "hidden" name = "csrf_token" value = "##csrf_token##" />
 		<input type = "submit" value = "Update" />
 		</form>
-	</tmpl_if>
+	<!-- #ENDZONE edit -->
+<!-- #ENDZONE show_info -->
 
 </body>
 </html>
-</tmpl_if>

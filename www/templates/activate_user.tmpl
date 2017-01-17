@@ -4,40 +4,45 @@
 	<link href = "/static/css/main.css" rel = "stylesheet" type = "text/css" />
 </head>
 <body>
-<tmpl_if name = "key_error">
+
+<!-- #BEGINZONE key_error -->
                 <span class = "input_error">Invalid Key</span>
-<tmpl_elsif name = "expired">
-	<big>Welcome <i><tmpl_var name = "name" /></i></big>
+<!-- #ENDZONE key_error -->
+<!-- #BEGINZONE expired -->
+	<big>Welcome <i>##name##</i></big>
 	<p />
 	Unfortunately your activation key has expired.
 	<p />
-	Click <a href = "/generate_new_key/?name=<tmpl_var name = 'name' />&email=<tmpl_var name = 'email' />">here</a> to receive a new activation key.
-<tmpl_elsif name = "activated">
-	Your account has been activated. Your username is the email address to which you received the account activation email.
+	Click <a href = "/generate_new_key/?name=##name##&email=##email##">here</a> to receive a new activation key.
+<!-- #ENDZONE expired -->
+<!-- #BEGINZONE activated -->
+	Your account has been activated. Your username is the email address to
+	which you received the account activation email.
 	<p />
 	Click <a href = "/login/">here</a> to login.
-<tmpl_else>
-	<big>Welcome <i><tmpl_var name = "name" /></i></big>
+<!-- #ENDZONE activated -->
+<!-- #BEGINZONE not_activated -->
+	<big>Welcome <i>##name##</i></big>
         <p />
 	To complete your account set up, you must set a password. This should be at least 8 characters long.
 	<p />
-<tmpl_if name = "password_error" value = "mismatch">
+<!-- #BEGINZONE pass_err_mismatch -->
 	<span class = "input_error">Passwords do not match. Please enter them again.</span>
 	<p />
-</tmpl_if>
-<tmpl_if name = "password_error" value = "length">
+<!-- #ENDZONE pass_err_mismatch -->
+<!-- #BEGINZONE pass_err_length -->
 	<span class = "input_error">Password is shorter than 8 characters. Please enter a longer pasword.</span>
 	<p />
-</tmpl_if>
+<!-- #ENDZONE pass_err_length -->
 	<form action = "/activate_user/" method = "POST">
 	Password: <input type = "password" name = "pass1" size = "15" maxlength = "32" />
 	<br />
 	Password: <input type = "password" name = "pass2" size = "15" maxlength = "32" />
 	<p />
-	<input type = "hidden" name = "key" value = "<tmpl_var name = 'key' />" />
+	<input type = "hidden" name = "key" value = "##key##" />
 	<input type = "submit" value = "Activate" />
 	</form>
-</tmpl_if>
+<!-- #ENDZONE not_activated -->
 
 </body>
 </html>
