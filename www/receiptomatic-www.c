@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -157,7 +158,7 @@ static void dump_session_state(void)
 	nres = tclistnum(res);
 	fprintf(debug_log, "Number of active sessions: %d\n", nres);
 	for (i = 0; i < nres; i++) {
-		unsigned char capabilities;
+		uint8_t capabilities;
 
 		rbuf = tclistval(res, i, &rsize);
 		cols = tctdbget(tdb, rbuf, rsize);
@@ -170,7 +171,7 @@ static void dump_session_state(void)
 		fprintf(debug_log, "\tuid          : %s\n", tcmapget2(cols,
 								"uid"));
 		capabilities = atoi(tcmapget2(cols, "capabilities"));
-		fprintf(debug_log, "\tcapabilities : (%d) %s %s %s %s %s %s\n",
+		fprintf(debug_log, "\tcapabilities : (%u) %s %s %s %s %s %s\n",
 				capabilities,
 				capabilities & ADMIN ? "admin," : "",
 				capabilities & APPROVER ? "approver -" : "",

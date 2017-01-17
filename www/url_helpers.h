@@ -13,6 +13,7 @@
 #ifndef _URL_HELPERS_H_
 #define _URL_HELPERS_H_
 
+#include <stdint.h>
 #include <stdbool.h>
 
 #include <flate.h>
@@ -29,7 +30,7 @@ void set_custom_field_names(void);
 void process_activation_changes(void);
 void update_fmap(void);
 void tag_image(void);
-int do_add_user(unsigned char capabilities);
+int do_add_user(uint8_t capabilities);
 void do_update_user(void);
 void do_edit_user(void);
 void do_activate_user(const char *uid, const char *key, const char *password);

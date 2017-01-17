@@ -617,7 +617,7 @@ void set_user_session(void)
 	snprintf(sid, sizeof(sid), "%llu", user_session.sid);
 	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
 						user_session.restrict_ip);
-	snprintf(capabilities, sizeof(capabilities), "%d",
+	snprintf(capabilities, sizeof(capabilities), "%u",
 						user_session.capabilities);
 	cols = tcmapnew3("tenant", user_session.tenant,
 			"sid", sid,

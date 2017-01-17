@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -185,7 +186,7 @@ static void generate_csrf_token(char *csrf_token)
 	snprintf(sid, sizeof(sid), "%llu", user_session.sid);
 	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
 						user_session.restrict_ip);
-	snprintf(capabilities, sizeof(capabilities), "%d",
+	snprintf(capabilities, sizeof(capabilities), "%u",
 						user_session.capabilities);
 	generate_hash(csrf_token, SHA256);
 	cols = tcmapnew3("tenant", user_session.tenant,
@@ -565,7 +566,7 @@ void tag_image(void)
 /*
  * Add a new user to the system.
  */
-int do_add_user(unsigned char capabilities)
+int do_add_user(uint8_t capabilities)
 {
 	char key[SHA256_LEN + 1];
 	char *email_addr;
@@ -591,7 +592,7 @@ int do_add_user(unsigned char capabilities)
 	res = sql_query("SELECT MAX(uid) FROM passwd");
 	row = mysql_fetch_row(res);
 
-	sql_query("INSERT INTO passwd VALUES (%d, '%s', '!!', '%s', %d, 0, 0, "
+	sql_query("INSERT INTO passwd VALUES (%d, '%s', '!!', '%s', %u, 0, 0, "
 			"'')",
 			atoi(row[0]) + 1, email_addr, name, capabilities);
 	sql_query("UNLOCK TABLES");
@@ -619,7 +620,7 @@ void do_update_user(void)
 	char *username;
 	char *name;
 	char *d_reason;
-	unsigned char capabilities = 0;
+	uint8_t capabilities = 0;
 	unsigned int uid;
 	int enabled = 0;
 	int activated = 0;
@@ -670,7 +671,7 @@ void do_update_user(void)
 	if (atoi(get_var(qvars, "activated")) == 1)
 		activated = 1;
 
-	sql_query("REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', %d, %d, "
+	sql_query("REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', %u, %d, "
 			"%d, '%s')",
 			uid, username, hash, name, capabilities, enabled,
 			activated, d_reason);
@@ -727,7 +728,7 @@ void do_edit_user(void)
 
 	username = make_mysql_safe_string(get_var(qvars, "email1"));
 	name = make_mysql_safe_string(get_var(qvars, "name"));
-	sql_query("REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', %d, 1, "
+	sql_query("REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', %u, 1, "
 			"1, '')",
 			user_session.uid, username, hash, name,
 			user_session.capabilities);
@@ -757,7 +758,7 @@ void do_edit_user(void)
 	snprintf(last_seen, sizeof(last_seen), "%ld", time(NULL));
 	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
 						user_session.restrict_ip);
-	snprintf(capabilities, sizeof(capabilities), "%d",
+	snprintf(capabilities, sizeof(capabilities), "%u",
 						user_session.capabilities);
 	name = realloc(name, strlen(get_var(qvars, "name")) + 1);
 	sprintf(name, "%s", get_var(qvars, "name"));
