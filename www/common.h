@@ -60,10 +60,7 @@
 #define PENDING		1
 #define APPROVED	2
 
-#define SHA1		 1
-#define SHA256		 5
-#define SHA512		10
-
+enum { SHA1, SHA256, SHA512 };
 enum { STATS_ALL, STATS_USER };
 
 /*
