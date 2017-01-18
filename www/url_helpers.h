@@ -32,7 +32,7 @@ int do_add_user(uint8_t capabilities);
 void do_update_user(void);
 void do_edit_user(void);
 void do_activate_user(const char *uid, const char *key, const char *password);
-void gather_receipt_stats_for_user(long long uid, Flate *f);
+void gather_receipt_stats_for_user(unsigned int uid, int whom, Flate *f);
 void send_template(Flate *f);
 void send_page(char *file);
 

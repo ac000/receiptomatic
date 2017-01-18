@@ -707,27 +707,21 @@ void do_activate_user(const char *uid, const char *key, const char *password)
 
 /*
  * Gather users receipts stats and set html template variables
- *
- * If the uid is < 0, then gather overall stats.
- *
- * Which is why uid is passed in as long long, when it is generally an
- * unsigned int, we need to be able to pass in -1, long long should cover
- * this and the max unsigned int value.
  */
-void gather_receipt_stats_for_user(long long uid, Flate *f)
+void gather_receipt_stats_for_user(unsigned int uid, int whom, Flate *f)
 {
 	unsigned long i;
 	unsigned long nr_rows;
 	MYSQL_RES *res;
 
 	/* Total of approved receipts */
-	if (uid > -1)
+	if (whom == STATS_USER)
 		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
-				(unsigned int)uid, APPROVED);
+				uid, APPROVED);
 	else
 		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
@@ -749,13 +743,13 @@ void gather_receipt_stats_for_user(long long uid, Flate *f)
 	mysql_free_result(res);
 
 	/* Total of rejected receipts */
-	if (uid > -1)
+	if (whom == STATS_USER)
 		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
-				(unsigned int)uid, REJECTED);
+				uid, REJECTED);
 	else
 		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
@@ -777,13 +771,13 @@ void gather_receipt_stats_for_user(long long uid, Flate *f)
 	mysql_free_result(res);
 
 	/* Total of pending receipts */
-	if (uid > -1)
+	if (whom == STATS_USER)
 		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
 				"gross_total FROM images INNER JOIN tags ON "
 				"(images.id = tags.id) WHERE images.uid = %u "
 				"AND images.approved = %d GROUP BY currency",
-				(unsigned int)uid, PENDING);
+				uid, PENDING);
 	else
 		res = sql_query("SELECT tags.currency, COUNT(*) AS "
 				"nr_rows, SUM(tags.gross_amount) AS "
@@ -805,10 +799,9 @@ void gather_receipt_stats_for_user(long long uid, Flate *f)
 	mysql_free_result(res);
 
 	/* Number of un-tagged receipts */
-	if (uid > -1)
+	if (whom == STATS_USER)
 		res = sql_query("SELECT COUNT(*) AS nr_rows FROM images "
-				"WHERE uid = %u AND tagged = 0",
-				(unsigned int)uid);
+				"WHERE uid = %u AND tagged = 0", uid);
 	else
 		res = sql_query("SELECT COUNT(*) AS nr_rows FROM images "
 				"WHERE tagged = 0");

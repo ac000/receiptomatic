@@ -64,6 +64,8 @@
 #define SHA256		 5
 #define SHA512		10
 
+enum { STATS_ALL, STATS_USER };
+
 /*
  * These three define the number of nanoseconds in a second,
  * millisecond and microsecond.

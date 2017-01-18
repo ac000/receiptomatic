@@ -645,7 +645,7 @@ static void admin_stats(void)
 	ADD_HDR(f);
 
 	/* Gather stats covering _all_ users */
-	gather_receipt_stats_for_user(-1, f);
+	gather_receipt_stats_for_user(0, STATS_ALL, f);
 
 	send_template(f);
 	lf_free(f);
@@ -677,7 +677,7 @@ static void admin_user_stats(void)
 	if (mysql_num_rows(res) == 0)
 		goto out;
 
-	gather_receipt_stats_for_user(uid, f);
+	gather_receipt_stats_for_user(uid, STATS_USER, f);
 	db_row = get_dbrow(res);
 	lf_set_var(f, "uid", get_var(qvars, "uid"), NULL);
 	lf_set_var(f, "name", get_var(db_row, "name"), de_xss);
@@ -2113,7 +2113,7 @@ static void stats(void)
 	lf_set_tmpl(&f, "templates/stats.tmpl");
 	ADD_HDR(f);
 
-	gather_receipt_stats_for_user(user_session.uid, f);
+	gather_receipt_stats_for_user(user_session.uid, STATS_USER, f);
 
 	send_template(f);
 	lf_free(f);
