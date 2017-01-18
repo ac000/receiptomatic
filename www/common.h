@@ -56,10 +56,7 @@
 #define SHA1_LEN	40
 #define SHA256_LEN	64
 
-#define REJECTED	0
-#define PENDING		1
-#define APPROVED	2
-
+enum { REJECTED = 0, PENDING, APPROVED };
 enum { SHA1, SHA256, SHA512 };
 enum { STATS_ALL, STATS_USER };
 
