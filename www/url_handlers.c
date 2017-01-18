@@ -41,6 +41,7 @@
 #include "url_helpers.h"
 #include "url_handlers.h"
 #include "audit.h"
+#include "csrf.h"
 
 /*
  * /login/
