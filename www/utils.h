@@ -17,6 +17,8 @@
 
 #include <flate.h>
 
+#include <glib.h>
+
 struct pagination {
 	int requested_page;	/* Page requested by client */
 	int page_no;		/* Page being returned to client */
