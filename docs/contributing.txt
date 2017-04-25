@@ -8,7 +8,7 @@ This means adding a line that says "Signed-off-by: Name <email>" at the end of
 each commit, indicating that you wrote the code and have the right to pass it
 on as an open source patch.
 
-See: http://gerrit.googlecode.com/svn/documentation/2.0/user-signedoffby.html
+See: https://developercertificate.org/
 
 Also, please write good git commit messages. A good commit message
 looks like this:
@@ -35,9 +35,10 @@ independently of the longer explanation.
 Also, new code should follow the coding style used, this is basically the
 coding style used in the linux kernel and is documented here:
 
-https://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=blob;f=Documentation/CodingStyle;hb=HEAD
+https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/plain/Documentation/process/coding-style.rst?id=HEAD
 
-or directly in the Documentation/CodingStyle file in your kernel source tree.
+or directly in the Documentation/process/coding-style.rst file in your kernel
+source tree.
 
-Contributions can be mailed directly to the current maintainer at:
-andrew@opentechlabs.co.uk
+Contributions can be mailed directly to the current maintainer via:
+Andrew Clayton <andrew@digital-domain.net>
