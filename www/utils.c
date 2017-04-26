@@ -66,18 +66,18 @@ static int quark_from_string(const char *str)
 	if (!quarks.q) {
 		quarks.q = g_hash_table_new_full(g_str_hash, g_str_equal,
 				g_free, NULL);
-		quarks.last = 0;
+		quarks.last = -1;
 	}
 
 	q = g_hash_table_lookup(quarks.q, str);
 	if (!q) {
-		quarks.last += 1;
+		quarks.last++;
 		g_hash_table_insert(quarks.q, g_strdup(str),
 				GINT_TO_POINTER(quarks.last));
 
-		return quarks.last - 1;
+		return quarks.last;
 	} else {
-		return GPOINTER_TO_INT(q) - 1;
+		return GPOINTER_TO_INT(q);
 	}
 }
 
