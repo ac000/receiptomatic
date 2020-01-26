@@ -4,4 +4,5 @@
 config/receiptomatic.cfg
 receiver/receiptomatic
 tools/passcrypt
+www/.d
 www/receiptomatic-www
