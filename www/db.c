@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2012	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -45,7 +45,7 @@ static MYSQL *__db_conn(int db_conn_type)
 		char db[sizeof(tenant) + 3] = "rm_";
 
 		get_tenant(env_vars.host, tenant);
-		strncat(db, tenant, TENANT_MAX);
+		memcpy(db + strlen(db), tenant, strlen(tenant) + 1);
 		free(db_name);
 		db_name = strdup(db);
 	}
