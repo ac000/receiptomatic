@@ -131,7 +131,7 @@ static void set_proc_title(const char *title)
  * Signal handler for SIGUSR2, sets a flag to inform that
  * dump_sessions_state() should be run.
  */
-static void sh_dump_session_state(int signo)
+static void sh_dump_session_state(int signo __unused)
 {
 	dump_sessions = 1;
 }
@@ -214,7 +214,7 @@ static void dump_session_state(void)
 /*
  * Signal handler to handle child process terminations.
  */
-static void reaper(int signo)
+static void reaper(int signo __unused)
 {
 	int status;
 
@@ -240,7 +240,7 @@ static void reaper(int signo)
 /*
  * Upon receiving the TERM signal, terminate all children and exit.
  */
-static void terminate(int signo)
+static void terminate(int signo __unused)
 {
 	kill(0, SIGTERM);
 	_exit(EXIT_SUCCESS);
@@ -250,7 +250,8 @@ static void terminate(int signo)
  * Signal handler for SIGRTMIN, sets a flag to inform that
  * clear_old_sessions() should be run.
  */
-static void sh_clear_old_sessions(int sig, siginfo_t *si, void *uc)
+static void sh_clear_old_sessions(int sig __unused, siginfo_t *si __unused,
+				  void *uc __unused)
 {
 	clear_sessions = 1;
 }
@@ -331,7 +332,7 @@ static void init_clear_session_timer(void)
  * the log files should be closed and reopened for log file
  * rotation.
  */
-static void sh_rotate_log_files(int signo)
+static void sh_rotate_log_files(int signo __unused)
 {
 	rotate_log_files = 1;
 }
@@ -452,7 +453,7 @@ static void create_server(int nr)
 	create_nr_new_server = 0;
 }
 
-int main(int argc, char **argv)
+int main(int argc __unused, char **argv)
 {
 	struct sigaction action;
 	int ret;

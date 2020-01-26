@@ -33,6 +33,9 @@
 #include "db.h"
 #include "utils.h"
 
+#define __unused		__attribute__((unused))
+#define __maybe_unused		__attribute__((unused))
+
 #define GRID_SIZE	9
 #define ROW_SIZE	3
 #define COL_SIZE	3

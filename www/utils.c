@@ -443,8 +443,8 @@ static void process_vars(const char *query)
  *
  * This will extract files and variable name/data pairs.
  */
-static void process_mime_part(GMimeObject *parent, GMimeObject *part,
-			      gpointer user_data)
+static void process_mime_part(GMimeObject *parent __unused, GMimeObject *part,
+			      gpointer user_data __unused)
 {
 	GMimeContentType *content_type;
 	GMimeStream *stream;
