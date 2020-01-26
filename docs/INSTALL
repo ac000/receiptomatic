@@ -241,7 +241,7 @@ Run
     The application itself is started with the spawn-fcgi command, something
     like
 
-    $ LD_LIBRARY_PATH=/path/to/libctemplate spawn-fcgi -a 127.0.0.1 -p 9191 -P /tmp/receiptomatic-www.pid -- /path/to/receiptomatic-www /usr/local/etc/receiptomatic.cfg
+    $ spawn-fcgi -a 127.0.0.1 -p 9191 -P /tmp/receiptomatic-www.pid -- /path/to/receiptomatic-www /usr/local/etc/receiptomatic.cfg
 
     The 9191 is the port that the application is listening on, the one that is
     specified in nginx.conf
@@ -253,5 +253,3 @@ Run
     #
 
     RUNASUSER_CHDIR=0 /usr/local/sbin/runasuser rmatic spawn-fcgi -a 127.0.0.1 -p 9191 -P /tmp/receiptomatic-www.pid -- /home/rmatic/receiptomatic-www /usr/local/etc/receiptomatic.cfg
-
-    And set the LD_LIBRARY_PATH in /usr/local/etc/runasuser.env.conf
