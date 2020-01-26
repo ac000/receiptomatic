@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -116,7 +116,7 @@ static void set_proc_title(const char *title)
 			size = strlen(environ[i]) + 1;
 			argv_last = environ[i] + size;
 
-			strncpy(p, environ[i], size);
+			memcpy(p, environ[i], size);
 			environ[i] = p;
 			p += size;
 		}
