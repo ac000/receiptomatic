@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2012	OpenTech Labs
  * 				Andrew Clayton <andrew@digital-domain.net>
  *
- * 		 2016		Andrew Clayton <andrew@digital-domain.net>
+ * 		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -226,7 +226,7 @@ static char *create_image_id(char *path, char *filename)
 	hbs = mhash_get_block_size(MHASH_SHA256);
 	for (i = 0; i < hbs; i++) {
 		sprintf(ht, "%.2x", hash[i]);
-		strncat(shash, ht, 2);
+		strncat(shash, ht, 3);
 	}
 	printf("%s\n", shash);
 
