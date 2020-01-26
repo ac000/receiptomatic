@@ -903,7 +903,7 @@ void do_pagination(Flate *f, const struct pagination *pn)
 	int nr_pages = pn->nr_pages;
 
 	if (IS_MULTI_PAGE(nr_pages)) {
-		char page_no[10];
+		char page_no[12];
 		int rqpage = pn->page_no;
 
 		if (IS_FIRST_PAGE(rqpage)) {
