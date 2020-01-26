@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -758,7 +758,7 @@ static void admin_pending_activations(void)
 
 		lf_set_var(f, "uid", get_var(db_row, "uid"), NULL);
 		lf_set_var(f, "akey", get_var(db_row, "akey"), NULL);
-		snprintf(item, sizeof(item), "%lu", i);
+		snprintf(item, sizeof(item), "%hhu", (uint8_t)i);
 		lf_set_var(f, "item", item, NULL);
 
 		do_zebra(f, i, "listzebra");
@@ -1530,7 +1530,7 @@ static void approve_receipts(void)
 		lf_set_var(f, "reason", get_var(db_row, "reason"), de_xss);
 		lf_set_var(f, "id", get_var(db_row, "id"), NULL);
 
-		snprintf(item, sizeof(item), "%lu", i);
+		snprintf(item, sizeof(item), "%hhu", (uint8_t)i);
 		lf_set_var(f, "item", item, NULL);
 
 		lf_set_row(f, "table");
