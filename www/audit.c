@@ -79,7 +79,7 @@ static int match_ipv4(const char *ip, const char *network, unsigned short cidr)
 	u32 n_addr;
 
 	inet_aton(ip, &addr);
-	n_addr = addr.s_addr & htonl(~0 << (32 - cidr));
+	n_addr = addr.s_addr & htonl(~0UL << (32 - cidr));
 	addr.s_addr = n_addr;
 
 	if (strcmp(network, inet_ntoa(addr)) == 0)
