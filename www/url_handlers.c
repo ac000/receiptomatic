@@ -332,7 +332,7 @@ static void admin_list_users(void)
 	nr_rows = mysql_num_rows(res);
 	for (i = 0; i < nr_rows; i++) {
 		char caps[33] = "\0";
-		uint8_t capabilities;
+		u8 capabilities;
 		GHashTable *db_row = NULL;
 
 		db_row = get_dbrow(res);
@@ -392,7 +392,7 @@ static void admin_list_users(void)
  */
 static void admin_add_user(void)
 {
-	uint8_t capabilities = 0;
+	u8 capabilities = 0;
 	bool form_err = false;
 	Flate *f = NULL;
 
@@ -549,7 +549,7 @@ static void admin_edit_user(void)
 	 * from the POST'd form and not the database.
 	 */
 	if (!form_err) {
-		uint8_t capabilities;
+		u8 capabilities;
 		GHashTable *db_row = NULL;
 		MYSQL_RES *res;
 
@@ -758,7 +758,7 @@ static void admin_pending_activations(void)
 
 		lf_set_var(f, "uid", get_var(db_row, "uid"), NULL);
 		lf_set_var(f, "akey", get_var(db_row, "akey"), NULL);
-		snprintf(item, sizeof(item), "%hhu", (uint8_t)i);
+		snprintf(item, sizeof(item), "%hhu", (u8)i);
 		lf_set_var(f, "item", item, NULL);
 
 		do_zebra(f, i, "listzebra");
@@ -1530,7 +1530,7 @@ static void approve_receipts(void)
 		lf_set_var(f, "reason", get_var(db_row, "reason"), de_xss);
 		lf_set_var(f, "id", get_var(db_row, "id"), NULL);
 
-		snprintf(item, sizeof(item), "%hhu", (uint8_t)i);
+		snprintf(item, sizeof(item), "%hhu", (u8)i);
 		lf_set_var(f, "item", item, NULL);
 
 		lf_set_row(f, "table");

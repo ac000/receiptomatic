@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2012	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -13,10 +13,11 @@
 #ifndef _URL_HELPERS_H_
 #define _URL_HELPERS_H_
 
-#include <stdint.h>
 #include <stdbool.h>
 
 #include <flate.h>
+
+#include "short_types.h"
 
 char *username_to_name(const char *username);
 bool is_users_receipt(const char *id);
@@ -28,7 +29,7 @@ void set_custom_field_names(void);
 void process_activation_changes(void);
 void update_fmap(void);
 void tag_image(void);
-int do_add_user(uint8_t capabilities);
+int do_add_user(u8 capabilities);
 void do_update_user(void);
 void do_edit_user(void);
 void do_activate_user(const char *uid, const char *key, const char *password);

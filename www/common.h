@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -28,6 +28,7 @@
 
 #include <glib.h>
 
+#include "short_types.h"
 #include "receiptomatic_config.h"
 #include "db.h"
 #include "utils.h"
@@ -174,7 +175,7 @@ struct user_session {
 	char tenant[TENANT_MAX + 1];
 	unsigned long long sid;
 	unsigned int uid;
-	uint8_t capabilities;
+	u8 capabilities;
 	char *username;
 	char *name;
 	time_t login_at;

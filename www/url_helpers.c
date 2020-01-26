@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -467,7 +467,7 @@ void tag_image(void)
 /*
  * Add a new user to the system.
  */
-int do_add_user(uint8_t capabilities)
+int do_add_user(u8 capabilities)
 {
 	char key[SHA256_LEN + 1];
 	char *email_addr;
@@ -521,7 +521,7 @@ void do_update_user(void)
 	char *username;
 	char *name;
 	char *d_reason;
-	uint8_t capabilities = 0;
+	u8 capabilities = 0;
 	unsigned int uid;
 	int enabled = 0;
 	int activated = 0;

@@ -158,7 +158,7 @@ static void dump_session_state(void)
 	nres = tclistnum(res);
 	fprintf(debug_log, "Number of active sessions: %d\n", nres);
 	for (i = 0; i < nres; i++) {
-		uint8_t capabilities;
+		u8 capabilities;
 
 		rbuf = tclistval(res, i, &rsize);
 		cols = tctdbget(tdb, rbuf, rsize);
