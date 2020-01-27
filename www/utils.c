@@ -222,7 +222,6 @@ char *generate_hash(char *hash, int type)
  */
 void free_avars(void)
 {
-	GHashTable *query_vars;
 	unsigned int i;
 	unsigned int size;
 
@@ -236,6 +235,8 @@ void free_avars(void)
 
 	size = g_list_length(avars);
 	for (i = 0; i < size; i++) {
+		GHashTable *query_vars;
+
 		query_vars = g_list_nth_data(avars, i);
 		g_hash_table_destroy(query_vars);
 	}
@@ -258,13 +259,14 @@ void free_u_files(void)
 {
 	unsigned int i;
 	unsigned int size;
-	struct file_info *file_info;
 
 	if (!u_files)
 		return;
 
 	size = g_list_length(u_files);
 	for (i = 0; i < size; i++) {
+		struct file_info *file_info;
+
 		file_info = g_list_nth_data(u_files, i);
 		unlink(file_info->temp_file_name);
 		free(file_info->name);
@@ -830,7 +832,6 @@ char *generate_password_hash(int hash_type, const char *password)
 void delete_user_session(unsigned int uid)
 {
 	char suid[11];
-	const char *rbuf;
 	int i;
 	int rsize;
 	TCTDB *tdb;
@@ -845,6 +846,8 @@ void delete_user_session(unsigned int uid)
 	tctdbqryaddcond(qry, "uid", TDBQCNUMEQ, suid);
 	res = tctdbqrysearch(qry);
 	for (i = 0; i < tclistnum(res); i++) {
+		const char *rbuf;
+
 		rbuf = tclistval(res, i, &rsize);
 		tctdbout(tdb, rbuf, strlen(rbuf));
 	}
