@@ -230,14 +230,6 @@ struct env_vars {
 };
 struct env_vars env_vars;
 
-/* Structure to hold information about uploaded files via POST */
-struct file_info {
-	char orig_file_name[NAME_MAX + 1];
-	char temp_file_name[PATH_MAX];
-	char *name;
-	char *mime_type;
-};
-
 extern FCGX_Stream *fcgx_in;
 extern FCGX_Stream *fcgx_out;
 extern FCGX_Stream *fcgx_err;
@@ -266,7 +258,6 @@ extern FILE *sql_log;
 extern FILE *error_log;
 extern FILE *debug_log;
 
-extern struct file_info file_info;
 extern GList *u_files;
 extern GList *avars;
 extern GHashTable *qvars;

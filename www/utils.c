@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <linux/limits.h>
 
 #include <fcgiapp.h>
 
@@ -36,6 +37,14 @@
 
 #include "common.h"
 #include "utils.h"
+
+/* Structure to hold information about uploaded files via POST */
+struct file_info {
+	char orig_file_name[NAME_MAX + 1];
+	char temp_file_name[PATH_MAX];
+	char *name;
+	char *mime_type;
+};
 
 struct quark {
 	GHashTable *q;
@@ -271,6 +280,7 @@ void free_u_files(void)
 		unlink(file_info->temp_file_name);
 		free(file_info->name);
 		free(file_info->mime_type);
+		free(file_info);
 	}
 	g_list_free(u_files);
 }
