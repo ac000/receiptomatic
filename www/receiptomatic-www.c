@@ -173,12 +173,13 @@ static void dump_session_state(void)
 		capabilities = atoi(tcmapget2(cols, "capabilities"));
 		fprintf(debug_log, "\tcapabilities : (%u) %s %s %s %s %s %s\n",
 				capabilities,
-				capabilities & ADMIN ? "admin," : "",
-				capabilities & APPROVER ? "approver -" : "",
-				capabilities & APPROVER_CARD ? "card" : "",
-				capabilities & APPROVER_CASH ? "cash" : "",
-				capabilities & APPROVER_CHEQUE ? "cheque" : "",
-				capabilities & APPROVER_SELF ? "self" : "");
+				(capabilities & ADMIN) ? "admin," : "",
+				(capabilities & APPROVER) ? "approver -" : "",
+				(capabilities & APPROVER_CARD) ? "card" : "",
+				(capabilities & APPROVER_CASH) ? "cash" : "",
+				(capabilities & APPROVER_CHEQUE) ?
+					"cheque" : "",
+				(capabilities & APPROVER_SELF) ? "self" : "");
 		fprintf(debug_log, "\tusername     : %s\n", tcmapget2(cols,
 								"username"));
 		fprintf(debug_log, "\tname         : %s\n", tcmapget2(cols,
