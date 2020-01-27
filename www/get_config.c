@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2012	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -23,15 +23,16 @@ int get_config(const char *filename)
 {
 	FILE *fp;
 	char buf[BUF_SIZE];
-	char *option;
-	char *value;
-	char *token;
 
 	fp = fopen(filename, "r");
 	if (!fp)
 		return -1;
 
 	while (fgets(buf, BUF_SIZE, fp)) {
+		char *token;
+		char *option;
+		char *value;
+
 		token = strtok(buf, "=");
 		option = token;
 		token = strtok(NULL, "=");
