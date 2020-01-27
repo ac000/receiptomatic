@@ -1782,7 +1782,7 @@ static void receipt_info(void)
 
 	/* Only PENDING receipts of the user are editable */
 	if (atoi(get_var(db_row, "approved")) == PENDING &&
-	    atoi(get_var(db_row, "uid")) == user_session.uid) {
+	    (unsigned)atoi(get_var(db_row, "uid")) == user_session.uid) {
 		if (strcmp(get_var(qvars, "edit"), "true") == 0) {
 			lf_set_var(f, "edit", "", NULL);
 			/*

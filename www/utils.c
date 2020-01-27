@@ -178,7 +178,7 @@ char *generate_hash(char *hash, int type)
 	bytes_read = read(fd, &buf, sizeof(buf));
 	close(fd);
 
-	if (bytes_read < sizeof(buf)) {
+	if (bytes_read < (ssize_t)sizeof(buf)) {
 		/*
 		 * If we couldn't read the required amount, something is
 		 * seriously wrong. Log it and exit.

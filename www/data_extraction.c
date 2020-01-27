@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016		Andrew Clayton <andrew@digital-domain.net>
+ *		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -76,7 +76,7 @@ void extract_data_now(int fd)
 					"VAT Number\tReceipt Date\tReason\t"
 					"Payment Method\r\n");
 	bytes_wrote = write(fd, line, strlen(line));
-	if (bytes_wrote < strlen(line))
+	if (bytes_wrote < (ssize_t)strlen(line))
 		d_fprintf(error_log, "Failed to write data: %s\n", line);
 
 	for (i = 0; i < nr_rows; i++) {
@@ -102,7 +102,7 @@ void extract_data_now(int fd)
 					get_var(db_row, "reason"),
 					get_var(db_row, "payment_method"));
 		bytes_wrote = write(fd, line, strlen(line));
-		if (bytes_wrote < strlen(line))
+		if (bytes_wrote < (ssize_t)strlen(line))
 			d_fprintf(error_log, "Failed to write data: %s\n",
 									line);
 		free_vars(db_row);
