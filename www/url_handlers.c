@@ -53,12 +53,13 @@
 static void login(void)
 {
 	int ret = 1;
-	unsigned long long sid;
 	Flate *f = NULL;
 
 	if (qvars) {
 		ret = check_auth();
 		if (ret == 0) {
+			unsigned long long sid;
+
 			sid = log_login();
 			create_session(sid);
 			fcgx_p("Location: /receipts/\r\n\r\n");
@@ -1075,7 +1076,6 @@ static void prefs_fmap(void)
 static void prefs_edit_user(void)
 {
 	bool form_err = false;
-	bool pass_err = false;
 	Flate *f = NULL;
 
 	lf_set_tmpl(&f, "templates/prefs_edit_user.tmpl");
@@ -1084,6 +1084,8 @@ static void prefs_edit_user(void)
 	 * showing them.
 	 */
 	if (IS_POST() && valid_csrf_token()) {
+		bool pass_err = false;
+
 		if ((!IS_SET(get_var(qvars, "email1")) &&
 		     !IS_SET(get_var(qvars, "email2"))) ||
 		    (strcmp(get_var(qvars, "email1"),
