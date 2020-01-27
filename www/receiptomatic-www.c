@@ -144,11 +144,9 @@ static void dump_session_state(void)
 	TCTDB *tdb;
 	TDBQRY *qry;
 	TCLIST *res;
-	TCMAP *cols;
 	int i;
 	int rsize;
 	int nres;
-	const char *rbuf;
 
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOREADER);
@@ -158,6 +156,8 @@ static void dump_session_state(void)
 	nres = tclistnum(res);
 	fprintf(debug_log, "Number of active sessions: %d\n", nres);
 	for (i = 0; i < nres; i++) {
+		TCMAP *cols;
+		const char *rbuf;
 		u8 capabilities;
 
 		rbuf = tclistval(res, i, &rsize);
