@@ -580,7 +580,7 @@ void set_user_session(void)
 	 */
 	xss_string = de_xss(user_session.name);
 	snprintf(user_hdr, sizeof(user_hdr), "<big><big> %s</big></big><small>"
-				"<span class = \"lighter\"> (%d) </span>"
+				"<span class = \"lighter\"> (%u) </span>"
 				"</small>", xss_string, user_session.uid);
 	free(xss_string);
 	if (IS_APPROVER() && IS_ADMIN())
