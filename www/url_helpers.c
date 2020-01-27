@@ -612,19 +612,19 @@ void do_edit_user(void)
 	if (IS_SET(get_var(qvars, "pass1"))) {
 		hash = generate_password_hash(SHA512, get_var(qvars, "pass1"));
 	} else {
-		MYSQL_RES *res;
+		MYSQL_RES *mres;
 		MYSQL_ROW row;
 
-		res = sql_query("SELECT password FROM passwd WHERE uid = %u",
-				user_session.uid);
-		row = mysql_fetch_row(res);
+		mres = sql_query("SELECT password FROM passwd WHERE uid = %u",
+				 user_session.uid);
+		row = mysql_fetch_row(mres);
 		hash = malloc(strlen(row[0]) + 1);
 		if (!hash) {
 			perror("malloc");
 			exit(EXIT_FAILURE);
 		}
 		snprintf(hash, strlen(row[0]) + 1, "%s", row[0]);
-		mysql_free_result(res);
+		mysql_free_result(mres);
 	}
 
 	username = make_mysql_safe_string(get_var(qvars, "email1"));
