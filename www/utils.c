@@ -605,21 +605,20 @@ GHashTable *get_dbrow(MYSQL_RES *res)
 	unsigned int num_fields;
 	unsigned int i;
 	MYSQL_ROW row;
-	MYSQL_FIELD *fields;
+	MYSQL_FIELD *mfields;
 	GHashTable *db_row;
 
 	db_row  = g_hash_table_new_full(g_str_hash, g_str_equal,
 							g_free, g_free);
 
 	num_fields = mysql_num_fields(res);
-	fields = mysql_fetch_fields(res);
+	mfields = mysql_fetch_fields(res);
 	row = mysql_fetch_row(res);
 	for (i = 0; i < num_fields; i++) {
 		d_fprintf(debug_log, "Adding key: %s with value: %s to "
-						"hash table\n",
-						fields[i].name, row[i]);
-		g_hash_table_insert(db_row, g_strdup(fields[i].name),
-							g_strdup(row[i]));
+			  "hash table\n", mfields[i].name, row[i]);
+		g_hash_table_insert(db_row, g_strdup(mfields[i].name),
+				    g_strdup(row[i]));
 	}
 
 	return db_row;
