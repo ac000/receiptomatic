@@ -944,7 +944,7 @@ void do_pagination(Flate *f, const struct pagination *pn)
  */
 void do_zebra(Flate *f, unsigned long row, const char *zebra)
 {
-	lf_set_var(f, "zebra", (row % 2) ? "" : zebra, NULL);
+	lf_set_var(f, "zebra", (row & 1) ? "" : zebra, NULL);
 }
 
 #define STR_ALLOC_SZ	512
