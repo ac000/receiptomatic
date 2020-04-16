@@ -19,22 +19,24 @@
 
 #include "short_types.h"
 
-char *username_to_name(const char *username);
-bool is_users_receipt(const char *id);
-bool tag_info_allowed(const char *image_id);
-bool image_access_allowed(const char *path);
-int check_amounts(double gross, double net, double vat, double vr);
-void set_default_field_names(void);
-void set_custom_field_names(void);
-void process_activation_changes(void);
-void update_fmap(void);
-void tag_image(void);
-int do_add_user(u8 capabilities);
-void do_update_user(void);
-void do_edit_user(void);
-void do_activate_user(const char *uid, const char *key, const char *password);
-void gather_receipt_stats_for_user(unsigned int uid, int whom, Flate *f);
-void send_template(Flate *f);
-void send_page(char *file);
+extern char *username_to_name(const char *username);
+extern bool is_users_receipt(const char *id);
+extern bool tag_info_allowed(const char *image_id);
+extern bool image_access_allowed(const char *path);
+extern int check_amounts(double gross, double net, double vat, double vr);
+extern void set_default_field_names(void);
+extern void set_custom_field_names(void);
+extern void process_activation_changes(void);
+extern void update_fmap(void);
+extern void tag_image(void);
+extern int do_add_user(u8 capabilities);
+extern void do_update_user(void);
+extern void do_edit_user(void);
+extern void do_activate_user(const char *uid, const char *key,
+			     const char *password);
+extern void gather_receipt_stats_for_user(unsigned int uid, int whom,
+					  Flate *f);
+extern void send_template(Flate *f);
+extern void send_page(char *file);
 
 #endif /* _URL_HELPERS_H_ */

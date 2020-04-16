@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- * 		 2016		Andrew Clayton <andrew@digital-domain.net>
+ * 		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -40,8 +40,9 @@
 
 extern MYSQL *conn;
 
-MYSQL *db_conn(void);
-MYSQL *db_conn_local(void);
-MYSQL_RES *__sql_query(MYSQL *dbconn, const char *func, const char *fmt, ...);
+extern MYSQL *db_conn(void);
+extern MYSQL *db_conn_local(void);
+extern MYSQL_RES *__sql_query(MYSQL *dbconn, const char *func,
+			      const char *fmt, ...);
 
 #endif /* _DB_H_ */
