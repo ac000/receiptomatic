@@ -246,7 +246,7 @@ bool is_logged_in(void)
 		goto out3;
 
 	snprintf(session_id, sizeof(session_id), "%s",
-						env_vars.http_cookie + 11);
+		 env_vars.http_cookie + 11);
 
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOREADER);
@@ -265,12 +265,12 @@ bool is_logged_in(void)
 	if (atoi(tcmapget2(cols, "restrict_ip")) == 1) {
 		/* origin_ip */
 		if (strcmp(tcmapget2(cols, "origin_ip"),
-					env_vars.remote_addr) != 0)
+			   env_vars.remote_addr) != 0)
 			goto out;
 	}
 	/* client_id */
 	if (strcmp(tcmapget2(cols, "client_id"),
-					env_vars.http_user_agent) != 0)
+			     env_vars.http_user_agent) != 0)
 		goto out;
 
 	/* We got here, all checks are OK */
@@ -312,12 +312,12 @@ static void *log_utmp_host(void *arg)
 	hints.ai_family = AF_UNSPEC;
 	getaddrinfo(ui->ip, NULL, &hints, &res);
 	getnameinfo(res->ai_addr, res->ai_addrlen, host, NI_MAXHOST, NULL, 0,
-			0);
+		    0);
 
 	db = db_conn_local();
 	hostname = make_mysql_safe_stringl(db, host);
 	sql_queryl(db, "UPDATE utmp SET hostname = '%s' WHERE sid = %llu",
-			hostname, ui->sid);
+		   hostname, ui->sid);
 	mysql_close(db);
 	free(hostname);
 	free(ui);
@@ -364,9 +364,9 @@ unsigned long long log_login(void)
 
 	/* Divide tv_nsec by 1000 to get a rough microseconds value */
 	sql_query("INSERT INTO utmp VALUES (%ld.%06ld, %u, '%s', '%s', %d, "
-			"'', %llu)",
-			login_at.tv_sec, login_at.tv_nsec / NS_USEC,
-			uid, username, ip_addr, env_vars.remote_port, sid);
+		  "'', %llu)",
+		  login_at.tv_sec, login_at.tv_nsec / NS_USEC, uid, username,
+		  ip_addr, env_vars.remote_port, sid);
 	sql_query("UNLOCK TABLES");
 
 	mysql_free_result(res);
@@ -468,8 +468,8 @@ void create_session(unsigned long long sid)
 	generate_hash(session_id, SHA256);
 
 	if (strcmp(get_var(qvars, "restrict_ip"), "true") == 0) {
-		d_fprintf(debug_log, "Restricting session to origin ip "
-								"address\n");
+		d_fprintf(debug_log,
+			  "Restricting session to origin ip address\n");
 		restrict_ip[0] = '1';
 	}
 
@@ -479,19 +479,19 @@ void create_session(unsigned long long sid)
 	snprintf(timestamp, sizeof(timestamp), "%ld", (long)time(NULL));
 	snprintf(ssid, sizeof(ssid), "%llu", sid);
 	cols = tcmapnew3("tenant", tenant,
-			"sid", ssid,
-			"uid", get_var(db_row, "uid"),
-			"username", get_var(qvars, "username"),
-			"name", get_var(db_row, "name"),
-			"login_at", timestamp,
-			"last_seen", timestamp,
-			"origin_ip", env_vars.remote_addr,
-			"client_id", env_vars.http_user_agent,
-			"session_id", session_id,
-			"csrf_token", "\0",
-			"restrict_ip", restrict_ip,
-			"capabilities", get_var(db_row, "capabilities"),
-			NULL);
+			 "sid", ssid,
+			 "uid", get_var(db_row, "uid"),
+			 "username", get_var(qvars, "username"),
+			 "name", get_var(db_row, "name"),
+			 "login_at", timestamp,
+			 "last_seen", timestamp,
+			 "origin_ip", env_vars.remote_addr,
+			 "client_id", env_vars.http_user_agent,
+			 "session_id", session_id,
+			 "csrf_token", "\0",
+			 "restrict_ip", restrict_ip,
+			 "capabilities", get_var(db_row, "capabilities"),
+			 NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
 	tcmapdel(cols);
 	tctdbclose(tdb);
@@ -534,10 +534,10 @@ void set_user_session(void)
 	 */
 	if (strncmp(env_vars.http_cookie, "session_id", 10) == 0)
 		snprintf(session_id, sizeof(session_id), "%s",
-						env_vars.http_cookie + 11);
+			 env_vars.http_cookie + 11);
 	else
 		snprintf(session_id, sizeof(session_id), "%s",
-						env_vars.http_cookie + 88);
+			 env_vars.http_cookie + 88);
 
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
@@ -553,7 +553,7 @@ void set_user_session(void)
 
 	memset(&user_session, 0, sizeof(user_session));
 	snprintf(user_session.tenant, sizeof(user_session.tenant), "%s",
-			tcmapget2(cols, "tenant"));
+		 tcmapget2(cols, "tenant"));
 	user_session.sid = strtoull(tcmapget2(cols, "sid"), NULL, 10);
 	user_session.uid = atoi(tcmapget2(cols, "uid"));
 	user_session.username = strdup(tcmapget2(cols, "username"));
@@ -561,12 +561,12 @@ void set_user_session(void)
 	user_session.login_at = atol(tcmapget2(cols, "login_at"));
 	user_session.last_seen = time(NULL);
 	snprintf(user_session.origin_ip, sizeof(user_session.origin_ip), "%s",
-			tcmapget2(cols, "origin_ip"));
+		 tcmapget2(cols, "origin_ip"));
 	user_session.client_id = strdup(tcmapget2(cols, "client_id"));
 	snprintf(user_session.session_id, sizeof(user_session.session_id),
-			"%s", tcmapget2(cols, "session_id"));
+		 "%s", tcmapget2(cols, "session_id"));
 	snprintf(user_session.csrf_token, sizeof(user_session.csrf_token),
-			"%s", tcmapget2(cols, "csrf_token"));
+		 "%s", tcmapget2(cols, "csrf_token"));
 	user_session.restrict_ip = atoi(tcmapget2(cols, "restrict_ip"));
 	user_session.capabilities = atoi(tcmapget2(cols, "capabilities"));
 
@@ -580,18 +580,18 @@ void set_user_session(void)
 	 */
 	xss_string = de_xss(user_session.name);
 	snprintf(user_hdr, sizeof(user_hdr), "<big><big> %s</big></big><small>"
-				"<span class = \"lighter\"> (%u) </span>"
-				"</small>", xss_string, user_session.uid);
+		 "<span class = \"lighter\"> (%u) </span>"
+		 "</small>", xss_string, user_session.uid);
 	free(xss_string);
 	if (IS_APPROVER() && IS_ADMIN())
 		strncat(user_hdr, "<span class = \"t_red\">(Approver / Admin)"
-					"</span>", 1024 - strlen(user_hdr));
+			"</span>", 1024 - strlen(user_hdr));
 	else if (IS_APPROVER())
 		strncat(user_hdr, "<span class = \"t_red\">(Approver)"
-					"</span>", 1024 - strlen(user_hdr));
+			"</span>", 1024 - strlen(user_hdr));
 	else if (IS_ADMIN())
 		strncat(user_hdr, "<span class = \"t_red\">(Admin)"
-					"</span>", 1024 - strlen(user_hdr));
+			"</span>", 1024 - strlen(user_hdr));
 	strncat(user_hdr, "&nbsp;", 1024 - strlen(user_hdr));
 	user_session.user_hdr = strdup(user_hdr);
 
@@ -612,27 +612,27 @@ void set_user_session(void)
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
 	snprintf(login_at, sizeof(login_at), "%ld", user_session.login_at);
 	snprintf(last_seen, sizeof(last_seen), "%ld",
-						user_session.last_seen);
+		 user_session.last_seen);
 	snprintf(uid, sizeof(uid), "%u", user_session.uid);
 	snprintf(sid, sizeof(sid), "%llu", user_session.sid);
 	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
-						user_session.restrict_ip);
+		 user_session.restrict_ip);
 	snprintf(capabilities, sizeof(capabilities), "%u",
-						user_session.capabilities);
+		 user_session.capabilities);
 	cols = tcmapnew3("tenant", user_session.tenant,
-			"sid", sid,
-			"uid", uid,
-			"username", user_session.username,
-			"name", user_session.name,
-			"login_at", login_at,
-			"last_seen", last_seen,
-			"origin_ip", user_session.origin_ip,
-			"client_id", user_session.client_id,
-			"session_id", user_session.session_id,
-			"csrf_token", user_session.csrf_token,
-			"restrict_ip", restrict_ip,
-			"capabilities", capabilities,
-			NULL);
+			 "sid", sid,
+			 "uid", uid,
+			 "username", user_session.username,
+			 "name", user_session.name,
+			 "login_at", login_at,
+			 "last_seen", last_seen,
+			 "origin_ip", user_session.origin_ip,
+			 "client_id", user_session.client_id,
+			 "session_id", user_session.session_id,
+			 "csrf_token", user_session.csrf_token,
+			 "restrict_ip", restrict_ip,
+			 "capabilities", capabilities,
+			 NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
 
 	tcmapdel(cols);

@@ -117,8 +117,8 @@ bool image_access_allowed(const char *path)
 
 	memset(userdir, 0, sizeof(userdir));
 	snprintf(userdir, sizeof(userdir), "/%s%s%u/",
-			(MULTI_TENANT) ? user_session.tenant : "",
-			(MULTI_TENANT) ? "/" : "", user_session.uid);
+		 (MULTI_TENANT) ? user_session.tenant : "",
+		 (MULTI_TENANT) ? "/" : "", user_session.uid);
 
 	/* In a non-multi-tenant, approvers can see all images */
 	if (IS_APPROVER() && !MULTI_TENANT) {
@@ -132,7 +132,7 @@ bool image_access_allowed(const char *path)
 		if (ptenant && strcmp(ptenant, user_session.tenant) == 0)
 			access_allowed = true;
 	} else if (strncmp(path + strlen(IMAGE_PATH), userdir,
-				strlen(userdir)) == 0) {
+			   strlen(userdir)) == 0) {
 		access_allowed = true;
 	}
 
@@ -217,7 +217,7 @@ void set_custom_field_names(void)
 	if (IS_SET(get_var(db_row, "employee_number"))) {
 		free(fields.employee_number);
 		fields.employee_number = strdup(get_var(db_row,
-					"employee_number"));
+							"employee_number"));
 	}
 	if (IS_SET(get_var(db_row, "reason"))) {
 		free(fields.reason);
@@ -234,17 +234,17 @@ void set_custom_field_names(void)
 	if (IS_SET(get_var(db_row, "account_codes"))) {
 		free(fields.account_codes);
 		fields.account_codes = strdup(get_var(db_row,
-					"account_codes"));
+						      "account_codes"));
 	}
 	if (IS_SET(get_var(db_row, "supplier_name"))) {
 		free(fields.supplier_name);
 		fields.supplier_name = strdup(get_var(db_row,
-					"supplier_name"));
+						      "supplier_name"));
 	}
 	if (IS_SET(get_var(db_row, "supplier_town"))) {
 		free(fields.supplier_town);
 		fields.supplier_town = strdup(get_var(db_row,
-					"supplier_town"));
+						      "supplier_town"));
 	}
 	if (IS_SET(get_var(db_row, "vat_number"))) {
 		free(fields.vat_number);
@@ -273,7 +273,7 @@ void set_custom_field_names(void)
 	if (IS_SET(get_var(db_row, "payment_method"))) {
 		free(fields.payment_method);
 		fields.payment_method = strdup(get_var(db_row,
-					"payment_method"));
+						       "payment_method"));
 	}
 
 	free_vars(db_row);
@@ -299,13 +299,13 @@ void process_activation_changes(void)
 			continue;
 		} else if (strcmp(action, "renew") == 0) {
 			sql_query("UPDATE activations SET expires = '%ld'"
-					"WHERE akey = '%s'",
-					time(NULL) + KEY_EXP, akey);
+				  "WHERE akey = '%s'",
+				  time(NULL) + KEY_EXP, akey);
 		} else {
 			sql_query("DELETE FROM activations WHERE akey = "
-					"'%s' LIMIT 1", akey);
+				  "'%s' LIMIT 1", akey);
 			sql_query("DELETE FROM passwd WHERE uid = %u LIMIT 1",
-					atoi(get_avar(i, "uid")));
+				  atoi(get_avar(i, "uid")));
 		}
 	}
 }
@@ -336,34 +336,34 @@ void update_fmap(void)
 	username = make_mysql_safe_string(user_session.username);
 	receipt_date = make_mysql_safe_string(get_var(qvars, "receipt_date"));
 	department = make_mysql_safe_string(get_var(qvars, "department"));
-	employee_number = make_mysql_safe_string(
-			get_var(qvars, "employee_number"));
+	employee_number = make_mysql_safe_string(get_var(qvars,
+							 "employee_number"));
 	reason = make_mysql_safe_string(get_var(qvars, "reason"));
 	po_num = make_mysql_safe_string(get_var(qvars, "po_num"));
 	cost_codes = make_mysql_safe_string(get_var(qvars, "cost_codes"));
-	account_codes = make_mysql_safe_string(
-			get_var(qvars, "account_codes"));
-	supplier_name = make_mysql_safe_string(
-			get_var(qvars, "supplier_name"));
-	supplier_town = make_mysql_safe_string(
-			get_var(qvars, "supplier_town"));
+	account_codes = make_mysql_safe_string(get_var(qvars,
+						       "account_codes"));
+	supplier_name = make_mysql_safe_string(get_var(qvars,
+						       "supplier_name"));
+	supplier_town = make_mysql_safe_string(get_var(qvars,
+						       "supplier_town"));
 	vat_number = make_mysql_safe_string(get_var(qvars, "vat_number"));
 	gross_amount = make_mysql_safe_string(get_var(qvars, "gross_amount"));
 	net_amount = make_mysql_safe_string(get_var(qvars, "net_amount"));
 	vat_amount = make_mysql_safe_string(get_var(qvars, "vat_amount"));
 	vat_rate = make_mysql_safe_string(get_var(qvars, "vat_rate"));
 	currency = make_mysql_safe_string(get_var(qvars, "currency"));
-	payment_method = make_mysql_safe_string(
-			get_var(qvars, "payment_method"));
+	payment_method = make_mysql_safe_string(get_var(qvars,
+							"payment_method"));
 
 	sql_query("REPLACE INTO field_names VALUES (%u, '%s', '%s', '%s', "
-			"'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "
-			"'%s', '%s', '%s', '%s', '%s', '%s')",
-			user_session.uid, username, receipt_date, department,
-			employee_number, reason, po_num, cost_codes,
-			account_codes, supplier_name, supplier_town,
-			vat_number, gross_amount, net_amount, vat_amount,
-			vat_rate, currency, payment_method);
+		  "'%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', "
+		  "'%s', '%s', '%s', '%s', '%s')",
+		  user_session.uid, username, receipt_date, department,
+		  employee_number, reason, po_num, cost_codes,
+		  account_codes, supplier_name, supplier_town,
+		  vat_number, gross_amount, net_amount, vat_amount,
+		  vat_rate, currency, payment_method);
 	free(username);
 	free(receipt_date);
 	free(department);
@@ -410,17 +410,17 @@ void tag_image(void)
 
 	image_id = make_mysql_safe_string(get_var(qvars, "image_id"));
 	username = make_mysql_safe_string(user_session.username);
-	employee_number = make_mysql_safe_string(
-			get_var(qvars, "employee_number"));
+	employee_number = make_mysql_safe_string(get_var(qvars,
+							 "employee_number"));
 	department = make_mysql_safe_string(get_var(qvars, "department"));
 	po_num = make_mysql_safe_string(get_var(qvars, "po_num"));
 	cost_codes = make_mysql_safe_string(get_var(qvars, "cost_codes"));
-	account_codes = make_mysql_safe_string(
-			get_var(qvars, "account_codes"));
-	supplier_town = make_mysql_safe_string(
-			get_var(qvars, "supplier_town"));
-	supplier_name = make_mysql_safe_string(
-			get_var(qvars, "supplier_name"));
+	account_codes = make_mysql_safe_string(get_var(qvars,
+						       "account_codes"));
+	supplier_town = make_mysql_safe_string(get_var(qvars,
+						       "supplier_town"));
+	supplier_name = make_mysql_safe_string(get_var(qvars,
+						       "supplier_name"));
 	currency = make_mysql_safe_string(get_var(qvars, "currency"));
 	gross_amount = strtod(get_var(qvars, "gross_amount"), NULL);
 	vat_amount = strtod(get_var(qvars, "vat_amount"), NULL);
@@ -433,20 +433,17 @@ void tag_image(void)
 	strptime(get_var(qvars, "receipt_date"), "%Y-%m-%d", &tm);
 	strftime(secs, sizeof(secs), "%s", &tm);
 
-	payment_method = make_mysql_safe_string(
-			get_var(qvars, "payment_method"));
+	payment_method = make_mysql_safe_string(get_var(qvars,
+							"payment_method"));
 
 	sql_query("REPLACE INTO tags VALUES ('%s', %u, '%s', %ld, '%s', "
-				"'%s', '%s', '%s', '%s', '%s', '%s', '%s', "
-				"%.2f, %.2f, %.2f, %.2f, '%s', %ld, '%s', "
-				"'%s')",
-				image_id, user_session.uid, username,
-				time(NULL), employee_number, department,
-				po_num, cost_codes, account_codes,
-				supplier_town, supplier_name, currency,
-				gross_amount, vat_amount, net_amount,
-				vat_rate, vat_number, atol(secs), reason,
-				payment_method);
+		  "'%s', '%s', '%s', '%s', '%s', '%s', '%s', %.2f, %.2f, "
+		  "%.2f, %.2f, '%s', %ld, '%s', '%s')",
+		  image_id, user_session.uid, username, time(NULL),
+		  employee_number, department, po_num, cost_codes,
+		  account_codes, supplier_town, supplier_name, currency,
+		  gross_amount, vat_amount, net_amount, vat_rate, vat_number,
+		  atol(secs), reason, payment_method);
 	sql_query("UPDATE images SET tagged = 1 WHERE id = '%s'", image_id);
 
 	free(image_id);
@@ -494,13 +491,12 @@ int do_add_user(u8 capabilities)
 	row = mysql_fetch_row(res);
 
 	sql_query("INSERT INTO passwd VALUES (%d, '%s', '!!', '%s', %u, 0, 0, "
-			"'')",
-			atoi(row[0]) + 1, email_addr, name, capabilities);
+		  "'')", atoi(row[0]) + 1, email_addr, name, capabilities);
 	sql_query("UNLOCK TABLES");
 
 	tm = time(NULL);
 	sql_query("INSERT INTO activations VALUES ('%s', '%s', %ld)",
-			email_addr, key, tm + KEY_EXP);
+		  email_addr, key, tm + KEY_EXP);
 
 	send_activation_mail(name, email_addr, key);
 
@@ -573,9 +569,9 @@ void do_update_user(void)
 		activated = 1;
 
 	sql_query("REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', %u, %d, "
-			"%d, '%s')",
-			uid, username, hash, name, capabilities, enabled,
-			activated, d_reason);
+		  "%d, '%s')",
+		  uid, username, hash, name, capabilities, enabled, activated,
+		  d_reason);
 
 	free(hash);
 	free(username);
@@ -630,9 +626,9 @@ void do_edit_user(void)
 	username = make_mysql_safe_string(get_var(qvars, "email1"));
 	name = make_mysql_safe_string(get_var(qvars, "name"));
 	sql_query("REPLACE INTO passwd VALUES (%d, '%s', '%s', '%s', %u, 1, "
-			"1, '')",
-			user_session.uid, username, hash, name,
-			user_session.capabilities);
+		  "1, '')",
+		  user_session.uid, username, hash, name,
+		  user_session.capabilities);
 
 	free(hash);
 
@@ -658,27 +654,27 @@ void do_edit_user(void)
 	snprintf(login_at, sizeof(login_at), "%ld", user_session.login_at);
 	snprintf(last_seen, sizeof(last_seen), "%ld", time(NULL));
 	snprintf(restrict_ip, sizeof(restrict_ip), "%d",
-						user_session.restrict_ip);
+		 user_session.restrict_ip);
 	snprintf(capabilities, sizeof(capabilities), "%u",
-						user_session.capabilities);
+		 user_session.capabilities);
 	name = realloc(name, strlen(get_var(qvars, "name")) + 1);
 	sprintf(name, "%s", get_var(qvars, "name"));
 	username = realloc(username, strlen(get_var(qvars, "email1")) + 1);
 	sprintf(username, "%s", get_var(qvars, "email1"));
 	cols = tcmapnew3("tenant", user_session.tenant,
-			"sid", sid,
-			"uid", uid,
-			"username", username,
-			"name", name,
-			"login_at", login_at,
-			"last_seen", last_seen,
-			"origin_ip", user_session.origin_ip,
-			"client_id", user_session.client_id,
-			"session_id", user_session.session_id,
-			"csrf_token", user_session.csrf_token,
-			"restrict_ip", restrict_ip,
-			"capabilities", capabilities,
-			NULL);
+			 "sid", sid,
+			 "uid", uid,
+			 "username", username,
+			 "name", name,
+			 "login_at", login_at,
+			 "last_seen", last_seen,
+			 "origin_ip", user_session.origin_ip,
+			 "client_id", user_session.client_id,
+			 "session_id", user_session.session_id,
+			 "csrf_token", user_session.csrf_token,
+			 "restrict_ip", restrict_ip,
+			 "capabilities", capabilities,
+			 NULL);
 	tctdbput(tdb, pkbuf, primary_key_size, cols);
 
 	tcmapdel(cols);
@@ -699,7 +695,7 @@ void do_activate_user(const char *uid, const char *key, const char *password)
 	hash = generate_password_hash(SHA512, password);
 
 	sql_query("UPDATE passwd SET password = '%s', activated = 1, "
-			"enabled = 1 WHERE uid = %s", hash, uid);
+		  "enabled = 1 WHERE uid = %s", hash, uid);
 	sql_query("DELETE FROM activations WHERE akey = '%s'", key);
 
 	free(hash);

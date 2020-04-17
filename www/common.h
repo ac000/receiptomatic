@@ -121,7 +121,7 @@ enum { STATS_ALL, STATS_USER };
 		get_tenant(env_vars.host, tenant); \
 		strftime(ts_buf, sizeof(ts_buf), "%F %T %z", tm); \
 		fprintf(stream, "[%s] %d %s %s: " fmt, ts_buf, getpid(), \
-				tenant, __func__, ##__VA_ARGS__); \
+			tenant, __func__, ##__VA_ARGS__); \
 		fflush(stream); \
 	} while (0)
 

@@ -101,7 +101,7 @@ static void logout(void)
 
 	qry = tctdbqrynew(tdb);
 	tctdbqryaddcond(qry, "session_id", TDBQCSTREQ,
-					user_session.session_id);
+			user_session.session_id);
 	res = tctdbqrysearch(qry);
 	rbuf = tclistval(res, 0, &rsize);
 	tctdbout(tdb, rbuf, strlen(rbuf));
@@ -114,8 +114,7 @@ static void logout(void)
 
 	/* Immediately expire the session cookies */
 	fcgx_p("Set-Cookie: session_id=deleted; "
-				"expires=Thu, 01 Jan 1970 00:00:01 GMT; "
-				"path=/; httponly\r\n");
+	       "expires=Thu, 01 Jan 1970 00:00:01 GMT; path=/; httponly\r\n");
 	send_page("templates/logout.tmpl");
 }
 
@@ -153,8 +152,7 @@ static void delete_image(void)
 	db_row = get_dbrow(res);
 
 	snprintf(path, PATH_MAX, "%s/%s/%s", IMAGE_PATH,
-						get_var(db_row, "path"),
-						get_var(db_row, "name"));
+		 get_var(db_row, "path"), get_var(db_row, "name"));
 	if (!realpath(path, image_path))
 		goto out1;
 
@@ -165,11 +163,11 @@ static void delete_image(void)
 
 	memset(userdir, 0, sizeof(userdir));
 	snprintf(userdir, sizeof(userdir), "/%s%s%u/",
-			(MULTI_TENANT) ? user_session.tenant : "",
-			(MULTI_TENANT) ? "/" : "", user_session.uid);
+		 MULTI_TENANT ? user_session.tenant : "",
+		 MULTI_TENANT ? "/" : "", user_session.uid);
 	/* Is it one of the users images? */
 	if (strncmp(image_path + strlen(IMAGE_PATH), userdir, strlen(userdir))
-			!= 0)
+	    != 0)
 		goto out1;
 
 	if (strcmp(get_var(qvars, "confirm"), "yes") == 0) {
@@ -181,8 +179,7 @@ static void delete_image(void)
 
 		/* remove the small image */
 		snprintf(path, PATH_MAX, "%s/%s/small/%s", IMAGE_PATH,
-						get_var(db_row, "path"),
-						get_var(db_row, "name"));
+			 get_var(db_row, "path"), get_var(db_row, "name"));
 		if (!realpath(path, image_path))
 			goto out1;
 
@@ -190,8 +187,7 @@ static void delete_image(void)
 
 		/* remove the medium image */
 		snprintf(path, PATH_MAX, "%s/%s/medium/%s", IMAGE_PATH,
-						get_var(db_row, "path"),
-						get_var(db_row, "name"));
+			 get_var(db_row, "path"), get_var(db_row, "name"));
 		if (!realpath(path, image_path))
 			goto out1;
 
@@ -235,7 +231,7 @@ static void get_image(void)
 	const char *mime_type;
 
 	snprintf(path, PATH_MAX, "%s/%s", IMAGE_PATH, env_vars.request_uri
-									+ 11);
+		 + 11);
 	if (!realpath(path, image_path))
 		return;
 
@@ -243,8 +239,7 @@ static void get_image(void)
 	if (!image_access_allowed(image_path)) {
 		fcgx_p("Status: 401 Unauthorized\r\n\r\n");
 		d_fprintf(access_log, "Access denied to %s for %s\n",
-							env_vars.request_uri,
-							user_session.username);
+			  env_vars.request_uri, user_session.username);
 		return;
 	}
 
@@ -266,7 +261,7 @@ static void get_image(void)
 		/* We're going for the full size image for download */
 		fcgx_p("Content-Transfer-Encoding: binary\r\n");
 		fcgx_p("Content-Disposition: attachment; filename = %s\r\n",
-							basename(image_path));
+		       basename(image_path));
 	}
 	fcgx_p("\r\n");
 	d_fprintf(debug_log, "Sending image: %s\n", env_vars.request_uri);
@@ -533,7 +528,7 @@ static void admin_edit_user(void)
 		if (!form_err) {
 			do_update_user();
 			fcgx_p("Location: /admin/edit_user/?uid=%u&updated=yes"
-					"\r\n\r\n", uid);
+			       "\r\n\r\n", uid);
 		}
 	}
 	ADD_HDR(f);
@@ -829,7 +824,7 @@ static void activate_user(void)
 			if (strcmp(get_var(qvars, "pass1"),
 				   get_var(qvars, "pass2")) == 0) {
 				do_activate_user(get_var(db_row, "uid"), key,
-						get_var(qvars, "pass1"));
+						 get_var(qvars, "pass1"));
 				lf_set_var(f, "activated", "", NULL);
 				activated = true;
 			} else {
@@ -879,7 +874,7 @@ static void generate_new_key(void)
 	generate_hash(key, SHA256);
 	tm = time(NULL);
 	sql_query("REPLACE INTO activations VALUES ('%s', '%s', %ld)",
-			email_addr, key, tm + KEY_EXP);
+		  email_addr, key, tm + KEY_EXP);
 
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
 
@@ -928,7 +923,7 @@ static void forgotten_password(void)
 	generate_hash(key, SHA256);
 	tm = time(NULL);
 	sql_query("INSERT INTO activations VALUES ('%s', '%s', %ld)",
-			email_addr, key, tm + KEY_EXP);
+		  email_addr, key, tm + KEY_EXP);
 
 	send_activation_mail(get_var(qvars, "name"), email_addr, key);
 	lf_set_var(f, "sent", "", NULL);
@@ -982,82 +977,82 @@ static void prefs_fmap(void)
 	set_custom_field_names();
 	lf_set_var(f, "receipt_date", DFN_RECEIPT_DATE, NULL);
 	lf_set_var(f, "alt_receipt_date",
-			!strcmp( DFN_RECEIPT_DATE, fields.receipt_date) ? "" :
+		   !strcmp(DFN_RECEIPT_DATE, fields.receipt_date) ? "" :
 			fields.receipt_date, de_xss);
 
 	lf_set_var(f, "department", DFN_DEPARTMENT, NULL);
 	lf_set_var(f, "alt_department",
-			!strcmp(DFN_DEPARTMENT, fields.department) ? "" :
+		   !strcmp(DFN_DEPARTMENT, fields.department) ? "" :
 			fields.department, de_xss);
 
 	lf_set_var(f, "employee_number", DFN_EMPLOYEE_NUMBER, NULL);
 	lf_set_var(f, "alt_employee_number",
-			!strcmp(DFN_EMPLOYEE_NUMBER, fields.employee_number) ?
+		   !strcmp(DFN_EMPLOYEE_NUMBER, fields.employee_number) ?
 			"" : fields.employee_number, de_xss);
 
 	lf_set_var(f, "reason", DFN_REASON, NULL);
 	lf_set_var(f, "alt_reason",
-			!strcmp(DFN_REASON, fields.reason) ? "" :
+		   !strcmp(DFN_REASON, fields.reason) ? "" :
 			fields.reason, de_xss);
 
 	lf_set_var(f, "po_num", DFN_PO_NUM, NULL);
 	lf_set_var(f, "alt_po_num",
-			!strcmp(DFN_PO_NUM, fields.po_num) ? "" :
+		   !strcmp(DFN_PO_NUM, fields.po_num) ? "" :
 			fields.po_num, de_xss);
 
 	lf_set_var(f, "cost_codes", DFN_COST_CODES, NULL);
 	lf_set_var(f, "alt_cost_codes",
-			!strcmp(DFN_COST_CODES, fields.cost_codes) ? "" :
+		   !strcmp(DFN_COST_CODES, fields.cost_codes) ? "" :
 			fields.cost_codes, de_xss);
 
 	lf_set_var(f, "account_codes", DFN_ACCOUNT_CODES, NULL);
 	lf_set_var(f, "alt_account_codes",
-			!strcmp(DFN_ACCOUNT_CODES, fields.account_codes) ? "" :
+		   !strcmp(DFN_ACCOUNT_CODES, fields.account_codes) ? "" :
 			fields.account_codes, de_xss);
 
 	lf_set_var(f, "supplier_name", DFN_SUPPLIER_NAME, NULL);
 	lf_set_var(f, "alt_supplier_name",
-			!strcmp(DFN_SUPPLIER_NAME, fields.supplier_name) ? "" :
+		   !strcmp(DFN_SUPPLIER_NAME, fields.supplier_name) ? "" :
 			fields.supplier_name, de_xss);
 
 	lf_set_var(f, "supplier_town", DFN_SUPPLIER_TOWN, NULL);
 	lf_set_var(f, "alt_supplier_town",
-			!strcmp(DFN_SUPPLIER_TOWN, fields.supplier_town) ? "" :
+		   !strcmp(DFN_SUPPLIER_TOWN, fields.supplier_town) ? "" :
 			fields.supplier_town, de_xss);
 
 	lf_set_var(f, "vat_number", DFN_VAT_NUMBER, NULL);
 	lf_set_var(f, "alt_vat_number",
-			!strcmp(DFN_VAT_NUMBER, fields.vat_number) ? "" :
+		   !strcmp(DFN_VAT_NUMBER, fields.vat_number) ? "" :
 			fields.vat_number, de_xss);
 
 	lf_set_var(f, "gross_amount", DFN_GROSS_AMOUNT, NULL);
 	lf_set_var(f, "alt_gross_amount",
-			!strcmp(DFN_GROSS_AMOUNT, fields.gross_amount) ? "" :
+		   !strcmp(DFN_GROSS_AMOUNT, fields.gross_amount) ? "" :
 			fields.gross_amount, de_xss);
 
 	lf_set_var(f, "net_amount", DFN_NET_AMOUNT, NULL);
 	lf_set_var(f, "alt_net_amount",
-			!strcmp(DFN_NET_AMOUNT, fields.net_amount) ? "" :
+		   !strcmp(DFN_NET_AMOUNT, fields.net_amount) ? "" :
 			fields.net_amount, de_xss);
 
 	lf_set_var(f, "vat_amount", DFN_VAT_AMOUNT, NULL);
 	lf_set_var(f, "alt_vat_amount",
-			!strcmp(DFN_VAT_AMOUNT, fields.vat_amount) ? "" :
+		   !strcmp(DFN_VAT_AMOUNT, fields.vat_amount) ? "" :
 			fields.vat_amount, de_xss);
 
 	lf_set_var(f, "vat_rate", DFN_VAT_RATE, NULL);
 	lf_set_var(f, "alt_vat_rate",
-			!strcmp(DFN_VAT_RATE, fields.vat_rate) ? "" :
+		   !strcmp(DFN_VAT_RATE, fields.vat_rate) ? "" :
 			fields.vat_rate, de_xss);
 
 	lf_set_var(f, "currency", DFN_CURRENCY, NULL);
 	lf_set_var(f, "alt_currency",
-			!strcmp(DFN_CURRENCY, fields.currency) ? "" :
+		   !strcmp(DFN_CURRENCY, fields.currency) ? "" :
 			fields.currency, de_xss);
 
 	lf_set_var(f, "payment_method", DFN_PAYMENT_METHOD, NULL);
 	lf_set_var(f, "alt_payment_method",
-			!strcmp(DFN_PAYMENT_METHOD, fields.payment_method) ?
+		   !strcmp(DFN_PAYMENT_METHOD, fields.payment_method) ?
 			"" : fields.payment_method, de_xss);
 	free_fields();
 
@@ -1125,7 +1120,7 @@ static void prefs_edit_user(void)
 			do_edit_user();
 			/* After the update we want to re-GET */
 			fcgx_p("Location: /prefs/edit_user/?updated=yes"
-								"\r\n\r\n");
+			       "\r\n\r\n");
 			return;
 		}
 	} else {
@@ -1303,21 +1298,18 @@ static void process_receipt_approval(void)
 			goto cont;
 		if (action[0] == 'a') { /* approved */
 			sql_query("INSERT INTO reviewed VALUES ("
-					"'%s', %u, '%s', %ld, %d, '%s')",
-					image_id, user_session.uid,
-					username, time(NULL), APPROVED,
-					reason);
+				  "'%s', %u, '%s', %ld, %d, '%s')",
+				  image_id, user_session.uid, username,
+				  time(NULL), APPROVED, reason);
 			sql_query("UPDATE images SET approved = %d WHERE id = "
-					"'%s'", APPROVED, image_id);
+				  "'%s'", APPROVED, image_id);
 		} else if (action[0] == 'r') { /* rejected */
 			sql_query("INSERT INTO reviewed VALUES ("
-					"'%s', %u, '%s', %ld, %d, "
-					"'%s')",
-					image_id, user_session.uid,
-					username, time(NULL), REJECTED,
-					reason);
+				  "'%s', %u, '%s', %ld, %d, '%s')",
+				  image_id, user_session.uid, username,
+				  time(NULL), REJECTED, reason);
 			sql_query("UPDATE images SET approved = %d WHERE id "
-					"= '%s'", REJECTED, image_id);
+				  "= '%s'", REJECTED, image_id);
 		}
 cont:
 		free(image_id);
@@ -1398,9 +1390,9 @@ static void approve_receipts(void)
 	 * incomplete SQL query).
 	 */
 	if (!IS_SET(pmsql)) {
-		d_fprintf(error_log, "User %u seems to have an invalid "
-					"capability setting in the passwd "
-					"table.\n", user_session.uid);
+		d_fprintf(error_log,
+			  "User %u seems to have an invalid capability "
+			  "setting in the passwd table.\n", user_session.uid);
 		return;
 	}
 
@@ -1472,36 +1464,36 @@ static void approve_receipts(void)
 		lf_set_var(f, "tags_timestamp", tbuf, NULL);
 		lf_set_var(f, "f.department", fields.department, de_xss);
 		lf_set_var(f, "department", get_var(db_row, "department"),
-				de_xss);
+			   de_xss);
 		lf_set_var(f, "f.employee_number", fields.employee_number,
-				de_xss);
+			   de_xss);
 		lf_set_var(f, "employee_number",
-				get_var(db_row, "employee_number"), de_xss);
+			   get_var(db_row, "employee_number"), de_xss);
 		lf_set_var(f, "f.cost_codes", fields.cost_codes, de_xss);
 		lf_set_var(f, "cost_codes",
-				get_var(db_row, "cost_codes"), de_xss);
+			   get_var(db_row, "cost_codes"), de_xss);
 		lf_set_var(f, "f.account_codes", fields.account_codes, de_xss);
 		lf_set_var(f, "account_codes",
-				get_var(db_row, "account_codes"), de_xss);
+			   get_var(db_row, "account_codes"), de_xss);
 		lf_set_var(f, "f.po_num", fields.po_num, de_xss);
 		lf_set_var(f, "po_num", get_var(db_row, "po_num"), de_xss);
 		lf_set_var(f, "f.supplier_name", fields.supplier_name, de_xss);
 		lf_set_var(f, "supplier_name",
-				get_var(db_row, "supplier_name"), de_xss);
+			   get_var(db_row, "supplier_name"), de_xss);
 		lf_set_var(f, "f.supplier_town", fields.supplier_town, de_xss);
 		lf_set_var(f, "supplier_town",
-				get_var(db_row, "supplier_town"), de_xss);
+			   get_var(db_row, "supplier_town"), de_xss);
 		lf_set_var(f, "f.currency", fields.currency, de_xss);
 		lf_set_var(f, "currency", get_var(db_row, "currency"), de_xss);
 		lf_set_var(f, "f.gross_amount", fields.gross_amount, de_xss);
 		lf_set_var(f, "gross_amount", get_var(db_row, "gross_amount"),
-				NULL);
+			   NULL);
 		lf_set_var(f, "f.vat_amount", fields.vat_amount, de_xss);
 		lf_set_var(f, "vat_amount", get_var(db_row, "vat_amount"),
-				NULL);
+			   NULL);
 		lf_set_var(f, "f.net_amount", fields.net_amount, de_xss);
 		lf_set_var(f, "net_amount", get_var(db_row, "net_amount"),
-				NULL);
+			   NULL);
 		lf_set_var(f, "f.vat_rate", fields.vat_rate, de_xss);
 		lf_set_var(f, "vat_rate", get_var(db_row, "vat_rate"), NULL);
 
@@ -1518,16 +1510,16 @@ static void approve_receipts(void)
 
 		lf_set_var(f, "f.vat_number", fields.vat_number, de_xss);
 		lf_set_var(f, "vat_number", get_var(db_row, "vat_number"),
-				de_xss);
+			   de_xss);
 		lf_set_var(f, "f.receipt_date", fields.receipt_date, de_xss);
 
 		secs = atol(get_var(db_row, "receipt_date"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e, %Y", localtime(&secs));
 		lf_set_var(f, "receipt_date", tbuf, NULL);
 		lf_set_var(f, "f.payment_method", fields.payment_method,
-				de_xss);
+			   de_xss);
 		lf_set_var(f, "payment_method",
-				get_var(db_row, "payment_method"), NULL);
+			   get_var(db_row, "payment_method"), NULL);
 		lf_set_var(f, "f.reason", fields.reason, de_xss);
 		lf_set_var(f, "reason", get_var(db_row, "reason"), de_xss);
 		lf_set_var(f, "id", get_var(db_row, "id"), NULL);
@@ -1717,20 +1709,20 @@ static void receipt_info(void)
 	lf_set_var(f, "department", get_var(db_row, "department"), de_xss);
 	lf_set_var(f, "f.employee_number", fields.employee_number, de_xss);
 	lf_set_var(f, "employee_number", get_var(db_row, "employee_number"),
-			de_xss);
+		   de_xss);
 	lf_set_var(f, "f.cost_codes", fields.cost_codes, de_xss);
 	lf_set_var(f, "cost_codes", get_var(db_row, "cost_codes"), de_xss);
 	lf_set_var(f, "f.account_codes", fields.account_codes, de_xss);
 	lf_set_var(f, "account_codes", get_var(db_row, "account_codes"),
-			de_xss);
+		   de_xss);
 	lf_set_var(f, "f.po_num", fields.po_num, de_xss);
 	lf_set_var(f, "po_num", get_var(db_row, "po_num"), de_xss);
 	lf_set_var(f, "f.supplier_name", fields.supplier_name, de_xss);
 	lf_set_var(f, "supplier_name", get_var(db_row, "supplier_name"),
-			de_xss);
+		   de_xss);
 	lf_set_var(f, "f.supplier_town", fields.supplier_town, de_xss);
 	lf_set_var(f, "supplier_town", get_var(db_row, "supplier_town"),
-			de_xss);
+		   de_xss);
 	lf_set_var(f, "f.currency", fields.currency, de_xss);
 	lf_set_var(f, "currency", get_var(db_row, "currency"), de_xss);
 	/*
@@ -1763,7 +1755,7 @@ static void receipt_info(void)
 
 	lf_set_var(f, "f.payment_method", fields.payment_method, de_xss);
 	lf_set_var(f, "payment_method", get_var(db_row, "payment_method"),
-			NULL);
+		   NULL);
 	/*
 	 * To get the right payment method 'selected' in the drop down,
 	 * yeah there must be a better way...
@@ -1807,18 +1799,16 @@ static void receipt_info(void)
 		 */
 		secs = atol(get_var(db_row, "a_time"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z",
-							localtime(&secs));
+			 localtime(&secs));
 		lf_set_var(f, "a_time", tbuf, NULL);
 		lf_set_var(f, "reject_reason", get_var(db_row, "r_reason"),
-				de_xss);
+			   de_xss);
 		/* Only approvers can see who approved/rejected receipts */
 		if (IS_APPROVER()) {
 			lf_set_var(f, "reviewed_by_n",
-					get_var(db_row, "reviewed_by_n"),
-					de_xss);
+				   get_var(db_row, "reviewed_by_n"), de_xss);
 			lf_set_var(f, "reviewed_by_u",
-					get_var(db_row, "reviewed_by_u"),
-					de_xss);
+				   get_var(db_row, "reviewed_by_u"), de_xss);
 		}
 
 		lf_set_var(f, "noedit", "", NULL);
@@ -1997,7 +1987,7 @@ static void process_receipt(void)
 	}
 	lf_set_var(f, "f.employee_number", fields.employee_number, de_xss);
 	lf_set_var(f, "employee_number", get_var(qvars, "employee_number"),
-			de_xss);
+		   de_xss);
 
 	if (!IS_SET(get_var(qvars, "cost_codes"))) {
 		tag_error = true;
@@ -2078,13 +2068,13 @@ static void process_receipt(void)
 
 	lf_set_var(f, "f.payment_method", fields.payment_method, de_xss);
 	lf_set_var(f, "payment_method", get_var(qvars, "payment_method"),
-			de_xss);
+		   de_xss);
 
 	if (!tag_error) {
 		tag_image();
 		if (strstr(get_var(qvars, "from"), "receipt_info"))
 			fcgx_p("Location: /receipt_info/?image_id=%s\r\n\r\n",
-						get_var(qvars, "image_id"));
+			       get_var(qvars, "image_id"));
 		else
 			fcgx_p("Location: /receipts/\r\n\r\n");
 	} else {
@@ -2165,11 +2155,11 @@ static void receipts(void)
 		lf_set_var(f, "image_name", get_var(db_row, "name"), NULL);
 		secs = atol(get_var(db_row, "timestamp"));
 		strftime(tbuf, sizeof(tbuf), "%a %b %e %H:%M %Y %z",
-						localtime(&secs));
+			 localtime(&secs));
 		lf_set_var(f, "timestamp", tbuf, NULL);
 		lf_set_var(f, "f.department", fields.department, de_xss);
 		lf_set_var(f, "f.employee_number", fields.employee_number,
-				de_xss);
+			   de_xss);
 		lf_set_var(f, "f.cost_codes", fields.cost_codes, de_xss);
 		lf_set_var(f, "f.account_codes", fields.account_codes, de_xss);
 		lf_set_var(f, "f.po_num", fields.po_num, de_xss);
@@ -2184,7 +2174,7 @@ static void receipts(void)
 		lf_set_var(f, "f.reason", fields.reason, de_xss);
 		lf_set_var(f, "f.receipt_date", fields.receipt_date, de_xss);
 		lf_set_var(f, "f.payment_method", fields.payment_method,
-				de_xss);
+			   de_xss);
 		/* image_id for hidden input field */
 		lf_set_var(f, "id", get_var(db_row, "id"), NULL);
 
@@ -2210,7 +2200,7 @@ static void print_env(void)
 	fcgx_p("<html>\n");
 	fcgx_p("<head>\n");
 	fcgx_p("<link href = \"/static/css/main.css\" rel = \"stylesheet\" "
-						"type = \"text/css\" />\n");
+	       "type = \"text/css\" />\n");
 	fcgx_p("</head>\n");
 	fcgx_p("<body>\n");
 
@@ -2361,12 +2351,9 @@ out2:
 	free_u_files();
 	clock_gettime(CLOCK_REALTIME, &etp);
 	d_fprintf(access_log, "Got request from %s for %s (%s), %ums\n",
-				env_vars.remote_addr,
-				request_uri,
-				env_vars.request_method,
-				(unsigned int)((etp.tv_sec * 1000 +
-				etp.tv_nsec / NS_MSEC) -
-				(stp.tv_sec * 1000 + stp.tv_nsec / NS_MSEC)));
+		  env_vars.remote_addr, request_uri, env_vars.request_method,
+		  (unsigned int)((etp.tv_sec * 1000 +etp.tv_nsec / NS_MSEC) -
+				 (stp.tv_sec * 1000 + stp.tv_nsec / NS_MSEC)));
 	free_env_vars();
 	mysql_close(conn);
 }

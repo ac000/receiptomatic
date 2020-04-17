@@ -36,7 +36,7 @@ void send_receipt_data(int fd)
 	fcgx_p("Content-Type: application/download; text/csv\r\n");
 	fcgx_p("Content-Length: %ld\r\n", sb.st_size);
 	fcgx_p("Content-Disposition: attachment; filename=receipt_data.csv"
-								"\r\n\r\n");
+	       "\r\n\r\n");
 
 	lseek(fd, 0, SEEK_SET);
 	do {
@@ -68,13 +68,11 @@ void extract_data_now(int fd)
 	if (nr_rows == 0)
 		goto out;
 
-	snprintf(line, BUF_SIZE, "Employee Number\tDepartment\tPO Num\t"
-					"Cost Codes\tAccount Codes\t"
-					"Supplier Town\tSupplier Name\t"
-					"Currency\tGross Amount\t"
-					"VAT Amount\tNet Amount\tVAT Rate\t"
-					"VAT Number\tReceipt Date\tReason\t"
-					"Payment Method\r\n");
+	snprintf(line, BUF_SIZE,
+		 "Employee Number\tDepartment\tPO Num\tCost Codes\t"
+		 "Account Codes\tSupplier Town\tSupplier Name\tCurrency\t"
+		 "Gross Amount\tVAT Amount\tNet Amount\tVAT Rate\t"
+		 "VAT Number\tReceipt Date\tReason\tPayment Method\r\n");
 	bytes_wrote = write(fd, line, strlen(line));
 	if (bytes_wrote < (ssize_t)strlen(line))
 		d_fprintf(error_log, "Failed to write data: %s\n", line);
@@ -83,24 +81,25 @@ void extract_data_now(int fd)
 		GHashTable *db_row = NULL;
 
 		db_row = get_dbrow(res);
-		snprintf(line, BUF_SIZE, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t"
-					"%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\r\n",
-					get_var(db_row, "employee_number"),
-					get_var(db_row, "department"),
-					get_var(db_row, "po_num"),
-					get_var(db_row, "cost_codes"),
-					get_var(db_row, "account_codes"),
-					get_var(db_row, "supplier_town"),
-					get_var(db_row, "supplier_name"),
-					get_var(db_row, "currency"),
-					get_var(db_row, "gross_amount"),
-					get_var(db_row, "vat_amount"),
-					get_var(db_row, "net_amount"),
-					get_var(db_row, "vat_rate"),
-					get_var(db_row, "vat_number"),
-					get_var(db_row, "receipt_date"),
-					get_var(db_row, "reason"),
-					get_var(db_row, "payment_method"));
+		snprintf(line, BUF_SIZE,
+			 "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s"
+			 "\t%s\t%s\t%s\r\n",
+			 get_var(db_row, "employee_number"),
+			 get_var(db_row, "department"),
+			 get_var(db_row, "po_num"),
+			 get_var(db_row, "cost_codes"),
+			 get_var(db_row, "account_codes"),
+			 get_var(db_row, "supplier_town"),
+			 get_var(db_row, "supplier_name"),
+			 get_var(db_row, "currency"),
+			 get_var(db_row, "gross_amount"),
+			 get_var(db_row, "vat_amount"),
+			 get_var(db_row, "net_amount"),
+			 get_var(db_row, "vat_rate"),
+			 get_var(db_row, "vat_number"),
+			 get_var(db_row, "receipt_date"),
+			 get_var(db_row, "reason"),
+			 get_var(db_row, "payment_method"));
 		bytes_wrote = write(fd, line, strlen(line));
 		if (bytes_wrote < (ssize_t)strlen(line))
 			d_fprintf(error_log, "Failed to write data: %s\n",

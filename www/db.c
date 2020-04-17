@@ -55,8 +55,9 @@ static MYSQL *__db_conn(int db_conn_type)
 			DB_PORT_NUM, DB_SOCKET_NAME, DB_FLAGS);
 
 	if (!ret) {
-		d_fprintf(error_log, "Failed to connect to database. Error: "
-				"%s\n", mysql_error(dbc));
+		d_fprintf(error_log,
+			  "Failed to connect to database. Error: %s\n",
+			  mysql_error(dbc));
 		switch (mysql_errno(dbc)) {
 		case ER_BAD_DB_ERROR:	/* unknown database */
 			send_page("templates/invalid.tmpl");
@@ -118,7 +119,7 @@ MYSQL_RES *__sql_query(MYSQL *dbconn, const char *func, const char *fmt, ...)
 		get_tenant(env_vars.host, tenant);
 		strftime(ts_buf, sizeof(ts_buf), "%F %T %z", tm);
 		fprintf(sql_log, "[%s] %d %s %s: %s\n", ts_buf,  getpid(),
-				tenant, func, sql);
+			tenant, func, sql);
 		fflush(sql_log);
 	}
 
