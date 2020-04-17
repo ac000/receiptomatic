@@ -39,3 +39,5 @@ include $(wildcard $(patsubst %,$(DEPDIR)/%.d,$(basename $(sources))))
 .PHONY: clean
 clean:
 	$(v)rm -f $(APPNAME) $(objects)
+	$(v)rm -f $(DEPDIR)/*
+	$(v)rmdir $(DEPDIR)
