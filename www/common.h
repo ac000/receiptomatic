@@ -190,7 +190,6 @@ struct user_session {
 	bool restrict_ip;
 	char *user_hdr;
 };
-struct user_session user_session;
 
 struct field_names {
 	char *receipt_date;
@@ -210,7 +209,6 @@ struct field_names {
 	char *currency;
 	char *payment_method;
 };
-struct field_names fields;
 
 /*
  * This structure maps to the environment variable list sent
@@ -228,7 +226,10 @@ struct env_vars {
 	char *host;
 	char *query_string;
 };
-struct env_vars env_vars;
+
+extern struct user_session user_session;
+extern struct env_vars env_vars;
+extern struct field_names fields;
 
 extern FCGX_Stream *fcgx_in;
 extern FCGX_Stream *fcgx_out;

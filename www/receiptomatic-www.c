@@ -59,6 +59,10 @@ FILE *debug_log;
 
 int debug_level = 0;
 
+struct user_session user_session;
+struct env_vars env_vars;
+struct field_names fields;
+
 /*
  * Decide how many worker processes should be created.
  *
