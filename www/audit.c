@@ -514,6 +514,7 @@ void set_user_session(void)
 	TDBQRY *qry;
 	TCLIST *res;
 	TCMAP *cols;
+	int coffset = 88;
 	int rsize;
 	int primary_key_size;
 	char pkbuf[256];
@@ -533,11 +534,10 @@ void set_user_session(void)
 	 * same order as we sent them.
 	 */
 	if (strncmp(env_vars.http_cookie, "session_id", 10) == 0)
-		snprintf(session_id, sizeof(session_id), "%s",
-			 env_vars.http_cookie + 11);
-	else
-		snprintf(session_id, sizeof(session_id), "%s",
-			 env_vars.http_cookie + 88);
+		coffset = 11;
+
+	snprintf(session_id, sizeof(session_id), "%s",
+		 env_vars.http_cookie + coffset);
 
 	tdb = tctdbnew();
 	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
