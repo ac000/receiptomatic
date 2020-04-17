@@ -76,8 +76,8 @@ static int get_nr_procs(void)
 		return NR_PROCS;
 	else if (get_nprocs() > 0)
 		return get_nprocs();
-	else
-		return 1;
+
+	return 1;
 }
 
 /*
