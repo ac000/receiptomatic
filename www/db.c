@@ -17,7 +17,6 @@
 #include <time.h>
 
 #include "common.h"
-#include "receiptomatic_config.h"
 #include "url_helpers.h"
 #include "utils.h"
 #include "db.h"
@@ -27,11 +26,6 @@ MYSQL *conn;
 
 enum { DB_CONN_GLOBAL, DB_CONN_LOCAL };
 
-char *db_host = "localhost";
-char *db_socket_name = NULL;
-unsigned int db_port_num = 3306;
-unsigned int db_flags = 0;
-
 /*
  * Opens up a MySQL connection and returns the connection handle.
  */
@@ -39,21 +33,24 @@ static MYSQL *__db_conn(int db_conn_type)
 {
 	MYSQL *dbc;
 	MYSQL *ret;
+	char *db_name;
 
-	if (MULTI_TENANT) {
+	if (cfg->multi_tenant) {
 		char tenant[TENANT_MAX + 1];
-		char db[sizeof(tenant) + 3] = "rm_";
+		int len;
 
 		get_tenant(env_vars.host, tenant);
-		memcpy(db + strlen(db), tenant, strlen(tenant) + 1);
-		free(db_name);
-		db_name = strdup(db);
+		len = asprintf(&db_name, "rm_%s", tenant);
+		if (len == -1)
+			return NULL;
+	} else {
+		db_name = strdup(cfg->db_name);
 	}
 
 	dbc = mysql_init(NULL);
-	ret = mysql_real_connect(dbc, DB_HOST, DB_USER, DB_PASS, DB_NAME,
-			DB_PORT_NUM, DB_SOCKET_NAME, DB_FLAGS);
-
+	ret = mysql_real_connect(dbc, cfg->db_host, cfg->db_user, cfg->db_pass,
+				 db_name, cfg->db_port_num,
+				 cfg->db_socket_name, cfg->db_flags);
 	if (!ret) {
 		d_fprintf(error_log,
 			  "Failed to connect to database. Error: %s\n",
@@ -65,6 +62,7 @@ static MYSQL *__db_conn(int db_conn_type)
 		}
 		dbc = NULL;
 	}
+	free(db_name);
 
 	if (db_conn_type == DB_CONN_GLOBAL)
 		conn = dbc;
@@ -110,7 +108,7 @@ MYSQL_RES *__sql_query(MYSQL *dbconn, const char *func, const char *fmt, ...)
 	len = vsnprintf(sql, sizeof(sql), fmt, args);
 	va_end(args);
 
-	if (DEBUG_LEVEL) {
+	if (cfg->debug_level > 0) {
 		char tenant[TENANT_MAX + 1];
 		char ts_buf[32];
 		time_t secs = time(NULL);

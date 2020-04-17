@@ -29,7 +29,7 @@
 #include <glib.h>
 
 #include "short_types.h"
-#include "receiptomatic_config.h"
+#include "config.h"
 #include "db.h"
 #include "utils.h"
 
@@ -112,7 +112,7 @@ enum { STATS_ALL, STATS_USER };
  */
 #define d_fprintf(stream, fmt, ...) \
 	do { \
-		if (stream == debug_log && !DEBUG_LEVEL) \
+		if (stream == debug_log && cfg->debug_level == 0) \
 			break; \
 		time_t secs = time(NULL); \
 		struct tm *tm = localtime(&secs); \
@@ -226,6 +226,8 @@ struct env_vars {
 	char *host;
 	char *query_string;
 };
+
+extern const struct cfg *cfg;
 
 extern struct user_session user_session;
 extern struct env_vars env_vars;

@@ -248,7 +248,7 @@ bool is_logged_in(void)
 		 env_vars.http_cookie + 11);
 
 	tdb = tctdbnew();
-	tctdbopen(tdb, SESSION_DB, TDBOREADER);
+	tctdbopen(tdb, cfg->session_db, TDBOREADER);
 
 	qry = tctdbqrynew(tdb);
 	tctdbqryaddcond(qry, "session_id", TDBQCSTREQ, session_id);
@@ -473,7 +473,7 @@ void create_session(unsigned long long sid)
 	}
 
 	tdb = tctdbnew();
-	tctdbopen(tdb, SESSION_DB, TDBOWRITER | TDBOCREAT);
+	tctdbopen(tdb, cfg->session_db, TDBOWRITER | TDBOCREAT);
 	primary_key_size = sprintf(pkbuf, "%ld", (long)tctdbgenuid(tdb));
 	snprintf(timestamp, sizeof(timestamp), "%ld", (long)time(NULL));
 	snprintf(ssid, sizeof(ssid), "%llu", sid);
@@ -539,7 +539,7 @@ void set_user_session(void)
 		 env_vars.http_cookie + coffset);
 
 	tdb = tctdbnew();
-	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
+	tctdbopen(tdb, cfg->session_db, TDBOREADER | TDBOWRITER);
 
 	/* Get the users stored session */
 	qry = tctdbqrynew(tdb);

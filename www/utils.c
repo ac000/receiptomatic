@@ -148,7 +148,7 @@ char *get_tenant(const char *host, char *tenant)
 {
 	char *str;
 
-	if (!MULTI_TENANT || !host) {
+	if (!cfg->multi_tenant || !host) {
 		/*
 		 * We are either not in multi-tenancy mode and/or being run
 		 * due to a signal handler.
@@ -781,11 +781,11 @@ void free_user_session(void)
 void send_activation_mail(const char *name, const char *address,
 			  const char *key)
 {
-	FILE *fp = popen(MAIL_CMD, "w");
+	FILE *fp = popen(cfg->mail_cmd, "w");
 
-	fprintf(fp, "Reply-To: %s\r\n", MAIL_REPLY_TO);
-	fprintf(fp, "From: %s\r\n", MAIL_FROM);
-	fprintf(fp, "Subject: %s\r\n", MAIL_SUBJECT);
+	fprintf(fp, "Reply-To: %s\r\n", cfg->mail_reply_to);
+	fprintf(fp, "From: %s\r\n", cfg->mail_from);
+	fprintf(fp, "Subject: %s\r\n", cfg->mail_subject);
 	fprintf(fp, "To: %s <%s>\r\n", name, address);
 	fputs("Content-Type: text/plain; charset=us-ascii\r\n", fp);
 	fputs("Content-Transfer-Encoding: 7bit\r\n", fp);
@@ -848,7 +848,7 @@ void delete_user_session(unsigned int uid)
 	TCLIST *res;
 
 	tdb = tctdbnew();
-	tctdbopen(tdb, SESSION_DB, TDBOWRITER);
+	tctdbopen(tdb, cfg->session_db, TDBOWRITER);
 
 	snprintf(suid, sizeof(suid), "%u", uid);
 	qry = tctdbqrynew(tdb);

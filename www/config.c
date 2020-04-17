@@ -1,5 +1,5 @@
 /*
- * get_config.c
+ * config.c
  *
  * Copyright (C) 2011-2012	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
@@ -16,17 +16,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "receiptomatic_config.h"
+#include "config.h"
 #include "common.h"
 
-int get_config(const char *filename)
+static void set_defaults(struct cfg *cfg)
+{
+	if (!cfg->log_dir)
+		cfg->log_dir = strdup(CFG_DEF_LOG_DIR);
+	if (!cfg->db_host)
+		cfg->db_host = strdup(CFG_DEF_DB_HOST);
+	if (cfg->db_port_num == 0)
+		cfg->db_port_num = CFG_DEF_DB_PORT_NUM;
+}
+
+const struct cfg *get_config(const char *filename)
 {
 	FILE *fp;
 	char buf[BUF_SIZE];
+	struct cfg *c;
 
 	fp = fopen(filename, "r");
 	if (!fp)
-		return -1;
+		return NULL;
+
+	c = calloc(1, sizeof(struct cfg));
 
 	while (fgets(buf, BUF_SIZE, fp)) {
 		char *token;
@@ -44,42 +57,44 @@ int get_config(const char *filename)
 		value[strlen(value) - 1] = '\0';
 
 		if (strcmp(option, "IMAGE_PATH") == 0)
-			rec_image_path = strdup(value);
+			c->image_path = strdup(value);
 		else if (strcmp(option, "SESSION_DB") == 0)
-			rec_session_db = strdup(value);
+			c->session_db = strdup(value);
 		else if (strcmp(option, "DB_USER") == 0)
-			db_user = strdup(value);
+			c->db_user = strdup(value);
 		else if (strcmp(option, "DB_PASS") == 0)
-			db_password = strdup(value);
+			c->db_pass = strdup(value);
 		else if (strcmp(option, "DB_NAME") == 0)
-			db_name = strdup(value);
+			c->db_name = strdup(value);
 		else if (strcmp(option, "DB_HOST") == 0)
-			db_host = strdup(value);
+			c->db_host = strdup(value);
 		else if (strcmp(option, "DB_SOCKET_NAME") == 0)
-			db_socket_name = strdup(value);
+			c->db_socket_name = strdup(value);
 		else if (strcmp(option, "DB_PORT_NUM") == 0)
-			db_port_num = atoi(value);
+			c->db_port_num = atoi(value);
 		else if (strcmp(option, "DB_FLAGS") == 0)
-			db_flags = atoi(value);
+			c->db_flags = atoi(value);
 		else if (strcmp(option, "MAIL_CMD") == 0)
-			mail_cmd = strdup(value);
+			c->mail_cmd = strdup(value);
 		else if (strcmp(option, "MAIL_FROM") == 0)
-			mail_from = strdup(value);
+			c->mail_from = strdup(value);
 		else if (strcmp(option, "MAIL_REPLY_TO") == 0)
-			mail_reply_to = strdup(value);
+			c->mail_reply_to = strdup(value);
 		else if (strcmp(option, "MAIL_SUBJECT") == 0)
-			mail_subject = strdup(value);
+			c->mail_subject = strdup(value);
 		else if (strcmp(option, "LOG_DIR") == 0)
-			log_dir = strdup(value);
+			c->log_dir = strdup(value);
 		else if (strcmp(option, "NR_PROCS") == 0)
-			nr_procs = atoi(value);
+			c->nr_procs = atoi(value);
 		else if (strcmp(option, "DEBUG_LEVEL") == 0)
-			debug_level = atoi(value);
+			c->debug_level = atoi(value);
 		else if (strcmp(option, "MULTI_TENANT") == 0)
-			multi_tenant = atoi(value);
+			c->multi_tenant = atoi(value);
 	}
 
 	fclose(fp);
 
-	return 0;
+	set_defaults(c);
+
+	return c;
 }

@@ -97,7 +97,7 @@ static void logout(void)
 	const char *rbuf;
 
 	tdb = tctdbnew();
-	tctdbopen(tdb, SESSION_DB, TDBOWRITER);
+	tctdbopen(tdb, cfg->session_db, TDBOWRITER);
 
 	qry = tctdbqrynew(tdb);
 	tctdbqryaddcond(qry, "session_id", TDBQCSTREQ,
@@ -151,7 +151,7 @@ static void delete_image(void)
 
 	db_row = get_dbrow(res);
 
-	snprintf(path, PATH_MAX, "%s/%s/%s", IMAGE_PATH,
+	snprintf(path, PATH_MAX, "%s/%s/%s", cfg->image_path,
 		 get_var(db_row, "path"), get_var(db_row, "name"));
 	if (!realpath(path, image_path))
 		goto out1;
@@ -163,11 +163,11 @@ static void delete_image(void)
 
 	memset(userdir, 0, sizeof(userdir));
 	snprintf(userdir, sizeof(userdir), "/%s%s%u/",
-		 MULTI_TENANT ? user_session.tenant : "",
-		 MULTI_TENANT ? "/" : "", user_session.uid);
+		 cfg->multi_tenant ? user_session.tenant : "",
+		 cfg->multi_tenant ? "/" : "", user_session.uid);
 	/* Is it one of the users images? */
-	if (strncmp(image_path + strlen(IMAGE_PATH), userdir, strlen(userdir))
-	    != 0)
+	if (strncmp(image_path + strlen(cfg->image_path), userdir,
+		    strlen(userdir)) != 0)
 		goto out1;
 
 	if (strcmp(get_var(qvars, "confirm"), "yes") == 0) {
@@ -178,7 +178,7 @@ static void delete_image(void)
 		unlink(image_path);
 
 		/* remove the small image */
-		snprintf(path, PATH_MAX, "%s/%s/small/%s", IMAGE_PATH,
+		snprintf(path, PATH_MAX, "%s/%s/small/%s", cfg->image_path,
 			 get_var(db_row, "path"), get_var(db_row, "name"));
 		if (!realpath(path, image_path))
 			goto out1;
@@ -186,7 +186,7 @@ static void delete_image(void)
 		unlink(image_path);
 
 		/* remove the medium image */
-		snprintf(path, PATH_MAX, "%s/%s/medium/%s", IMAGE_PATH,
+		snprintf(path, PATH_MAX, "%s/%s/medium/%s", cfg->image_path,
 			 get_var(db_row, "path"), get_var(db_row, "name"));
 		if (!realpath(path, image_path))
 			goto out1;
@@ -230,8 +230,8 @@ static void get_image(void)
 	magic_t cookie;
 	const char *mime_type;
 
-	snprintf(path, PATH_MAX, "%s/%s", IMAGE_PATH, env_vars.request_uri
-		 + 11);
+	snprintf(path, PATH_MAX,
+		 "%s/%s", cfg->image_path, env_vars.request_uri + 11);
 	if (!realpath(path, image_path))
 		return;
 

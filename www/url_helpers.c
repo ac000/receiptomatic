@@ -117,21 +117,21 @@ bool image_access_allowed(const char *path)
 
 	memset(userdir, 0, sizeof(userdir));
 	snprintf(userdir, sizeof(userdir), "/%s%s%u/",
-		 (MULTI_TENANT) ? user_session.tenant : "",
-		 (MULTI_TENANT) ? "/" : "", user_session.uid);
+		 cfg->multi_tenant ? user_session.tenant : "",
+		 cfg->multi_tenant ? "/" : "", user_session.uid);
 
 	/* In a non-multi-tenant, approvers can see all images */
-	if (IS_APPROVER() && !MULTI_TENANT) {
+	if (IS_APPROVER() && !cfg->multi_tenant) {
 		access_allowed = true;
 	} else if (IS_APPROVER()) {
 		char *str;
 		char *ptenant;
 
-		str = strdupa(path + strlen(IMAGE_PATH) + 1);
+		str = strdupa(path + strlen(cfg->image_path) + 1);
 		ptenant = strsep(&str, "/");
 		if (ptenant && strcmp(ptenant, user_session.tenant) == 0)
 			access_allowed = true;
-	} else if (strncmp(path + strlen(IMAGE_PATH), userdir,
+	} else if (strncmp(path + strlen(cfg->image_path), userdir,
 			   strlen(userdir)) == 0) {
 		access_allowed = true;
 	}
@@ -637,7 +637,7 @@ void do_edit_user(void)
 	 * the old session first then storing the updated session.
 	 */
 	tdb = tctdbnew();
-	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
+	tctdbopen(tdb, cfg->session_db, TDBOREADER | TDBOWRITER);
 
 	snprintf(uid, sizeof(uid), "%u", user_session.uid);
 	qry = tctdbqrynew(tdb);

@@ -52,7 +52,7 @@ static void generate_csrf_token(char *csrf_token)
 	 * the new updated session.
 	 */
 	tdb = tctdbnew();
-	tctdbopen(tdb, SESSION_DB, TDBOREADER | TDBOWRITER);
+	tctdbopen(tdb, cfg->session_db, TDBOREADER | TDBOWRITER);
 
 	qry = tctdbqrynew(tdb);
 	tctdbqryaddcond(qry, "session_id", TDBQCSTREQ,
