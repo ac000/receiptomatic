@@ -1,5 +1,4 @@
 IMAGE_PATH=/path/to/receiptomatic/receipt_images
-BASE_URL=https://receiptomatic.example.com
 SESSION_DB=/dev/shm/receiptomatic-www-sessions.tct
 DB_USER=receiptomatic
 DB_PASS=password
