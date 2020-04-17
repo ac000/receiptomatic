@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include <time.h>
@@ -38,10 +39,10 @@
  * Based on code from nginx.
  *
  * Returns:
- * 	 0 for a match
- * 	-1 for no match
+ * 	 true for a match
+ * 	 false for no match
  */
-static int match_ipv6(const char *ip, const char *network, u8 prefixlen)
+static bool match_ipv6(const char *ip, const char *network, u8 prefixlen)
 {
 	int i;
 	unsigned char netb[sizeof(struct in6_addr)];
@@ -61,31 +62,29 @@ static int match_ipv6(const char *ip, const char *network, u8 prefixlen)
 
 	for (i = 0; i < 16; i++)
 		if ((ipb[i] & maskb[i]) != netb[i])
-			return -1;
+			return false;
 
-	return 0;
+	return true;
 }
 
 /*
  * Check if the given IPv4 address belongs to the specified network.
  *
  * Returns:
- * 	0 for a match
- * 	-1 for no match
+ * 	true for a match
+ * 	false for no match
  */
-static int match_ipv4(const char *ip, const char *network, unsigned short cidr)
+static bool match_ipv4(const char *ip, const char *network, unsigned short cidr)
 {
-	struct in_addr addr;
-	u32 n_addr;
+	struct in_addr ip_addr;
+	struct in_addr net_addr;
 
-	inet_aton(ip, &addr);
-	n_addr = addr.s_addr & htonl(~0UL << (32 - cidr));
-	addr.s_addr = n_addr;
+	inet_pton(AF_INET, network, &net_addr);
+	inet_pton(AF_INET, ip, &ip_addr);
 
-	if (strcmp(network, inet_ntoa(addr)) == 0)
-		return 0;
-	else
-		return -1;
+	ip_addr.s_addr &= htonl(~0UL << (32 - cidr));
+
+	return ip_addr.s_addr == net_addr.s_addr;
 }
 
 /*
@@ -137,16 +136,16 @@ static int check_ip_acl(void)
 				break;
 			}
 		} else {
-			int err;
+			bool match;
 			gchar **ipp = g_strsplit(token, "/", 0);
 
 			if (strchr(rip, ':'))
-				err = match_ipv6(rip, ipp[0], atoi(ipp[1]));
+				match = match_ipv6(rip, ipp[0], atoi(ipp[1]));
 			else
-				err = match_ipv4(rip, ipp[0], atoi(ipp[1]));
+				match = match_ipv4(rip, ipp[0], atoi(ipp[1]));
 
 			g_strfreev(ipp);
-			if (err == 0) {
+			if (match) {
 				ret = 0;
 				break;
 			}
