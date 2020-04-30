@@ -34,8 +34,7 @@
 
 #include <mysql.h>
 
-#include "../www/receiptomatic_config.h"
-#include "../www/get_config.h"
+#include "../www/config.h"
 
 #define BUF_SIZE	4096
 #define SQL_MAX		8192
@@ -50,15 +49,12 @@ char *log_dir;
 char *sql_log;
 int debug_level;
 
-char *db_host = "localhost";
-char *db_socket_name = NULL;
-unsigned int db_port_num = 3306;
-unsigned int db_flags = 0;
-
 struct email_headers {
 	char *from;
 	char *to;
 };
+
+const struct cfg *cfg;
 
 /*
  * Opens up a MySQL connection and returns the connection handle.
@@ -68,8 +64,9 @@ static MYSQL *db_conn(void)
 	MYSQL *conn;
 
 	conn = mysql_init(NULL);
-	mysql_real_connect(conn, DB_HOST, DB_USER, DB_PASS, DB_NAME,
-			DB_PORT_NUM, DB_SOCKET_NAME, DB_FLAGS);
+	mysql_real_connect(conn, cfg->db_host, cfg->db_user, cfg->db_pass,
+			   cfg->db_name, cfg->db_port_num, cfg->db_socket_name,
+			   cfg->db_flags);
 
 	return conn;
 }
@@ -80,19 +77,19 @@ static int do_config(void)
 
 	ret = access("/usr/local/etc/receiptomatic.cfg", R_OK);
 	if (ret == 0) {
-		get_config("/usr/local/etc/receiptomatic.cfg");
+		cfg = get_config("/usr/local/etc/receiptomatic.cfg");
 		goto out;
 	}
 
 	ret = access("/etc/receiptomatic.cfg", R_OK);
 	if (ret == 0) {
-		get_config("/etc/receiptomatic.cfg");
+		cfg = get_config("/etc/receiptomatic.cfg");
 		goto out;
 	}
 
 	ret = access("./receiptomatic.cfg", R_OK);
 	if (ret == 0) {
-		get_config("./receiptomatic.cfg");
+		cfg = get_config("./receiptomatic.cfg");
 		goto out;
 	}
 
@@ -108,10 +105,10 @@ static void send_error_email(const char *email_addr)
 	if (sent_email)
 		return;
 
-	FILE *fp = popen(MAIL_CMD, "w");
+	FILE *fp = popen(cfg->mail_cmd, "w");
 
-	fprintf(fp, "Reply-To: %s\r\n", MAIL_REPLY_TO);
-	fprintf(fp, "From: %s\r\n", MAIL_FROM);
+	fprintf(fp, "Reply-To: %s\r\n", cfg->mail_reply_to);
+	fprintf(fp, "From: %s\r\n", cfg->mail_from);
 	fprintf(fp, "Subject: Receiptomatic email error\r\n");
 	fprintf(fp, "To: %s\r\n", email_addr);
 	fputs("Content-Type: text/plain; charset=us-ascii\r\n", fp);
@@ -333,6 +330,7 @@ static void process_part(GMimeObject *parent, GMimeObject *part,
 	char *user;
 	char *from;
 	char *image_id;
+	char *db_name;
 	int bytes;
 	unsigned int uid;
 	time_t t;
@@ -365,14 +363,16 @@ static void process_part(GMimeObject *parent, GMimeObject *part,
 	user = alloca(strlen(eh->from)*2 + 1);
 	mysql_real_escape_string(conn, user, from, strlen(from));
 	free(from);
-	if (MULTI_TENANT) {
+	if (cfg->multi_tenant) {
 		char tenant[NI_MAXHOST];
-		char db[NI_MAXHOST + 3] = "rm_";
+		int len;
 
 		get_tenant(eh->to, tenant);
-		strncat(db, tenant, NI_MAXHOST);
-		free(db_name);
-		db_name = strdup(db);
+		len = asprintf(&db_name, "rm_%s", tenant);
+		if (len == -1) {
+			mysql_close(conn);
+			return;
+		}
 		fprintf(stderr, "Set db name to %s\n", db_name);
 	}
 	mysql_close(conn);
@@ -393,9 +393,9 @@ static void process_part(GMimeObject *parent, GMimeObject *part,
 
 	t = time(NULL);
 	strftime(ymd, sizeof(ymd), "%Y/%m/%d", localtime(&t));
-	bytes = snprintf(path, PATH_MAX, "%s/%s%s%u/%s", IMAGE_PATH,
-			(MULTI_TENANT) ? db_name + 3 : "",
-			(MULTI_TENANT) ? "/" : "", uid, ymd);
+	bytes = snprintf(path, PATH_MAX, "%s/%s%s%u/%s", cfg->image_path,
+			 cfg->multi_tenant ? db_name + 3 : "",
+			 cfg->multi_tenant ? "/" : "", uid, ymd);
 	if (bytes >= PATH_MAX)
 		goto out;
 	printf("Path: %s\n", path);
@@ -437,7 +437,7 @@ static void process_part(GMimeObject *parent, GMimeObject *part,
 	image_id = create_image_id(path, filename);
 
 	/* In the database we only store the path relative from IMAGE_PATH */
-	sprintf(path, "%s", path + strlen(IMAGE_PATH)+1);
+	sprintf(path, "%s", path + strlen(cfg->image_path) + 1);
 	snprintf(sql, SQL_MAX,
 		"INSERT INTO images VALUES ('%s', %u, '%s', %ld, '%s', '%s', "
 						"0, 1)",
@@ -449,6 +449,7 @@ static void process_part(GMimeObject *parent, GMimeObject *part,
 	free(image_id);
 
 out:
+	free(db_name);
 	mysql_free_result(res);
 	mysql_close(conn);
 }
@@ -501,7 +502,7 @@ int main(int argc, char **argv)
 	int err;
 
 	if (argc == 2) {
-		get_config(argv[1]);
+		cfg = get_config(argv[1]);
 	} else {
 		err = do_config();
 		if (err == -1) {

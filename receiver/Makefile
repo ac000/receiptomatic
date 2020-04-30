@@ -5,8 +5,8 @@ LIBS=-L../../libflate `pkg-config --libs gmime-2.6` `mysql_config --libs` `Graph
 INCS=-I../../libflate `pkg-config --cflags gmime-2.6` `mysql_config --cflags` `GraphicsMagick-config --cppflags`
 
 receiptomatic: receiptomatic.c
-	$(CC) $(CFLAGS) -c ../www/get_config.c ${INCS}
-	$(CC) $(CFLAGS) $(LDFLAGS) -o receiptomatic receiptomatic.c get_config.o ${LIBS} ${INCS}
+	$(CC) $(CFLAGS) -c ../www/config.c ${INCS}
+	$(CC) $(CFLAGS) $(LDFLAGS) -o receiptomatic receiptomatic.c config.o ${LIBS} ${INCS}
 
 clean:
 	rm -f receiptomatic *.o
