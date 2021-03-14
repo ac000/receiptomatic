@@ -4,7 +4,8 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
+ *		 2016, 2020 - 2021	Andrew Clayton
+ *					<andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -112,12 +113,14 @@ enum { STATS_ALL, STATS_USER };
  */
 #define d_fprintf(stream, fmt, ...) \
 	do { \
-		if (stream == debug_log && cfg->debug_level == 0) \
-			break; \
-		time_t secs = time(NULL); \
-		struct tm *tm = localtime(&secs); \
+		time_t secs; \
+		struct tm *tm; \
 		char ts_buf[32]; \
 		char tenant[TENANT_MAX + 1]; \
+		if (stream == debug_log && cfg->debug_level == 0) \
+			break; \
+		secs = time(NULL); \
+		tm = localtime(&secs);\
 		get_tenant(env_vars.host, tenant); \
 		strftime(ts_buf, sizeof(ts_buf), "%F %T %z", tm); \
 		fprintf(stream, "[%s] %d %s %s: " fmt, ts_buf, getpid(), \
