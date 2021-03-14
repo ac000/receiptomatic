@@ -5,7 +5,7 @@ $(shell mkdir -p $(DEPDIR) >/dev/null)
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
 CC      = gcc
-CFLAGS  = -Wall -Wextra -std=c99 -O2 -g \
+CFLAGS  = -Wall -Wextra -Wdeclaration-after-statement -Wvla -std=c99 -O2 -g \
           -Wp,-D_FORTIFY_SOURCE=2 -D_FILE_OFFSET_BITS=64 -D_HAVE_FCGX \
           -fexceptions -fstack-protector --param=ssp-buffer-size=4 -fPIE \
           -I../../libflate $(shell pkg-config --cflags glib-2.0) \
