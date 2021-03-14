@@ -11,7 +11,7 @@ CFLAGS  = -Wall -Wextra -Wdeclaration-after-statement -Wvla -std=c99 -O2 -g \
           -I../../libflate $(shell pkg-config --cflags glib-2.0) \
           $(shell pkg-config --cflags gmime-2.6) \
           $(shell mysql_config --cflags)
-LDFLAGS = -Wl,-z,now -pie
+LDFLAGS = -Wl,-z,now,-z,defs,-z,relro,--as-needed -fpie
 LIBS    = -L../../libflate $(shell pkg-config --libs glib-2.0) \
           $(shell pkg-config --libs gmime-2.6) \
           $(shell mysql_config --libs) \
