@@ -32,7 +32,7 @@
 #define sql_query(fmt, ...) \
 	__sql_query((const char *)__func__, fmt, ##__VA_ARGS__)
 
-extern MYSQL *conn;
+extern __thread MYSQL *conn;
 
 extern MYSQL *db_conn(void);
 extern MYSQL_RES *__sql_query(const char *func, const char *fmt, ...);

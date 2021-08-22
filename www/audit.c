@@ -305,7 +305,6 @@ static void *log_utmp_host(void *arg)
 	struct addrinfo hints;
 	struct addrinfo *res;
 	struct utmp_info *ui = (struct utmp_info *)arg;
-	MYSQL *db;
 
 	memset(&hints, 0, sizeof(struct addrinfo));
 	hints.ai_family = AF_UNSPEC;
@@ -313,11 +312,15 @@ static void *log_utmp_host(void *arg)
 	getnameinfo(res->ai_addr, res->ai_addrlen, host, NI_MAXHOST, NULL, 0,
 		    0);
 
-	db = db_conn();
+	/*
+	 * Set the TLS conn variable so the subsequent
+	 * make_mysql_safe_string() will work.
+	 */
+	conn = db_conn();
 	hostname = make_mysql_safe_string(host);
 	sql_query("UPDATE utmp SET hostname = '%s' WHERE sid = %llu",
 		   hostname, ui->sid);
-	mysql_close(db);
+	mysql_close(conn);
 	free(hostname);
 	free(ui);
 	freeaddrinfo(res);
