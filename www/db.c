@@ -34,6 +34,7 @@ __thread MYSQL *conn;
  */
 MYSQL *db_conn(void)
 {
+	MYSQL *mysql;
 	MYSQL *ret;
 	char *db_name;
 
@@ -49,25 +50,25 @@ MYSQL *db_conn(void)
 		db_name = strdup(cfg->db_name);
 	}
 
-	conn = mysql_init(NULL);
-	ret = mysql_real_connect(conn, cfg->db_host, cfg->db_user, cfg->db_pass,
-				 db_name, cfg->db_port_num,
+	mysql = mysql_init(NULL);
+	ret = mysql_real_connect(mysql, cfg->db_host, cfg->db_user,
+				 cfg->db_pass, db_name, cfg->db_port_num,
 				 cfg->db_socket_name, cfg->db_flags);
 	if (!ret) {
 		d_fprintf(error_log,
 			  "Failed to connect to database. Error: %s\n",
-			  mysql_error(conn));
-		switch (mysql_errno(conn)) {
+			  mysql_error(mysql));
+		switch (mysql_errno(mysql)) {
 		case ER_BAD_DB_ERROR:	/* unknown database */
 			send_page("templates/invalid.tmpl");
 			break;
 		}
-		mysql_close(conn);
-		conn = NULL;
+		mysql_close(mysql);
+		mysql = NULL;
 	}
 	free(db_name);
 
-	return conn;
+	return mysql;
 }
 
 /*
