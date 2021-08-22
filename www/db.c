@@ -60,6 +60,7 @@ static MYSQL *__db_conn(int db_conn_type)
 			send_page("templates/invalid.tmpl");
 			break;
 		}
+		mysql_close(dbc);
 		dbc = NULL;
 	}
 	free(db_name);
