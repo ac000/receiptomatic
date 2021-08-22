@@ -24,14 +24,11 @@
 /* Global MySQL connection handle */
 MYSQL *conn;
 
-enum { DB_CONN_GLOBAL, DB_CONN_LOCAL };
-
 /*
  * Opens up a MySQL connection and returns the connection handle.
  */
-static MYSQL *__db_conn(int db_conn_type)
+MYSQL *db_conn(void)
 {
-	MYSQL *dbc;
 	MYSQL *ret;
 	char *db_name;
 
@@ -47,44 +44,25 @@ static MYSQL *__db_conn(int db_conn_type)
 		db_name = strdup(cfg->db_name);
 	}
 
-	dbc = mysql_init(NULL);
-	ret = mysql_real_connect(dbc, cfg->db_host, cfg->db_user, cfg->db_pass,
+	conn = mysql_init(NULL);
+	ret = mysql_real_connect(conn, cfg->db_host, cfg->db_user, cfg->db_pass,
 				 db_name, cfg->db_port_num,
 				 cfg->db_socket_name, cfg->db_flags);
 	if (!ret) {
 		d_fprintf(error_log,
 			  "Failed to connect to database. Error: %s\n",
-			  mysql_error(dbc));
-		switch (mysql_errno(dbc)) {
+			  mysql_error(conn));
+		switch (mysql_errno(conn)) {
 		case ER_BAD_DB_ERROR:	/* unknown database */
 			send_page("templates/invalid.tmpl");
 			break;
 		}
-		mysql_close(dbc);
-		dbc = NULL;
+		mysql_close(conn);
+		conn = NULL;
 	}
 	free(db_name);
 
-	if (db_conn_type == DB_CONN_GLOBAL)
-		conn = dbc;
-
-	return dbc;
-}
-
-/*
- * Wrapper around __db_conn() to open a new global db connection.
- */
-MYSQL *db_conn(void)
-{
-	return __db_conn(DB_CONN_GLOBAL);
-}
-
-/*
- * Wrapper around __db_conn() to open a new local db connection.
- */
-MYSQL *db_conn_local(void)
-{
-	return __db_conn(DB_CONN_LOCAL);
+	return conn;
 }
 
 /*
@@ -98,12 +76,11 @@ MYSQL *db_conn_local(void)
  * This function will either return a result set or NULL. Note that some
  * queries don't return result sets by design.
  */
-MYSQL_RES *__sql_query(MYSQL *dbconn, const char *func, const char *fmt, ...)
+MYSQL_RES *__sql_query(const char *func, const char *fmt, ...)
 {
 	va_list args;
 	char sql[SQL_MAX];
 	int len;
-	MYSQL *dbc = conn;
 
 	va_start(args, fmt);
 	len = vsnprintf(sql, sizeof(sql), fmt, args);
@@ -122,9 +99,7 @@ MYSQL_RES *__sql_query(MYSQL *dbconn, const char *func, const char *fmt, ...)
 		fflush(sql_log);
 	}
 
-	if (dbconn)
-		dbc = dbconn;
+	mysql_real_query(conn, sql, len);
 
-	mysql_real_query(dbc, sql, len);
-	return mysql_store_result(dbc);
+	return mysql_store_result(conn);
 }

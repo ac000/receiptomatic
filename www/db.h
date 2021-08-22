@@ -30,19 +30,11 @@
  * along with the function name of the caller for the sql log.
  */
 #define sql_query(fmt, ...) \
-	__sql_query(NULL, (const char *)__func__, fmt, ##__VA_ARGS__)
-
-/*
- * Same as the above, but takes a MYSQL * for the connection to operate on.
- */
-#define sql_queryl(dbconn, fmt, ...) \
-	__sql_query(dbconn, (const char *)__func__, fmt, ##__VA_ARGS__)
+	__sql_query((const char *)__func__, fmt, ##__VA_ARGS__)
 
 extern MYSQL *conn;
 
 extern MYSQL *db_conn(void);
-extern MYSQL *db_conn_local(void);
-extern MYSQL_RES *__sql_query(MYSQL *dbconn, const char *func,
-			      const char *fmt, ...);
+extern MYSQL_RES *__sql_query(const char *func, const char *fmt, ...);
 
 #endif /* _DB_H_ */
