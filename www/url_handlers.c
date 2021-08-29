@@ -2256,10 +2256,11 @@ static jmp_buf env;
  */
 static inline void uri_map(const char *uri, void (uri_handler)(void))
 {
-	if (match_uri(uri)) {
-		uri_handler();
-		longjmp(env, 1);
-	}
+	if (!match_uri(uri))
+		return;
+
+	uri_handler();
+	longjmp(env, 1);
 }
 
 /*
