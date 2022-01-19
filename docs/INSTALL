@@ -59,7 +59,6 @@ Something like this
 libflate
 
     $ cd libflate
-    $ git checkout --track -b fcgx origin/fcgx
     $ make
 
 receiptomatic

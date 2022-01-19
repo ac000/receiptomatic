@@ -4,7 +4,8 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
+ *		 2016, 2020, 2022	Andrew Clayton
+ *					<andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -816,8 +817,12 @@ void gather_receipt_stats_for_user(unsigned int uid, int whom, Flate *f)
  */
 void send_template(Flate *f)
 {
-	fcgx_p("Cache-Control: private\r\n");
-	lf_send(f, "text/html", fcgx_out);
+	char *buf = flatePage(f);
+
+	fcgx_p("Cache-Control: private\r\n"
+	       "Content-Type: text/html\r\n\r\n"
+	       "%s", buf);
+	free(buf);
 	fflush(error_log);
 }
 
