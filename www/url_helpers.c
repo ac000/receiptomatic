@@ -820,8 +820,8 @@ void send_template(Flate *f)
 	char *buf = flatePage(f);
 
 	fcgx_p("Cache-Control: private\r\n"
-	       "Content-Type: text/html\r\n\r\n"
-	       "%s", buf);
+	       "Content-Type: text/html\r\n"
+	       "Content-Length: %d\r\n\r\n%s", strlen(buf), buf);
 	free(buf);
 	fflush(error_log);
 }
