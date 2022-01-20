@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016, 2020 - 2021	Andrew Clayton
+ *		 2016, 2020 - 2022	Andrew Clayton
  *					<andrew@digital-domain.net>
  *
  * Released under the GNU Affero General Public License version 3.
@@ -140,7 +140,6 @@ enum { STATS_ALL, STATS_USER };
 #define lf_set_tmpl		flateSetFile
 #define lf_set_var		flateSetVar
 #define lf_set_row		flateDumpTableLine
-#define lf_send			flatePrint
 #define lf_free			flateFreeMem
 
 /*
