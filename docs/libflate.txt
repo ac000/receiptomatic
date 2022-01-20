@@ -1,19 +1,23 @@
 libflate AKA Flate AKA FLATE Library is a library for handling HTML templates
-in C by Fabien Menemenlis. Website here http://flate.dead-inside.org/
+in C by Fabien Menemenlis. Although it seems to have been long abandoned by
+its author and its website no longer exists, here is the last version from
+archive.org (https://web.archive.org/web/20170312075448/http://flate.dead-inside.org/)
 
-However receiptomatic uses a slightly modified version of the library to
-work with the FastCGI FCGX API, which can be found here
-https://github.com/ac000/libflate/tree/fcgx
+I have a copy of the code here (https://github.com/ac000/libflate) to which I
+have made some fixes/enhancements.
 
 This document will describe that interface (I have created wrappers around
 some of the original Flate functions to keep in with my naming conventions).
 
-The functions currently used are
+The following describes the usage of libflate with regards to receiptomatic.
+
+The functions currently used are (these are aliases for the underlying
+libflate functions to provide a consistent naming convention with the
+rest of the code)
 
 lf_set_tmpl	- Used to tell Flate which template file to operate on.
 lf_set_var	- Used to create a template variable.
 lf_set_row	- Used to indicate a row of data in a loop.
-lf_send		- Used to send the template to the client.
 lf_free		- Free all memory used by Flate.
 
 
@@ -51,26 +55,18 @@ identify it to the template.
 This is used to construct rows of variables gathered from a loop to display
 for example in a table.
 
-void lf_send(Flate *tmplte, char *type, FCGX_Stream *out)
+void send_template(Flate *f)
 
-This takes a previously initialised Flate data structure, a string containing
-the content type of the template and the FCGX network stream.
-
-Note that this functions shouldn't be used directly, instead the
-send_template fucntion should be used instead. It has the following prototype
-
-    void send_template(Flate *f)
-
-This just takes the Flate data structure and calls lf_send with the right
-arguments.
+Not part of libflate but somewhat related. This takes the Flate data structure
+and calls flatePage() on it to get the processed template into a memory buffer
+which is then sent to the client.
 
 void lf_free(Flate *tmplte)
 
 This takes a Flate data structure and free's all its associated memory.
 
 
-Here's a simple example. See http://flate.dead-inside.org/README.txt for some
-more details. NOTE: This is independent of receiptomatic
+Here's a simple example. NOTE: This is independent of receiptomatic
 
 #include <fcgiapp.h>
 #include <flate.h>
@@ -78,7 +74,6 @@ more details. NOTE: This is independent of receiptomatic
 #define lf_set_tmpl		flateSetFile
 #define lf_set_var		flateSetVar
 #define lf_set_row		flateDumpTableLine
-#define lf_send			flatePrint
 #define lf_free			flateFreeMem
 
 #define NR_OS			5
@@ -105,6 +100,7 @@ int main(int argc, char *argv[])
 
 	while (FCGX_Accept(&fcgx_in, &fcgx_out, &fcgx_err, &fcgx_envp) >= 0) {
 		Flate *f = NULL;
+		char *buf;
 		int i;
 
 		lf_set_tmpl(&f, "page.tmpl");
@@ -114,7 +110,10 @@ int main(int argc, char *argv[])
 			lf_set_row(f, "oses");
 		}
 
-		lf_send(f, "text/html", fcgx_out);
+		buf = flatePage(f);
+		FCGX_FPrintF(fcgx_out,
+			     "Content-Type: text/html\r\n\r\n%s", buf);
+		free(buf);
 		lf_free(f);
 		FCGX_Finish();
 	}
