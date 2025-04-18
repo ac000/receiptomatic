@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2012	OpenTech Labs
  * 				Andrew Clayton <andrew@digital-domain.net>
  *
- * 		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
+ * 		 2016 - 2025	Andrew Clayton <ac@sigsegv.uk>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -437,12 +437,10 @@ static void process_part(GMimeObject *parent, GMimeObject *part,
 	image_id = create_image_id(path, filename);
 
 	/* In the database we only store the path relative from IMAGE_PATH */
-	sprintf(path, "%s", path + strlen(cfg->image_path) + 1);
-	snprintf(sql, SQL_MAX,
-		"INSERT INTO images VALUES ('%s', %u, '%s', %ld, '%s', '%s', "
-						"0, 1)",
-						image_id, uid, user, t, path,
-						filename);
+	snprintf(sql, SQL_MAX, "INSERT INTO images VALUES "
+			       "('%s', %u, '%s', %ld, '%s', '%s', 0, 1)",
+		image_id, uid, user, t, path + strlen(cfg->image_path) + 1,
+		filename);
 	printf("SQL: %s\n", sql);
 	mysql_query(conn, sql);
 
