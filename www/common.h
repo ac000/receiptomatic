@@ -4,8 +4,7 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- *		 2016, 2020 - 2022	Andrew Clayton
- *					<andrew@digital-domain.net>
+ *		 2016 - 2025	Andrew Clayton <ac@sigsegv.uk>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -36,6 +35,14 @@
 
 #define __unused		__attribute__((unused))
 #define __maybe_unused		__attribute__((unused))
+
+#ifndef __nonstring
+#if defined(__GNUC__) && !defined(__clang__)
+#define __nonstring             __attribute__((nonstring))
+#else
+#define __nonstring
+#endif
+#endif
 
 #define GRID_SIZE	9
 #define ROW_SIZE	3
