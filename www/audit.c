@@ -4,7 +4,7 @@
  * Copyright (C) 2011-2013	OpenTech Labs
  *				Andrew Clayton <andrew@digital-domain.net>
  *
- * 		 2016, 2020	Andrew Clayton <andrew@digital-domain.net>
+ * 		 2016 - 2025	Andrew Clayton <ac@sigsegv.uk>
  *
  * Released under the GNU Affero General Public License version 3.
  * See COPYING
@@ -449,7 +449,7 @@ void display_last_login(Flate *f)
 void create_session(unsigned long long sid)
 {
 	char session_id[SID_LEN + 1];
-	char restrict_ip[2] = "0\0";
+	char restrict_ip[2] = "0";
 	char pkbuf[256];
 	char timestamp[21];
 	char ssid[21];
