@@ -41,4 +41,4 @@ or directly in the Documentation/process/coding-style.rst file in your kernel
 source tree.
 
 Contributions can be mailed directly to the current maintainer via:
-Andrew Clayton <andrew@digital-domain.net>
+Andrew Clayton <ac@sigsegv.uk>
